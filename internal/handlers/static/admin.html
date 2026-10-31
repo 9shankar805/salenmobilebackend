@@ -2821,18 +2821,19 @@ function renderCourses(courses) {
       const img = c.imageAsset || c.ImageAsset || '';
       return `
         <div class="card" style="display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border)">
-          <div style="position:relative;height:120px;background:linear-gradient(135deg,#1e1b4b,#312e81);overflow:hidden;cursor:pointer" onclick="window.location.href='/admin/curriculum?courseId=${id}'" title="Open Curriculum">
+          <div style="position:relative;height:120px;background:linear-gradient(135deg,#1e1b4b,#312e81);overflow:hidden;cursor:pointer" onclick="window.location.href='/admin/courses/${id}'" title="Open Course Workspace">
             ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>` : ''}
             <div style="position:absolute;top:8px;left:8px"><span class="badge b-purple">${cat}</span></div>
             <div style="position:absolute;top:8px;right:8px"><span class="badge ${pub ? 'b-green' : 'b-gray'}">${pub ? 'Published' : 'Draft'}</span></div>
           </div>
           <div style="padding:14px;flex:1;display:flex;flex-direction:column;justify-content:space-between">
             <div>
-              <div style="font-weight:700;font-size:14px;cursor:pointer" class="trunc2" title="Open Curriculum: ${title}" onclick="window.location.href='/admin/curriculum?courseId=${id}'">${title}</div>
+              <div style="font-weight:700;font-size:14px;cursor:pointer;color:var(--text)" class="trunc2" title="Open Course Workspace: ${title}" onclick="window.location.href='/admin/courses/${id}'">${title}</div>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
               <span style="font-weight:800;color:var(--primary)">NPR ${price.toLocaleString()}</span>
               <div style="display:flex;gap:4px">
+                <a href="/admin/courses/${id}" class="btn btn-outline btn-xs" title="Open Course Workspace (12 Modules)"><i class="fas fa-layer-group" style="color:var(--cyan)"></i></a>
                 <a href="/admin/curriculum?courseId=${id}" class="btn btn-primary btn-xs" title="Curriculum Builder"><i class="fas fa-sitemap"></i></a>
                 <button class="btn btn-outline btn-xs" onclick="editCourseById('${id}')" title="Edit"><i class="fas fa-pen"></i></button>
               </div>
@@ -2854,14 +2855,15 @@ function renderCourses(courses) {
         const pub = !!(c.isPublished || c.IsPublished);
         return `<tr>
           <td style="color:var(--text4)">${i+1}</td>
-          <td><div style="font-weight:700;max-width:240px;cursor:pointer;color:var(--primary)" class="trunc" title="Open Curriculum: ${title}" onclick="window.location.href='/admin/curriculum?courseId=${id}'">${title}</div><div style="font-size:11px;color:var(--text4)">Instructor: ${c.instructorName||c.Instructor||'Salen Dangol'}</div></td>
+          <td><div style="font-weight:700;max-width:240px;cursor:pointer;color:var(--primary)" class="trunc" title="Open Course Workspace: ${title}" onclick="window.location.href='/admin/courses/${id}'">${title}</div><div style="font-size:11px;color:var(--text4)">Instructor: ${c.instructorName||c.Instructor||'Salen Dangol'}</div></td>
           <td><span class="badge b-gray">${cat}</span></td>
           <td class="mono trunc" style="max-width:180px;color:var(--text3);font-size:11.5px">${slug}</td>
           <td style="font-weight:700">NPR ${price.toLocaleString()}</td>
           <td style="text-align:center"><span class="badge b-blue">${les}</span></td>
           <td>${pub ? '<span class="badge b-green">Published</span>' : '<span class="badge b-gray">Draft</span>'}</td>
           <td style="white-space:nowrap">
-            <button class="btn btn-outline btn-xs" onclick="editCourseById('${id}')" title="Edit course metadata"><i class="fas fa-pen"></i></button>
+            <a href="/admin/courses/${id}" class="btn btn-outline btn-xs" title="Open Course Workspace"><i class="fas fa-layer-group" style="color:var(--cyan)"></i></a>
+            <button class="btn btn-outline btn-xs" style="margin-left:4px" onclick="editCourseById('${id}')" title="Edit course metadata"><i class="fas fa-pen"></i></button>
             <a href="/admin/curriculum?courseId=${id}" class="btn btn-primary btn-xs" style="margin-left:4px" title="Curriculum Builder"><i class="fas fa-sitemap"></i></a>
             <button class="btn btn-danger btn-xs" style="margin-left:4px" onclick="deleteCourse('${id}','${title.replace(/'/g,"\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
           </td>
