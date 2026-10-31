@@ -2974,11 +2974,7 @@ async function loadCurriculumPage() {
 }
 
 function openCurrForCourse(id) {
-  goPage('curriculum');
-  setTimeout(() => {
-    document.getElementById('currSel').value = id;
-    loadCurriculum();
-  }, 100);
+  window.location.href = '/admin/curriculum?courseId=' + id;
 }
 
 async function loadCurriculum() {
