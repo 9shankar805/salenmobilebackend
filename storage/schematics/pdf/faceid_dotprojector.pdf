@@ -1,0 +1,50 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1115 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (IPHONE FACE ID DOT PROJECTOR & FLOOD ILLUMINATOR LINE MAP) Tj /F1 10 Tf T*
+(TrueDepth Biometric Sensor Repair & MOSFET Bypass | Sheet 1 of 1) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (DOT PROJECTOR VCSEL LASER CIRCUIT) Tj /F1 10 Tf T*
+/F1 11 Tf (Vertical-Cavity Surface-Emitting Laser Diagnostics) Tj /F1 10 Tf T*
+ 
+(VDD_LASER Supply: 3.3V power line from PMU | Diode Mode: 430mV) Tj T*
+(I2C Control Line: 1.8V encrypted handshake directly with Secure Enclave) Tj T*
+(DOE Glass Prism Sensor: Capacitive safety sensor detecting detached lens) Tj T*
+(Safety Interlock: If DOE prism shifts by > 0.02mm, internal MOSFET fuses open) Tj T*
+(MOSFET Bypass: Micro-jumper from Drain to Source pad with 0.01mm enamelled wire) Tj T*
+(Warning: Always work under ESD mat; static electricity burns infrared laser chip instantly) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1478
+%%EOF

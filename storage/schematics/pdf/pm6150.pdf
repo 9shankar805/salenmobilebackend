@@ -1,0 +1,108 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R 8 0 R] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1080 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (QUALCOMM PM6150 PMIC POWER RAILS SCHEMATIC) Tj /F1 10 Tf T*
+(Salen Mobile Guru Hardware Blueprint | Sheet 1 of 3) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (POWER DISTRIBUTION & INPUT STAGE) Tj /F1 10 Tf T*
+/F1 11 Tf (Primary VPH_PWR and Battery Fuel Gauge Interconnects) Tj /F1 10 Tf T*
+ 
+(VBAT Input: Pin A1, A2, A3 \(3.7V - 4.35V nominal DC\)) Tj T*
+(VPH_PWR Switching Output: Coil L1001 \(1.0uH 4.5A\) -> Diode Mode to GND: 420mV) Tj T*
+(Cold Resistance on VPH_PWR to GND: > 15K Ohms \(healthy board\)) Tj T*
+(Leakage Threshold: Any current > 0.005A on standby indicates secondary line leak) Tj T*
+(Charge Pump Boost Line: Pin C4 to C1045 \(Diode Mode: 510mV, Boost: 5.4V during display ON\)) Tj T*
+(SMB1390 Fast Charge Interconnect: I2C address 0x18 \(SDA: 1.8V, SCL: 1.8V\)) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 1072 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (QUALCOMM PM6150 PMIC POWER RAILS SCHEMATIC) Tj /F1 10 Tf T*
+(Salen Mobile Guru Hardware Blueprint | Sheet 2 of 3) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (BUCK CONVERTER OUTPUT SEQUENCE) Tj /F1 10 Tf T*
+/F1 11 Tf (Secondary Regulated Voltage Supplies for Application Processor) Tj /F1 10 Tf T*
+ 
+(BUCK S1A \(VDD_CORE\): 0.75V - 0.95V @ 6.0A | Coil L1002 | Diode: 180mV) Tj T*
+(BUCK S2A \(VDD_MODEM\): 0.65V - 0.85V @ 4.0A | Coil L1003 | Diode: 210mV) Tj T*
+(BUCK S3A \(VDD_RAM LPDDR4X\): 1.125V @ 3.5A | Coil L1004 | Diode: 260mV) Tj T*
+(BUCK S4A \(VDD_MEM UFS\): 1.80V @ 2.5A | Coil L1005 | Diode: 410mV) Tj T*
+(BUCK S5A \(VREG_BOB\): 3.30V System Boost | Coil L1006 | Diode: 480mV) Tj T*
+(Diagnostic Rule: If S1A or S3A shows < 15mV in diode mode, CPU core is shorted) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 9 0 R >>
+endobj
+9 0 obj
+<< /Length 1068 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (QUALCOMM PM6150 PMIC POWER RAILS SCHEMATIC) Tj /F1 10 Tf T*
+(Salen Mobile Guru Hardware Blueprint | Sheet 3 of 3) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (LDO VOLTAGE RAILS & SLEEP OSCILLATOR) Tj /F1 10 Tf T*
+/F1 11 Tf (Low-Dropout Regulators and Clock Management) Tj /F1 10 Tf T*
+ 
+(LDO 1A \(VREG_L1A_1P0\): 1.0V clean analog rail for PLL | Diode: 390mV) Tj T*
+(LDO 5A \(VREG_L5A_1P8\): 1.8V digital sensor & pull-up supply | Diode: 450mV) Tj T*
+(LDO 6A \(VREG_L6A_2P8\): 2.8V Touch IC & Camera analog supply | Diode: 520mV) Tj T*
+(32.768 KHz Sleep Clock \(XO_CLK\): Pin E5 -> Amplitude: 1.2V P-P) Tj T*
+(PMIC Reset Line \(PS_HOLD\): High \(1.8V\) from CPU to PMIC within 120ms of boot) Tj T*
+(Power Key \(PWR_KEY_N\): Pulled high to 1.8V by internal 100K resistor) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000127 00000 n 
+0000000197 00000 n 
+0000000323 00000 n 
+0000001455 00000 n 
+0000001581 00000 n 
+0000002705 00000 n 
+0000002831 00000 n 
+trailer
+<< /Size 10 /Root 1 0 R >>
+startxref
+3951
+%%EOF

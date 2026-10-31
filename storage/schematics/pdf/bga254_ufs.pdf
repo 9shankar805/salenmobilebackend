@@ -1,0 +1,78 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1032 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (BGA 254 UFS 2.1 / 3.1 DIRECT PINOUT & SIGNAL REFERENCE) Tj /F1 10 Tf T*
+(Universal Flash Storage Ball Grid Array Specification | Sheet 1 of 2) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (BGA 254 PINOUT SPECIFICATION) Tj /F1 10 Tf T*
+/F1 11 Tf (High-Speed Memory Bus & Power Balls) Tj /F1 10 Tf T*
+ 
+(VCC Balls \(K4, L4, M4\): 3.3V / 2.8V NAND Flash Memory Array supply) Tj T*
+(VCCQ Balls \(B2, B3\): 1.8V Interface Logic Supply) Tj T*
+(VCCQ2 Balls \(C2, D2\): 1.2V Low-Voltage Differential Signaling core) Tj T*
+(DIN_T / DIN_C: Differential input pair \(High-speed M-PHY Lane 0\)) Tj T*
+(DOUT_T / DOUT_C: Differential output pair \(High-speed M-PHY Lane 0\)) Tj T*
+(RST_N: Active-low hardware reset signal from Application Processor) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 973 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (BGA 254 UFS 2.1 / 3.1 DIRECT PINOUT & SIGNAL REFERENCE) Tj /F1 10 Tf T*
+(Universal Flash Storage Ball Grid Array Specification | Sheet 2 of 2) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (UFS LUN PARTITION MAP) Tj /F1 10 Tf T*
+/F1 11 Tf (Logical Unit Number Layout for Android Boot) Tj /F1 10 Tf T*
+ 
+(LUN 0: User Area \(Ext4 / F2FS file system with user data\)) Tj T*
+(LUN 1 \(Boot A\): Secondary Boot Loader \(xbl_a, abl_a, tz_a\)) Tj T*
+(LUN 2 \(Boot B\): Redundant Boot Loader \(xbl_b, abl_b, tz_b\)) Tj T*
+(LUN 3: RPMB \(Replay Protected Memory Block\) - Cryptographic pairing keys) Tj T*
+(RPMB Counter: Write counter cannot be reset; mismatch causes Qualcomm 9008 loop) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000317 00000 n 
+0000001401 00000 n 
+0000001527 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+2551
+%%EOF

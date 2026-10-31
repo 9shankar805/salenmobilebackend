@@ -1,0 +1,48 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 913 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (MEDIATEK DIMENSITY 9200 POWER SEQUENCING & THERMAL PAD MATRIX) Tj /F1 10 Tf T*
+(MT6985 Ultra-Flagship Power Grid | Sheet 1 of 1) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (MT6985 CHIP-LEVEL POWER TOPOLOGY) Tj /F1 10 Tf T*
+/F1 11 Tf (Multi-Phase Digital Power Distribution) Tj /F1 10 Tf T*
+ 
+(VCORE Phase 1 & 2: 0.60V - 0.90V digital multiphase BUCK converters) Tj T*
+(VGPU Phase 1, 2 & 3: Immortalis-G715 GPU high-current power stages) Tj T*
+(VMD \(Modem Digital Core\): 0.70V power rail for Sub-6GHz & mmWave baseband) Tj T*
+(Thermal Pad Matrix: Central copper slug ground pad requiring 380 deg C preheat reflow) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1275
+%%EOF

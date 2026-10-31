@@ -1,0 +1,79 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1043 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (IPHONE 14 PRO SANDWICH INTERPOSER PINOUT & SIGNAL MAP) Tj /F1 10 Tf T*
+(Double-Decker Logic Board Interconnect Matrix | Sheet 1 of 2) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (TOP BOARD (AP & MEMORY) INTERPOSER MATRIX) Tj /F1 10 Tf T*
+/F1 11 Tf (Power & Critical Handshake Signal Pads) Tj /F1 10 Tf T*
+ 
+(Pads 1-8: PP_VDD_MAIN Primary system distribution \(3.8V - 4.4V\) | Diode: 395mV) Tj T*
+(Pads 9-16: PP_VDD_BOOST Camera & audio high-power line | Diode: 420mV) Tj T*
+(Pad 22: AP_BI_I2C0_SDA \(1.8V bus communication to Bottom Board PMU\)) Tj T*
+(Pad 23: AP_TO_I2C0_SCL \(1.8V bus clock line\)) Tj T*
+(Pad 35: RESET_1V8_L \(System active-low master reset line\) | Diode: 520mV) Tj T*
+(Pads 40-48: GND Shielded Ground Return Isolation Pads) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 1081 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (IPHONE 14 PRO SANDWICH INTERPOSER PINOUT & SIGNAL MAP) Tj /F1 10 Tf T*
+(Double-Decker Logic Board Interconnect Matrix | Sheet 2 of 2) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (BOTTOM BOARD (BASEBAND & RF) INTERPOSER MATRIX) Tj /F1 10 Tf T*
+/F1 11 Tf (Cellular Transceiver & Antenna Switch Interfaces) Tj /F1 10 Tf T*
+ 
+(Pads 60-66: PP_0V8_SMPS1 Baseband Core Supply \(Qualcomm X65 5G Modem\)) Tj T*
+(Pads 70-74: PP_1V8_LDO Modem I/O & Memory Rail | Diode: 460mV) Tj T*
+(Pad 85: BB_TO_AP_UART_TX \(High-speed telemetry to A16 Bionic CPU\)) Tj T*
+(Pad 86: AP_TO_BB_UART_RX \(Baseband command line\)) Tj T*
+(Separation Temp: 195 deg C on heating platform | Reball Paste: 158 deg C Sn64Bi35Ag1) Tj T*
+(Jig Testing: QianLi Mega-Idea iSocket middle-layer quick clamp before resoldering) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000317 00000 n 
+0000001412 00000 n 
+0000001538 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+2671
+%%EOF

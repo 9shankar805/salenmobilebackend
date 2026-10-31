@@ -1,0 +1,79 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1071 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (SUB-PBA & CHARGING IC (BQ25890) SCHEMATIC) Tj /F1 10 Tf T*
+(USB Type-C & Battery Fast Charging Architecture | Sheet 1 of 2) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (USB TYPE-C FRONT END & OVP PROTECTION) Tj /F1 10 Tf T*
+/F1 11 Tf (Over-Voltage Protection & VBUS Distribution) Tj /F1 10 Tf T*
+ 
+(VBUS Input: 5V / 9V / 12V QC/PD fast charge input | Diode: 580mV) Tj T*
+(OVP FET \(WS3222D\): Clamps VBUS if voltage exceeds 14.5V within 50ns) Tj T*
+(CC1 / CC2 \(Configuration Channels\): 5.1K pull-down for 5V 3A detection) Tj T*
+(D+ / D- High-Speed Lines: Fast charge handshake \(QC 3.0 / AFC / FCP\)) Tj T*
+(VBUS to PMIC Input Capacitor: 10uF 25V X5R ceramic cap \(frequent short point\)) Tj T*
+(Thermal Shutdown Threshold: 145 deg C with automatic recovery at 120 deg C) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 1098 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (SUB-PBA & CHARGING IC (BQ25890) SCHEMATIC) Tj /F1 10 Tf T*
+(USB Type-C & Battery Fast Charging Architecture | Sheet 2 of 2) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (BQ25890 SWITCH-MODE BUCK CHARGER) Tj /F1 10 Tf T*
+/F1 11 Tf (High-Efficiency 5A Single-Cell Charger Stage) Tj /F1 10 Tf T*
+ 
+(SW Pin \(Switching Node\): 1.5MHz high frequency square wave to coil L3001) Tj T*
+(SYS Pin \(System Output\): Automatically arbitrated between VBUS and Battery) Tj T*
+(BAT Pin: Direct Kelvin-sense line to Li-Ion battery pack \(Charge cut-off: 4.40V\)) Tj T*
+(TS \(Temperature Sense\): Connects to 10K NTC thermistor inside battery flex) Tj T*
+(STAT Pin \(Open-Drain\): Low during active charge, High-Z when charge complete) Tj T*
+(I2C Control Bus: 400KHz fast mode to CPU for programmable charge currents) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000317 00000 n 
+0000001440 00000 n 
+0000001566 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+2716
+%%EOF

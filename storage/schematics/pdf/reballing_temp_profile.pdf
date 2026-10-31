@@ -1,0 +1,49 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1074 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (HIGH-END SOC REBALLING TEMPERATURE PROFILE & REFLOW CURVE) Tj /F1 10 Tf T*
+(SMD Workshop Guide & Reflow Oven Specifications | Sheet 1 of 1) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (TEMPERATURE PROFILE STAGES) Tj /F1 10 Tf T*
+/F1 11 Tf (Standard Sn63Pb37 Solder Paste Heating Profile) Tj /F1 10 Tf T*
+ 
+(Stage 1 \(Preheat\): 25 deg C to 120 deg C over 60 seconds \(Rate: 1.5 deg C/sec\)) Tj T*
+(Stage 2 \(Soak\): 120 deg C to 150 deg C for 90 seconds \(Flux activation & solvent burnoff\)) Tj T*
+(Stage 3 \(Reflow Peak\): 183 deg C \(liquidus\) ramping to 215 deg C peak for 20-30 seconds) Tj T*
+(Stage 4 \(Cooling\): Gradual cooling to 60 deg C at 3 deg C/sec to ensure crystal uniformity) Tj T*
+(Flux Recommendation: Genuine Amtech NC-559-ASM or Mechanic UV50 tacky flux) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1437
+%%EOF

@@ -1,0 +1,79 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1060 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (IPHONE 13 DISPLAY FPC DIODE READINGS & POWER RAILS) Tj /F1 10 Tf T*
+(Display Connector Pinout & Touch IC Traces | Sheet 1 of 2) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (FPC CONNECTOR J5700 DIODE VALUE MAP) Tj /F1 10 Tf T*
+/F1 11 Tf (Pins 1 to 20 Reading Matrix (Multimeter Red Probe on GND)) Tj /F1 10 Tf T*
+ 
+(Pin 1 \(GND\): 0.000 \(Beep\) | Clean ground reference return) Tj T*
+(Pin 2 \(PP_VAR_SOC_DSI\): 460mV | Dynamic OLED core supply) Tj T*
+(Pin 3 \(MIPI_DSI_DATA0_P\): 375mV | High-speed differential positive) Tj T*
+(Pin 4 \(MIPI_DSI_DATA0_N\): 375mV | High-speed differential negative) Tj T*
+(Pin 7 \(PP5V7_DISPLAY_AVDD_PLUS\): 530mV | +5.7V analog display rail) Tj T*
+(Pin 9 \(PP5V7_DISPLAY_AVDD_MINUS\): 540mV | -5.7V inverted analog display rail) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 1066 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (IPHONE 13 DISPLAY FPC DIODE READINGS & POWER RAILS) Tj /F1 10 Tf T*
+(Display Connector Pinout & Touch IC Traces | Sheet 2 of 2) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (TOUCH CONTROLLER & EEPROM LINES) Tj /F1 10 Tf T*
+/F1 11 Tf (True Tone & Ambient Light Sensor Integration) Tj /F1 10 Tf T*
+ 
+(Pin 12 \(TOUCH_RESET_L\): 590mV | 1.8V Touch reset line) Tj T*
+(Pin 14 \(SPI_TOUCH_MOSI\): 490mV | 24MHz Serial peripheral data in) Tj T*
+(Pin 15 \(SPI_TOUCH_MISO\): 490mV | 24MHz Serial peripheral data out) Tj T*
+(Pin 18 \(I2C_DISPLAY_EEPROM_SDA\): 480mV | Encrypted True Tone serialization code) Tj T*
+(Pin 19 \(I2C_DISPLAY_EEPROM_SCL\): 480mV | Clock line to display micro-EEPROM) Tj T*
+(Grinding Rule: Grind touch IC to 0.12mm without puncturing OLED flex substrate) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000317 00000 n 
+0000001429 00000 n 
+0000001555 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+2673
+%%EOF

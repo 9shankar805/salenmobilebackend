@@ -1,0 +1,79 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1106 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (DISPLAY BACKLIGHT & AMOLED POWER IC LINE MAP) Tj /F1 10 Tf T*
+(Display Driver & High-Voltage Circuitry | Sheet 1 of 2) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (AMOLED DUAL POLARITY VOLTAGE RAILS) Tj /F1 10 Tf T*
+/F1 11 Tf (Display Bias Generator (TI TPS65633 / SGM3833)) Tj /F1 10 Tf T*
+ 
+(AVDD \(Analog VDD\): +4.6V DC @ 150mA | Filter Cap C2401 | Diode: 480mV) Tj T*
+(ELVDD \(OLED Positive Rail\): +4.6V DC @ 400mA | Output Coil L2401 | Diode: 490mV) Tj T*
+(ELVSS \(OLED Negative Rail\): -1.4V to -4.0V DC | Inverting Charge Pump Cap C2405) Tj T*
+(SW_BOOST \(Switching Node\): 2.2MHz PWM drive | Diode: 550mV \(cathode to rail\)) Tj T*
+(MIPI DSI Data Pairs: D0P/D0N, D1P/D1N, D2P/D2N, D3P/D3N \(All: 380mV +/- 15mV\)) Tj T*
+(If ELVSS rail reads 0V or positive voltage, replace OLED bias IC immediately) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 1080 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (DISPLAY BACKLIGHT & AMOLED POWER IC LINE MAP) Tj /F1 10 Tf T*
+(Display Driver & High-Voltage Circuitry | Sheet 2 of 2) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (LCD BACKLIGHT DRIVER CIRCUIT) Tj /F1 10 Tf T*
+/F1 11 Tf (Step-Up LED Driver Boost (up to 40V DC)) Tj /F1 10 Tf T*
+ 
+(LED_A \(Anode String\): +18V to +28V DC under load \(3.8V standby\) | Diode: 430mV) Tj T*
+(LED_K1 \(Cathode String 1\): Current sink PWM controlled \(0.3V - 0.8V\)) Tj T*
+(LED_K2 \(Cathode String 2\): Current sink PWM controlled \(0.3V - 0.8V\)) Tj T*
+(Schottky Diode D2401: Forward drop 180mV - 240mV | Reverse breakdown > 45V) Tj T*
+(Boost Inductor L2402: 10uH 1.8A Shielded SMD Power Inductor \(DCR < 0.15 Ohm\)) Tj T*
+(Common Fault: Blown backlight filter resistor \(0 Ohm\) causing black display) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000317 00000 n 
+0000001475 00000 n 
+0000001601 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+2733
+%%EOF

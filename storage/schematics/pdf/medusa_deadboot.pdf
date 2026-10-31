@@ -1,0 +1,49 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1020 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (MEDUSA PRO II DEAD BOOT PARTITION & RPMB MAP) Tj /F1 10 Tf T*
+(Bootloader Reconstruction for Qualcomm & MediaTek | Sheet 1 of 1) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (DEAD BOOT REPAIR PROCEDURES) Tj /F1 10 Tf T*
+/F1 11 Tf (Restoring ExtCSD & Partition Table) Tj /F1 10 Tf T*
+ 
+(ExtCSD Register 179 [PARTITION_CONFIG]: 0x48 for MTK \(Boot from Boot1 8-bit\)) Tj T*
+(ExtCSD Register 179 [PARTITION_CONFIG]: 0x38 for Qualcomm \(Boot from Boot1\)) Tj T*
+(ExtCSD Register 177 [BOOT_BUS_CONDITIONS]: 0x02 \(High-speed DDR 8-bit bus\)) Tj T*
+(GUID Partition Table \(GPT\): Write rawprogram0.xml and patch0.xml via Medusa Pro II) Tj T*
+(NVRAM / Modem Restoration: Write modemst1, modemst2, and fsg to restore original IMEI) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1383
+%%EOF

@@ -1,0 +1,29 @@
+# Environment variables (contains secrets - never commit)
+.env
+
+# Compiled binaries
+bin/
+server
+*.exe
+*.out
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Go build cache
+/vendor/
+
+# Scratch files
+scratch/

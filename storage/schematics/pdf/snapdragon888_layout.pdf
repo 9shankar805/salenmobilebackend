@@ -1,0 +1,49 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 993 >>
+stream
+BT
+/F1 10 Tf
+50 800 Td
+18 TL
+/F1 16 Tf (SNAPDRAGON 888 AP & LPDDR5 RAM BALL GRID LAYOUT) Tj /F1 10 Tf T*
+(SM8350 Application Processor Ball Coordinates | Sheet 1 of 1) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+/F1 13 Tf (SM8350 BGA BALL GRID DETAILS) Tj /F1 10 Tf T*
+/F1 11 Tf (1380 Ball Matrix Configuration) Tj /F1 10 Tf T*
+ 
+(Corner Anchor Balls: Reinforced dummy balls designed to absorb mechanical shock) Tj T*
+(Central Core Balls \(G10 - T20\): VDD_GOLD & VDD_SILVER CPU Core Rails \(0.75V\)) Tj T*
+(Perimeter Balls: LPDDR5 Channel A/B/C/D data and command buses) Tj T*
+(Ground Plane Thermal Dissipation Array: 180 low-resistance thermal vias) Tj T*
+(Solder Mask Bridge Width: 0.045mm between fine pitch pads | Use green UV mask if torn) Tj T*
+--------------------------------------------------------------------------------------------------- Tj T*
+(CONFIDENTIAL - SALEN MOBILE GURU CHIP-LEVEL HARDWARE LAB) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1355
+%%EOF
