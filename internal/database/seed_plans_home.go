@@ -19,7 +19,8 @@ seedPdfCategories(db, now)
 seedSupportCategories(db, now)
 seedHighlights(db, now)
 seedRepairToolkitItems(db)
-log.Println("✅ Seeded plans, PDF categories, support tree, highlights & toolkit items!")
+seedHomeIntroVideo(db, now)
+log.Println("✅ Seeded plans, PDF categories, support tree, highlights, toolkit items & intro video!")
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -275,6 +276,29 @@ existing.Icon = item.Icon
 db.Save(&existing)
 }
 }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 7. HOME INTRO VIDEO
+// ═══════════════════════════════════════════════════════════════════════════
+
+func seedHomeIntroVideo(db *gorm.DB, now time.Time) {
+	var existing models.HomeIntroVideo
+	if err := db.Where("id = ?", "main_intro_video").First(&existing).Error; err != nil {
+		video := models.HomeIntroVideo{
+			ID:           "main_intro_video",
+			Title:        "Welcome to Salen Mobile Guru | Masterclass & Academy Tour",
+			Subtitle:     "Watch this introductory video to learn how to access chip-level courses, circuit schematics, and live training.",
+			YouTubeURL:   "https://www.youtube.com/watch?v=3e_K4h_K6r8",
+			YouTubeID:    "3e_K4h_K6r8",
+			ThumbnailURL: "https://img.youtube.com/vi/3e_K4h_K6r8/hqdefault.jpg",
+			Badge:        "APP TOUR & INTRODUCTION",
+			Duration:     "18:45",
+			IsActive:     true,
+			UpdatedAt:    now,
+		}
+		db.Create(&video)
+	}
 }
 
 // mustJSON marshals a value to a JSON string; panics only on seed data errors.

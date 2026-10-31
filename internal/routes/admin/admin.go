@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -124,6 +125,10 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	r.GET("/internal/routes/admin/courses/*any", ar.ServeCourseSubmoduleWeb)
 	r.GET("/api/templates", ar.ListTemplatesPublic)
 
+	// App Intro Video (Public for student mobile app)
+	r.GET("/api/app/intro-video", ar.GetHomeIntroVideo)
+	r.GET("/home/intro-video", ar.GetHomeIntroVideo)
+
 	// 2. Public admin login (no auth required)
 	r.POST("/api/admin/login", ar.Login)
 
@@ -171,6 +176,11 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		// Mobile App CMS
 		adm.GET("/cms/banners", ar.GetBanners)
 		adm.POST("/cms/banners", ar.UpdateBanners)
+
+		// Home Intro Video Studio
+		adm.GET("/home/intro-video", ar.GetHomeIntroVideo)
+		adm.POST("/home/intro-video", ar.SaveHomeIntroVideo)
+		adm.PUT("/home/intro-video", ar.SaveHomeIntroVideo)
 
 		// Analytics & Diagnostics
 		adm.GET("/analytics", ar.GetAnalytics)
@@ -947,6 +957,150 @@ func (ar *AdminRouter) UpdateBanners(c *gin.Context) {
 		Update("config_json", string(bytes))
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Banners updated successfully"})
+}
+
+type SaveIntroVideoRequest struct {
+	Title        string `json:"title"`
+	Subtitle     string `json:"subtitle"`
+	YouTubeURL   string `json:"youtubeUrl"`
+	YouTubeID    string `json:"youtubeId"`
+	ThumbnailURL string `json:"thumbnailUrl"`
+	Badge        string `json:"badge"`
+	Duration     string `json:"duration"`
+	IsActive     *bool  `json:"isActive"`
+}
+
+func extractYouTubeID(input string) string {
+	input = strings.TrimSpace(input)
+	if len(input) == 11 && !strings.Contains(input, "/") && !strings.Contains(input, "?") && !strings.Contains(input, ".") {
+		return input
+	}
+	re := regexp.MustCompile(`(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})`)
+	match := re.FindStringSubmatch(input)
+	if len(match) > 1 {
+		return match[1]
+	}
+	return ""
+}
+
+func (ar *AdminRouter) GetHomeIntroVideo(c *gin.Context) {
+	var video models.HomeIntroVideo
+	err := ar.DB.Where("id = ?", "main_intro_video").First(&video).Error
+	if err != nil {
+		// Try AppScreenConfig
+		var screen models.AppScreenConfig
+		if err2 := ar.DB.Where("site_name = ? AND screen_key = ?", "smg", "intro_video").First(&screen).Error; err2 == nil {
+			var v models.HomeIntroVideo
+			if err3 := json.Unmarshal([]byte(screen.ConfigJSON), &v); err3 == nil {
+				c.JSON(http.StatusOK, gin.H{"success": true, "data": v})
+				return
+			}
+		}
+
+		// Sensible default intro tour video
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"data": gin.H{
+				"id":           "main_intro_video",
+				"title":        "Welcome to Salen Mobile Guru | Masterclass & Academy Tour",
+				"subtitle":     "Watch this introductory video to learn how to access chip-level courses, circuit schematics, and live training.",
+				"youtubeUrl":   "https://www.youtube.com/watch?v=3e_K4h_K6r8",
+				"youtubeId":    "3e_K4h_K6r8",
+				"thumbnailUrl": "https://img.youtube.com/vi/3e_K4h_K6r8/hqdefault.jpg",
+				"badge":        "APP TOUR & INTRODUCTION",
+				"duration":     "18:45",
+				"isActive":     true,
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": video})
+}
+
+func (ar *AdminRouter) SaveHomeIntroVideo(c *gin.Context) {
+	var req SaveIntroVideoRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	ytID := strings.TrimSpace(req.YouTubeID)
+	if ytID == "" {
+		ytID = extractYouTubeID(req.YouTubeURL)
+	}
+	if ytID == "" {
+		ytID = "3e_K4h_K6r8"
+	}
+
+	thumbURL := strings.TrimSpace(req.ThumbnailURL)
+	if thumbURL == "" && ytID != "" {
+		thumbURL = fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", ytID)
+	}
+
+	isActive := true
+	if req.IsActive != nil {
+		isActive = *req.IsActive
+	}
+
+	title := strings.TrimSpace(req.Title)
+	if title == "" {
+		title = "Welcome to Salen Mobile Guru | Masterclass & Academy Tour"
+	}
+
+	badge := strings.TrimSpace(req.Badge)
+	if badge == "" {
+		badge = "APP TOUR & INTRODUCTION"
+	}
+
+	duration := strings.TrimSpace(req.Duration)
+	if duration == "" {
+		duration = "15:00"
+	}
+
+	var video models.HomeIntroVideo
+	if err := ar.DB.Where("id = ?", "main_intro_video").First(&video).Error; err != nil {
+		video = models.HomeIntroVideo{ID: "main_intro_video"}
+	}
+
+	video.Title = title
+	video.Subtitle = strings.TrimSpace(req.Subtitle)
+	video.YouTubeURL = strings.TrimSpace(req.YouTubeURL)
+	video.YouTubeID = ytID
+	video.ThumbnailURL = thumbURL
+	video.Badge = badge
+	video.Duration = duration
+	video.IsActive = isActive
+	video.UpdatedAt = time.Now()
+
+	if err := ar.DB.Save(&video).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Failed to save intro video to database"})
+		return
+	}
+
+	// Also synchronize to AppScreenConfig for smg intro_video
+	payloadBytes, _ := json.Marshal(video)
+	var screen models.AppScreenConfig
+	if err := ar.DB.Where("site_name = ? AND screen_key = ?", "smg", "intro_video").First(&screen).Error; err != nil {
+		screen = models.AppScreenConfig{
+			ID:         "screen_smg_intro_video",
+			SiteName:   "smg",
+			ScreenKey:  "intro_video",
+			ConfigJSON: string(payloadBytes),
+			UpdatedAt:  time.Now(),
+		}
+		ar.DB.Create(&screen)
+	} else {
+		screen.ConfigJSON = string(payloadBytes)
+		screen.UpdatedAt = time.Now()
+		ar.DB.Save(&screen)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "HomeScreen intro video published successfully ✓",
+		"data":    video,
+	})
 }
 
 func (ar *AdminRouter) ListMedia(c *gin.Context) {

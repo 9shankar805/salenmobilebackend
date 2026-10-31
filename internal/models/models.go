@@ -526,6 +526,19 @@ type Highlight struct {
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
+type HomeIntroVideo struct {
+	ID           string    `json:"id" gorm:"primaryKey"`
+	Title        string    `json:"title"`
+	Subtitle     string    `json:"subtitle"`
+	YouTubeURL   string    `json:"youtubeUrl"`
+	YouTubeID    string    `json:"youtubeId"`
+	ThumbnailURL string    `json:"thumbnailUrl"`
+	Badge        string    `json:"badge"`
+	Duration     string    `json:"duration"`
+	IsActive     bool      `json:"isActive"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GUIDES / REPAIR MANUALS

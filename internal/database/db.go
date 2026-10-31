@@ -112,6 +112,8 @@ func InitDB(databaseURL string) *gorm.DB {
 		// ── Email & SMTP Settings ──────────────────────────────────────────
 		&models.SMTPSettings{},
 		&models.EmailOTP{},
+		// ── App Intro Video ────────────────────────────────────────────────
+		&models.HomeIntroVideo{},
 	)
 	if err != nil {
 		log.Fatalf("AutoMigrate failed: %v", err)
