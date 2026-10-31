@@ -44,6 +44,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	r.POST("/api/auth/request-otp", ar.SendOTP)
 	r.POST("/api/auth/otp", ar.SendOTP)
 	r.POST("/api/auth/verify-otp", ar.VerifyOTP)
+	r.POST("/api/auth/reset-password", ar.ResetPassword)
+	r.POST("/api/auth/forgot-password/reset", ar.ResetPassword)
 
 	// Explicitly reject Google & Phone logins
 	r.POST("/api/auth/google", ar.DisabledAuthMethod)
@@ -402,6 +404,95 @@ func (ar *AccountRouter) VerifyOTP(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Email verified successfully ✓",
+		"email":   email,
+	})
+}
+
+type ResetPasswordRequest struct {
+	Email           string `json:"email" binding:"required"`
+	OTP             string `json:"otp"`
+	Code            string `json:"code"`
+	NewPassword     string `json:"newPassword"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirmPassword"`
+}
+
+func (ar *AccountRouter) ResetPassword(c *gin.Context) {
+	var req ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid request body"})
+		return
+	}
+
+	email := strings.TrimSpace(strings.ToLower(req.Email))
+	if !isGmailAddress(email) {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Only Gmail addresses (@gmail.com) are supported"})
+		return
+	}
+
+	code := strings.TrimSpace(req.OTP)
+	if code == "" {
+		code = strings.TrimSpace(req.Code)
+	}
+	if code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Verification code (OTP) is required"})
+		return
+	}
+
+	newPass := strings.TrimSpace(req.NewPassword)
+	if newPass == "" {
+		newPass = strings.TrimSpace(req.Password)
+	}
+	if len(newPass) < 6 {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "New password must be at least 6 characters"})
+		return
+	}
+
+	if req.ConfirmPassword != "" && req.ConfirmPassword != newPass {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Passwords do not match"})
+		return
+	}
+
+	// Verify OTP for reset_password or general signup
+	var otp models.EmailOTP
+	err := ar.DB.Where("LOWER(email) = ? AND code = ? AND verified = ? AND expires_at > ?", email, code, false, time.Now()).
+		Order("created_at desc").First(&otp).Error
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Invalid or expired verification code. Please check your Gmail or request a new OTP.",
+		})
+		return
+	}
+
+	// Mark OTP verified
+	otp.Verified = true
+	ar.DB.Save(&otp)
+
+	// Hash new password
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Could not process new password"})
+		return
+	}
+
+	// Update user password in DB
+	var user models.User
+	if err := ar.DB.Where("LOWER(email) = ?", email).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "No account found registered with " + email})
+		return
+	}
+
+	user.PasswordHash = string(hash)
+	user.UpdatedAt = time.Now()
+	if err := ar.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Failed to update password in database"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Password reset successfully! You can now log in with your new password.",
 		"email":   email,
 	})
 }
