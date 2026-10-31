@@ -27,18 +27,43 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	r.GET("/session", ar.GetSession)
 	r.GET("/api/auth/get-session", ar.GetSession)
 	r.GET("/api/auth/session", ar.GetSession)
+
+	// Gmail-only Authentication
 	r.POST("/api/auth/sign-in/email", ar.SignInEmail)
+	r.POST("/api/auth/sign-in/gmail", ar.SignInEmail)
+	r.POST("/api/auth/sign-in", ar.SignInEmail)
+	r.POST("/api/auth/login", ar.SignInEmail)
+	r.POST("/api/auth/login/email", ar.SignInEmail)
+	r.POST("/api/auth/login/gmail", ar.SignInEmail)
+	r.POST("/api/auth/sign-in/otp", ar.SignInOTP)
+	r.POST("/api/auth/login/otp", ar.SignInOTP)
 	r.POST("/api/auth/sign-out", ar.SignOut)
 	r.POST("/api/auth/sign-up", ar.SignUp)
+	r.POST("/api/auth/register", ar.SignUp)
 	r.POST("/api/auth/send-otp", ar.SendOTP)
 	r.POST("/api/auth/request-otp", ar.SendOTP)
 	r.POST("/api/auth/otp", ar.SendOTP)
 	r.POST("/api/auth/verify-otp", ar.VerifyOTP)
 
+	// Explicitly reject Google & Phone logins
+	r.POST("/api/auth/google", ar.DisabledAuthMethod)
+	r.POST("/api/auth/sign-in/google", ar.DisabledAuthMethod)
+	r.POST("/api/auth/login/google", ar.DisabledAuthMethod)
+	r.POST("/api/auth/phone", ar.DisabledAuthMethod)
+	r.POST("/api/auth/sign-in/phone", ar.DisabledAuthMethod)
+	r.POST("/api/auth/login/phone", ar.DisabledAuthMethod)
+	r.POST("/api/auth/send-phone-otp", ar.DisabledAuthMethod)
+
 	// User profile update — Flutter edit profile screen calls PUT /user/profile
 	r.PUT("/user/profile", ar.UpdateProfile)
 	r.PATCH("/user/profile", ar.UpdateProfile) // also accept PATCH
 	r.GET("/user/profile", ar.GetProfile)
+}
+
+// isGmailAddress verifies that the email is a valid Google Gmail address
+func isGmailAddress(email string) bool {
+	email = strings.TrimSpace(strings.ToLower(email))
+	return strings.HasSuffix(email, "@gmail.com") || strings.HasSuffix(email, "@googlemail.com")
 }
 
 // issueJWT creates a signed JWT for the given user.
@@ -108,15 +133,24 @@ func (ar *AccountRouter) SignInEmail(c *gin.Context) {
 
 	email := strings.TrimSpace(strings.ToLower(req.Email))
 
+	// Enforce Gmail only
+	if !isGmailAddress(email) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Only Gmail addresses (@gmail.com) are allowed. Google OAuth and phone number login have been removed.",
+		})
+		return
+	}
+
 	var user models.User
 	if err := ar.DB.Where("LOWER(email) = ?", email).First(&user).Error; err != nil {
 		// Constant-time response to prevent user enumeration
-		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Invalid email or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Invalid Gmail address or password"})
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Invalid email or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Invalid Gmail address or password"})
 		return
 	}
 
@@ -139,6 +173,99 @@ func (ar *AccountRouter) SignInEmail(c *gin.Context) {
 	})
 }
 
+type SignInOTPRequest struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+	OTP   string `json:"otp"`
+}
+
+// SignInOTP enables direct passwordless Gmail login using the 6-digit OTP code
+func (ar *AccountRouter) SignInOTP(c *gin.Context) {
+	var req SignInOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid request body"})
+		return
+	}
+
+	email := strings.TrimSpace(strings.ToLower(req.Email))
+	if !isGmailAddress(email) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Only Gmail addresses (@gmail.com) are allowed. Google OAuth and phone number login have been removed.",
+		})
+		return
+	}
+
+	code := strings.TrimSpace(req.Code)
+	if code == "" {
+		code = strings.TrimSpace(req.OTP)
+	}
+	if code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Gmail OTP verification code is required"})
+		return
+	}
+
+	var otp models.EmailOTP
+	err := ar.DB.Where("LOWER(email) = ? AND code = ? AND verified = ? AND expires_at > ?", email, code, false, time.Now()).
+		Order("created_at desc").First(&otp).Error
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Invalid or expired OTP verification code. Please check your Gmail or request a new code.",
+		})
+		return
+	}
+
+	otp.Verified = true
+	ar.DB.Save(&otp)
+
+	var user models.User
+	if err := ar.DB.Where("LOWER(email) = ?", email).First(&user).Error; err != nil {
+		username := strings.Split(email, "@")[0]
+		user = models.User{
+			ID:            uuid.New().String(),
+			Name:          username,
+			Email:         email,
+			Role:          "student",
+			EmailVerified: true,
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+		}
+		if err := ar.DB.Create(&user).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Could not create user session"})
+			return
+		}
+	} else if !user.EmailVerified {
+		user.EmailVerified = true
+		ar.DB.Model(&user).Update("email_verified", true)
+	}
+
+	tokenStr, err := issueJWT(&user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Could not issue token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"token":   tokenStr,
+		"user": gin.H{
+			"id":            user.ID,
+			"email":         user.Email,
+			"name":          user.Name,
+			"role":          user.Role,
+			"emailVerified": true,
+		},
+	})
+}
+
+func (ar *AccountRouter) DisabledAuthMethod(c *gin.Context) {
+	c.JSON(http.StatusBadRequest, gin.H{
+		"success": false,
+		"error":   "Google OAuth and Phone number login have been removed. Only Gmail login is supported.",
+	})
+}
+
 type SendOTPRequest struct {
 	Email   string `json:"email" binding:"required"`
 	Name    string `json:"name"`
@@ -155,6 +282,14 @@ func (ar *AccountRouter) SendOTP(c *gin.Context) {
 	email := strings.TrimSpace(strings.ToLower(req.Email))
 	if !strings.Contains(email, "@") || !strings.Contains(email, ".") {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid email address format"})
+		return
+	}
+
+	if !isGmailAddress(email) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Only Gmail addresses (@gmail.com) are supported for verification code.",
+		})
 		return
 	}
 
@@ -225,20 +360,28 @@ func (ar *AccountRouter) SendOTP(c *gin.Context) {
 }
 
 type VerifyOTPRequest struct {
-	Email   string `json:"email" binding:"required"`
-	Code    string `json:"code" binding:"required"`
+	Email   string `json:"email"`
+	Code    string `json:"code"`
+	OTP     string `json:"otp"`
 	Purpose string `json:"purpose"`
 }
 
 func (ar *AccountRouter) VerifyOTP(c *gin.Context) {
 	var req VerifyOTPRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Email and code are required"})
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid request body"})
 		return
 	}
 
 	email := strings.TrimSpace(strings.ToLower(req.Email))
 	code := strings.TrimSpace(req.Code)
+	if code == "" {
+		code = strings.TrimSpace(req.OTP)
+	}
+	if email == "" || code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Email and code (or otp) are required"})
+		return
+	}
 	purpose := strings.ToLower(req.Purpose)
 	if purpose == "" {
 		purpose = "signup"
@@ -280,6 +423,14 @@ func (ar *AccountRouter) SignUp(c *gin.Context) {
 	}
 
 	email := strings.TrimSpace(strings.ToLower(req.Email))
+
+	if !isGmailAddress(email) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Registration is restricted to Gmail accounts (@gmail.com). Google OAuth and phone login have been removed.",
+		})
+		return
+	}
 
 	// Check existing
 	var existing models.User

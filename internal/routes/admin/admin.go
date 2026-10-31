@@ -17,6 +17,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	"smg-backend/internal/mail"
 	"smg-backend/internal/middleware"
 	"smg-backend/internal/models"
 	"smg-backend/internal/storage"
@@ -51,6 +52,9 @@ var liveHTML []byte
 //go:embed static/templates.html
 var templatesHTML []byte
 
+//go:embed static/smtp.html
+var smtpHTML []byte
+
 type AdminRouter struct {
 	DB *gorm.DB
 }
@@ -73,6 +77,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	r.GET("/users.html", ar.ServeUsersWeb)
 	r.GET("/live.html", ar.ServeLiveWeb)
 	r.GET("/templates.html", ar.ServeTemplatesWeb)
+	r.GET("/smtp.html", ar.ServeSMTPWeb)
 	r.GET("/api/templates", ar.ListTemplatesPublic)
 
 	// 2. Public admin login (no auth required)
@@ -148,6 +153,11 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		adm.POST("/templates/upload", ar.UploadTemplateFile)
 		adm.PATCH("/templates/:id/default", ar.ToggleDefaultTemplate)
 		adm.DELETE("/templates/:id", ar.DeleteTemplate)
+
+		// SMTP Settings & OTP Engine
+		adm.GET("/smtp", ar.GetSMTPSettings)
+		adm.POST("/smtp", ar.SaveSMTPSettings)
+		adm.POST("/smtp/test", ar.TestSMTPSettings)
 	}
 }
 
@@ -181,6 +191,10 @@ func (ar *AdminRouter) ServeAdminWeb(c *gin.Context) {
 		c.Data(http.StatusOK, "text/html; charset=utf-8", templatesHTML)
 		return
 	}
+	if strings.HasPrefix(path, "/admin/smtp") || strings.HasPrefix(path, "/admin/email") {
+		c.Data(http.StatusOK, "text/html; charset=utf-8", smtpHTML)
+		return
+	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", adminHTML)
 }
 
@@ -210,6 +224,10 @@ func (ar *AdminRouter) ServeLiveWeb(c *gin.Context) {
 
 func (ar *AdminRouter) ServeTemplatesWeb(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", templatesHTML)
+}
+
+func (ar *AdminRouter) ServeSMTPWeb(c *gin.Context) {
+	c.Data(http.StatusOK, "text/html; charset=utf-8", smtpHTML)
 }
 
 func (ar *AdminRouter) ServeClassroomWeb(c *gin.Context) {
@@ -1369,4 +1387,69 @@ func (ar *AdminRouter) DeleteTemplate(c *gin.Context) {
 	id := c.Param("id")
 	ar.DB.Delete(&models.TemplateAsset{}, "id = ?", id)
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Template blueprint removed"})
+}
+
+func (ar *AdminRouter) GetSMTPSettings(c *gin.Context) {
+	cfg := mail.GetSMTPSettings(ar.DB)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    cfg,
+	})
+}
+
+func (ar *AdminRouter) SaveSMTPSettings(c *gin.Context) {
+	var input models.SMTPSettings
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid request body: " + err.Error()})
+		return
+	}
+
+	// Keep existing password if left blank on edit
+	if strings.TrimSpace(input.Password) == "" {
+		existing := mail.GetSMTPSettings(ar.DB)
+		if existing != nil {
+			input.Password = existing.Password
+		}
+	}
+
+	if err := mail.SaveSMTPSettings(ar.DB, &input); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Failed to save SMTP settings: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "SMTP settings saved successfully",
+		"data":    input,
+	})
+}
+
+type TestSMTPEmailRequest struct {
+	ToEmail string `json:"toEmail" binding:"required"`
+}
+
+func (ar *AdminRouter) TestSMTPSettings(c *gin.Context) {
+	var req TestSMTPEmailRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Valid toEmail recipient address is required"})
+		return
+	}
+
+	cfg := mail.GetSMTPSettings(ar.DB)
+	if err := mail.SendTestEmail(ar.DB, req.ToEmail); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   err.Error(),
+			"host":    cfg.Host,
+			"port":    cfg.Port,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Verification probe email sent successfully",
+		"host":    cfg.Host,
+		"port":    cfg.Port,
+	})
 }

@@ -2,6 +2,9 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -642,4 +645,11 @@ type EmailOTP struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 	Verified  bool      `json:"verified"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+func (o *EmailOTP) BeforeCreate(tx *gorm.DB) error {
+	if o.ID == "" {
+		o.ID = uuid.New().String()
+	}
+	return nil
 }

@@ -284,6 +284,7 @@ tbody tr:last-child td{border-bottom:none;}
       <a href="/admin#pos" class="ni"><i class="fas fa-calculator"></i><span>POS &amp; Work Orders</span></a>
 
       <div class="sb-sec">System &amp; Settings</div>
+      <a href="/admin/smtp" class="ni"><i class="fas fa-envelope-circle-check"></i><span>SMTP Email &amp; OTP</span></a>
       <a href="/admin#community" class="ni"><i class="fas fa-comments"></i><span>Community Forum</span></a>
       <a href="/admin#notifications" class="ni"><i class="fas fa-bell"></i><span>Push Broadcasts</span></a>
       <a href="/admin#cms" class="ni"><i class="fas fa-sliders"></i><span>App Carousel CMS</span></a>
@@ -813,6 +814,10 @@ function bootApp() {
     document.getElementById('sbRole').textContent = ADMIN.role || 'ADMIN';
   }
   loadCourses();
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('action') === 'create' || params.get('action') === 'new') {
+    setTimeout(() => openMo('mo-addcourse'), 300);
+  }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -1013,7 +1018,7 @@ function renderCourses(courses) {
 
     return `
       <div class="card" style="display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border);transition:transform .2s,box-shadow .2s;position:relative">
-        <div style="position:relative;height:140px;background:linear-gradient(135deg,#1e1b4b,#312e81);overflow:hidden">
+        <div style="position:relative;height:140px;background:linear-gradient(135deg,#1e1b4b,#312e81);overflow:hidden;cursor:pointer" onclick="window.location.href='/admin/curriculum?courseId=${id}'" title="Open Curriculum &amp; Lessons">
           ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>` : ''}
           <div style="position:absolute;top:10px;left:10px;display:flex;gap:6px">
             <span class="badge b-purple">${cat}</span>
@@ -1026,7 +1031,7 @@ function renderCourses(courses) {
         </div>
         <div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:space-between">
           <div>
-            <div style="font-weight:800;font-size:15px;line-height:1.3;margin-bottom:6px" class="trunc2" title="${title}">${title}</div>
+            <div style="font-weight:800;font-size:15px;line-height:1.3;margin-bottom:6px;cursor:pointer" class="trunc2" title="Open Curriculum: ${title}" onclick="window.location.href='/admin/curriculum?courseId=${id}'">${title}</div>
             <div style="font-size:12px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
               <span><i class="fas fa-chalkboard-user" style="color:var(--primary);margin-right:4px"></i>${inst}</span>
               <span><i class="fas fa-video" style="color:var(--purple);margin-right:4px"></i>${lessons} Lessons</span>
@@ -1045,7 +1050,7 @@ function renderCourses(courses) {
               <button class="btn ${pub ? 'btn-outline' : 'btn-success'} btn-xs" style="flex:1" onclick="togglePublishCourse('${id}')" title="Toggle App Visibility">
                 <i class="fas ${pub ? 'fa-eye-slash' : 'fa-check'}"></i> ${pub ? 'Unpublish' : 'Publish'}
               </button>
-              <a href="/admin#curriculum" class="btn btn-primary btn-xs" title="Curriculum Builder">
+              <a href="/admin/curriculum?courseId=${id}" class="btn btn-primary btn-xs" title="Curriculum &amp; Lessons Builder">
                 <i class="fas fa-sitemap"></i>
               </a>
               <button class="btn btn-outline btn-xs" onclick="editCourseById('${id}')" title="Edit Metadata">
@@ -1099,7 +1104,7 @@ function renderCourses(courses) {
               <td><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectCourse('${id}', this.checked)"/></td>
               <td style="color:var(--text4)">${i+1}</td>
               <td>
-                <div style="font-weight:700;max-width:280px" class="trunc" title="${title}">${title}</div>
+                <div style="font-weight:700;max-width:280px;cursor:pointer;color:var(--primary)" class="trunc" title="Open Curriculum: ${title}" onclick="window.location.href='/admin/curriculum?courseId=${id}'">${title}</div>
                 <div class="mono" style="font-size:11px;color:var(--text4)">${c.slug || c.Slug || '—'}</div>
               </td>
               <td><span class="badge b-gray">${cat}</span></td>
@@ -1118,7 +1123,7 @@ function renderCourses(courses) {
                 <button class="btn btn-outline btn-xs" style="margin-left:4px" onclick="editCourseById('${id}')" title="Edit course">
                   <i class="fas fa-pen"></i>
                 </button>
-                <a href="/admin#curriculum" class="btn btn-primary btn-xs" style="margin-left:4px" title="Curriculum Builder">
+                <a href="/admin/curriculum?courseId=${id}" class="btn btn-primary btn-xs" style="margin-left:4px" title="Curriculum &amp; Lessons Builder">
                   <i class="fas fa-sitemap"></i>
                 </a>
                 <button class="btn btn-danger btn-xs" style="margin-left:4px" onclick="deleteCourse('${id}','${title.replace(/'/g,"\'")}')" title="Delete">
@@ -1457,7 +1462,8 @@ const CMD_ITEMS = [
   { icon: 'fa-clipboard-question', label: 'Quizzes & Tests', desc: 'Manage technician assessments', action: () => window.location.href = '/admin/quizzes' },
   { icon: 'fa-credit-card', label: 'Subscriptions Ledger', desc: 'Review eSewa / Khalti approvals', action: () => window.location.href = '/admin/subscriptions' },
   { icon: 'fa-users', label: 'Students Directory', desc: 'Inspect technician accounts', action: () => window.location.href = '/admin/users' },
-  { icon: 'fa-video', label: 'Live Masterclasses', desc: 'Manage Zoom broadcasts', action: () => window.location.href = '/admin/live' }
+  { icon: 'fa-video', label: 'Live Masterclasses', desc: 'Manage Zoom broadcasts', action: () => window.location.href = '/admin/live' },
+  { icon: 'fa-envelope-circle-check', label: 'SMTP Email & OTP', desc: 'Configure Gmail SMTP & OTP codes', action: () => window.location.href = '/admin/smtp' }
 ];
 
 function openCmdPalette() {

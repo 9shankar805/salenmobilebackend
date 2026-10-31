@@ -220,6 +220,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
     <a href="/admin/users" class="nav-item"><i class="fas fa-users"></i><span>Students Directory</span></a>
     <a href="/admin/live" class="nav-item"><i class="fas fa-video"></i><span>Live Masterclasses</span></a>
     <a href="/admin/templates" class="nav-item active"><i class="fas fa-layer-group"></i><span>Templates Vault</span><span class="nav-badge" id="sbTmplCount">8</span></a>
+    <a href="/admin/smtp" class="nav-item"><i class="fas fa-envelope-circle-check"></i><span>SMTP Email &amp; OTP</span></a>
 
     <div style="margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px">
       <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:13px" id="sbAv">A</div>
@@ -915,6 +916,7 @@ const CMD_ITEMS = [
   { icon: 'fa-credit-card', label: 'Subscriptions Ledger', desc: 'Payment receipts & approvals', action: () => window.location.href = '/admin/subscriptions' },
   { icon: 'fa-users', label: 'Students Directory', desc: 'Technician profiles & VIP access', action: () => window.location.href = '/admin/users' },
   { icon: 'fa-video', label: 'Live Masterclasses', desc: 'Broadcast schedule & webinar posters', action: () => window.location.href = '/admin/live' },
+  { icon: 'fa-envelope-circle-check', label: 'SMTP Email & OTP', desc: 'Configure Gmail SMTP & OTP codes', action: () => window.location.href = '/admin/smtp' },
   { icon: 'fa-gauge-high', label: 'Dashboard', desc: 'Return to Command Center', action: () => window.location.href = '/admin' }
 ];
 
@@ -959,3 +961,4 @@ document.addEventListener('keydown', e => {
 </script>
 </body>
 </html>
+

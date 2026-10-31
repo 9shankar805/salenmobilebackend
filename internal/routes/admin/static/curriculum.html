@@ -238,6 +238,7 @@ html,body{height:100%;font-family:var(--font);font-size:13.5px;background:var(--
       <a href="/admin/users" class="ni"><i class="fas fa-users"></i><span>Students Directory</span></a>
       <a href="/admin/live" class="ni"><i class="fas fa-video"></i><span>Live Masterclasses</span></a>
       <a href="/admin/templates" class="ni"><i class="fas fa-layer-group"></i><span>Templates Vault</span><span class="ni-badge" style="background:var(--amber-l);color:var(--amber)">HOT</span></a>
+      <a href="/admin/smtp" class="ni"><i class="fas fa-envelope-circle-check"></i><span>SMTP Email &amp; OTP</span></a>
       <a href="/admin" class="ni"><i class="fas fa-mobile-screen"></i><span>Hardware &amp; Diode</span></a>
       <a href="/admin" class="ni"><i class="fas fa-file-pdf"></i><span>PDF Schematics</span></a>
     </div>
@@ -1092,6 +1093,7 @@ const CMD_ITEMS = [
   { icon: 'fa-credit-card', label: 'Subscriptions Ledger', desc: 'eSewa & Khalti payment approvals', action: () => window.location.href = '/admin/subscriptions' },
   { icon: 'fa-users', label: 'Students Directory', desc: 'Registered technician accounts', action: () => window.location.href = '/admin/users' },
   { icon: 'fa-video', label: 'Live Masterclasses', desc: 'Scheduled Zoom masterclasses', action: () => window.location.href = '/admin/live' },
+  { icon: 'fa-envelope-circle-check', label: 'SMTP Email & OTP', desc: 'Configure Gmail SMTP & OTP codes', action: () => window.location.href = '/admin/smtp' },
   { icon: 'fa-gauge-high', label: 'Command Center Dashboard', desc: 'Return to main dashboard', action: () => window.location.href = '/admin' }
 ];
 

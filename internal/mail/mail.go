@@ -329,3 +329,4 @@ func SendTestEmail(db *gorm.DB, toEmail string) error {
 
 	return SendMail(db, toEmail, subject, html)
 }
+

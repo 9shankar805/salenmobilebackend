@@ -138,6 +138,11 @@ input:checked + .slider:before{transform:translateX(22px)}
 .li{width:100%;padding:10px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none}
 .li:focus{border-color:var(--primary)}
 .lerr{color:var(--red);font-size:12px;margin-top:10px;text-align:center;display:none}
+
+/* Modal */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(8px);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+.mo.show{display:flex}
+.mc{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:16px;width:100%;max-width:540px;box-shadow:0 24px 60px rgba(0,0,0,0.7);overflow:hidden}
 </style>
 </head>
 <body>
@@ -196,6 +201,7 @@ input:checked + .slider:before{transform:translateX(22px)}
         <span>SMTP Settings &amp; Student Sign-Up OTP</span>
       </div>
       <div class="tb-actions">
+        <button class="btn btn-outline btn-sm" onclick="openCmdPalette()"><i class="fas fa-terminal"></i> <span style="font-size:11px;opacity:0.8">⌘K</span></button>
         <button class="btn btn-outline btn-sm" onclick="toggleTheme()"><i class="fas fa-moon" id="themeIcon"></i></button>
         <button class="btn btn-green btn-sm" onclick="saveSmtp()"><i class="fas fa-check"></i> Save Settings</button>
       </div>
@@ -383,6 +389,18 @@ input:checked + .slider:before{transform:translateX(22px)}
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+<!-- COMMAND PALETTE (Cmd+K) -->
+<div class="mo" id="mo-cmd">
+  <div class="mc">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <i class="fas fa-magnifying-glass" style="color:var(--primary)"></i>
+      <input id="cmdSearch" style="flex:1;background:transparent;border:none;outline:none;font-size:14px;color:var(--text)" placeholder="Type a command or jump to page..." oninput="filterCmd()"/>
+      <span style="font-size:11px;color:var(--text4)">ESC</span>
+    </div>
+    <div id="cmdList" style="padding:10px;max-height:340px;overflow-y:auto"></div>
+  </div>
+</div>
 
 <script>
 let TOKEN = localStorage.getItem('smg_admin_token') || '';
@@ -646,6 +664,60 @@ async function sendTestEmail() {
   }
   logBox.scrollTop = logBox.scrollHeight;
 }
+
+/* ── Modal & Command Palette ── */
+function openMo(id) { document.getElementById(id).classList.add('show'); }
+function closeMo(id) { document.getElementById(id).classList.remove('show'); }
+
+const CMD_ITEMS = [
+  { icon: 'fa-envelope-circle-check', label: 'Save SMTP Settings', desc: 'Save current mail configuration', action: saveSmtp },
+  { icon: 'fa-paper-plane', label: 'Send Test Email Probe', desc: 'Trigger diagnostic verification test', action: sendTestEmail },
+  { icon: 'fa-graduation-cap', label: 'Courses Studio', desc: 'Manage courses catalog', action: () => window.location.href = '/admin/courses' },
+  { icon: 'fa-sitemap', label: 'Curriculum Builder', desc: 'Manage modules & video lessons', action: () => window.location.href = '/admin/curriculum' },
+  { icon: 'fa-list-check', label: 'Quizzes & Labs', desc: 'Technician certification exams', action: () => window.location.href = '/admin/quizzes' },
+  { icon: 'fa-credit-card', label: 'Subscriptions Ledger', desc: 'Payment receipts & approvals', action: () => window.location.href = '/admin/subscriptions' },
+  { icon: 'fa-users', label: 'Students Directory', desc: 'Technician profiles & VIP access', action: () => window.location.href = '/admin/users' },
+  { icon: 'fa-video', label: 'Live Masterclasses', desc: 'Broadcast schedule & webinars', action: () => window.location.href = '/admin/live' },
+  { icon: 'fa-layer-group', label: 'Templates Vault', desc: 'Blueprints, certificates & schematics', action: () => window.location.href = '/admin/templates' },
+  { icon: 'fa-gauge-high', label: 'Command Center Dashboard', desc: 'Return to main dashboard', action: () => window.location.href = '/admin' }
+];
+
+function openCmdPalette() {
+  openMo('mo-cmd');
+  document.getElementById('cmdSearch').value = '';
+  filterCmd();
+  setTimeout(() => document.getElementById('cmdSearch').focus(), 100);
+}
+
+function filterCmd() {
+  const q = document.getElementById('cmdSearch').value.toLowerCase().trim();
+  const list = document.getElementById('cmdList');
+  const matched = CMD_ITEMS.filter(it => !q || it.label.toLowerCase().includes(q) || it.desc.toLowerCase().includes(q));
+  if (!matched.length) {
+    list.innerHTML = '<div style="padding:18px;text-align:center;color:var(--text4)">No actions found</div>';
+    return;
+  }
+  list.innerHTML = matched.map((it, idx) => `
+    <div onclick="CMD_ITEMS[${CMD_ITEMS.indexOf(it)}].action();closeMo('mo-cmd')" style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+      <i class="fas ${it.icon}" style="width:20px;text-align:center;color:var(--primary);font-size:14px"></i>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:13px">${it.label}</div>
+        <div style="font-size:11px;color:var(--text4)">${it.desc}</div>
+      </div>
+      <i class="fas fa-arrow-right" style="color:var(--text4);font-size:11px"></i>
+    </div>
+  `).join('');
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    openCmdPalette();
+  }
+  if (e.key === 'Escape') {
+    closeMo('mo-cmd');
+  }
+});
 </script>
 </body>
 </html>
