@@ -154,6 +154,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		// Students / Users
 		adm.GET("/users", ar.ListUsers)
 		adm.POST("/users/:id/toggle-vip", ar.ToggleUserVip)
+		adm.POST("/users/:id/activate-courses", ar.ActivateUserCourses)
 
 		// Community Moderation
 		adm.GET("/community", ar.ListCommunity)
@@ -555,20 +556,114 @@ func (ar *AdminRouter) GetCourseCurriculum(c *gin.Context) {
 func (ar *AdminRouter) ListSubscriptions(c *gin.Context) {
 	var subs []models.Subscription
 	ar.DB.Order("created_at desc").Find(&subs)
-	c.JSON(http.StatusOK, gin.H{"success": true, "subscriptions": subs, "data": subs})
+
+	userIDs := make([]string, 0, len(subs))
+	courseIDs := make([]string, 0, len(subs))
+	for _, s := range subs {
+		if s.UserID != "" {
+			userIDs = append(userIDs, s.UserID)
+		}
+		if s.CourseID != "" {
+			courseIDs = append(courseIDs, s.CourseID)
+		}
+	}
+
+	userMap := make(map[string]models.User)
+	if len(userIDs) > 0 {
+		var users []models.User
+		ar.DB.Where("id IN ?", userIDs).Find(&users)
+		for _, u := range users {
+			userMap[u.ID] = u
+		}
+	}
+
+	courseMap := make(map[string]models.Course)
+	if len(courseIDs) > 0 {
+		var courses []models.Course
+		ar.DB.Where("id IN ?", courseIDs).Find(&courses)
+		for _, crs := range courses {
+			courseMap[crs.ID] = crs
+		}
+	}
+
+	type EnrichedSub struct {
+		models.Subscription
+		UserName    string `json:"userName"`
+		UserEmail   string `json:"userEmail"`
+		UserPhone   string `json:"userPhone"`
+		CourseTitle string `json:"courseTitle"`
+		Plan        string `json:"plan"`
+	}
+
+	enriched := make([]EnrichedSub, 0, len(subs))
+	for _, s := range subs {
+		u := userMap[s.UserID]
+		crs := courseMap[s.CourseID]
+
+		uName := u.Name
+		if uName == "" {
+			uName = "Student"
+		}
+		cTitle := crs.Title
+		if cTitle == "" && s.CourseSlug != "" {
+			cTitle = s.CourseSlug
+		}
+		if cTitle == "" {
+			cTitle = s.PlanType
+		}
+
+		enriched = append(enriched, EnrichedSub{
+			Subscription: s,
+			UserName:    uName,
+			UserEmail:   u.Email,
+			UserPhone:   u.Phone,
+			CourseTitle: cTitle,
+			Plan:        s.PlanType,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "subscriptions": enriched, "data": enriched})
+}
+
+type ApproveSubscriptionRequest struct {
+	PlanType      string   `json:"planType"`
+	EnrolledSlugs []string `json:"enrolledSlugs"`
+	CourseSlugs   string   `json:"courseSlugs"`
+	IsVIP         *bool    `json:"isVip"`
 }
 
 func (ar *AdminRouter) ApproveSubscription(c *gin.Context) {
 	id := c.Param("id")
-	if err := ar.DB.Model(&models.Subscription{}).Where("id = ?", id).Update("status", "active").Error; err != nil {
+	var req ApproveSubscriptionRequest
+	_ = c.ShouldBindJSON(&req)
+
+	var sub models.Subscription
+	if err := ar.DB.Where("id = ?", id).First(&sub).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "Subscription record not found"})
+		return
+	}
+
+	sub.Status = "active"
+	if req.PlanType != "" {
+		sub.PlanType = req.PlanType
+	}
+	if len(req.EnrolledSlugs) > 0 {
+		sub.EnrolledSlugs = strings.Join(req.EnrolledSlugs, ",")
+	} else if req.CourseSlugs != "" {
+		sub.EnrolledSlugs = req.CourseSlugs
+	}
+
+	if err := ar.DB.Save(&sub).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
 	// Update user's isSubscribed and subscription plan
-	var sub models.Subscription
-	if err := ar.DB.Where("id = ?", id).First(&sub).Error; err == nil && sub.UserID != "" {
+	if sub.UserID != "" {
 		isVIP := strings.EqualFold(sub.PlanType, "VIP") || strings.EqualFold(sub.PlanType, "LIFETIME") || strings.EqualFold(sub.PlanType, "ANNUAL")
+		if req.IsVIP != nil {
+			isVIP = *req.IsVIP
+		}
 		ar.DB.Model(&models.User{}).Where("id = ?", sub.UserID).Updates(map[string]interface{}{
 			"is_subscribed":     true,
 			"is_vip":            isVIP,
@@ -576,7 +671,77 @@ func (ar *AdminRouter) ApproveSubscription(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Subscription approved"})
+	c.JSON(http.StatusOK, gin.H{
+		"success":       true,
+		"message":       "Subscription approved and selected courses unlocked",
+		"subscription":  sub,
+		"enrolledSlugs": sub.EnrolledSlugs,
+	})
+}
+
+type ActivateUserCoursesRequest struct {
+	PlanType      string   `json:"planType"`
+	EnrolledSlugs []string `json:"enrolledSlugs"`
+	CourseSlugs   string   `json:"courseSlugs"`
+	IsVIP         *bool    `json:"isVip"`
+}
+
+func (ar *AdminRouter) ActivateUserCourses(c *gin.Context) {
+	userId := c.Param("id")
+	var req ActivateUserCoursesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	slugs := req.CourseSlugs
+	if len(req.EnrolledSlugs) > 0 {
+		slugs = strings.Join(req.EnrolledSlugs, ",")
+	}
+	if req.PlanType == "" {
+		req.PlanType = "VIP"
+	}
+	isVIP := strings.EqualFold(req.PlanType, "VIP") || strings.EqualFold(req.PlanType, "LIFETIME")
+	if req.IsVIP != nil {
+		isVIP = *req.IsVIP
+	}
+
+	var sub models.Subscription
+	if err := ar.DB.Where("user_id = ? AND status = ?", userId, "active").Order("created_at desc").First(&sub).Error; err == nil {
+		sub.EnrolledSlugs = slugs
+		sub.PlanType = req.PlanType
+		ar.DB.Save(&sub)
+	} else {
+		sub = models.Subscription{
+			ID:            uuid.New().String(),
+			UserID:        userId,
+			PlanType:      req.PlanType,
+			Status:        "active",
+			StartDate:     time.Now(),
+			EndDate:       time.Now().AddDate(1, 0, 0),
+			PaymentMethod: "MANUAL_ADMIN",
+			TransactionID: "ADM-" + uuid.New().String()[:8],
+			Amount:        0,
+			Currency:      "NPR",
+			EnrolledSlugs: slugs,
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+		}
+		ar.DB.Create(&sub)
+	}
+
+	ar.DB.Model(&models.User{}).Where("id = ?", userId).Updates(map[string]interface{}{
+		"is_subscribed":     true,
+		"is_vip":            isVIP,
+		"subscription_plan": req.PlanType,
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"success":       true,
+		"message":       "Course permissions updated successfully",
+		"enrolledSlugs": slugs,
+		"isVip":         isVIP,
+	})
 }
 
 func (ar *AdminRouter) RejectSubscription(c *gin.Context) {

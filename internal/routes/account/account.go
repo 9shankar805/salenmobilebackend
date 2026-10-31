@@ -630,19 +630,63 @@ func (ar *AccountRouter) GetProfile(c *gin.Context) {
 		return
 	}
 
+	var lessonsCompleted int64
+	ar.DB.Model(&models.UserLessonProgress{}).Where("user_id = ? AND is_completed = ?", userID, true).Count(&lessonsCompleted)
+
+	var certificatesEarned int64
+	ar.DB.Model(&models.Certificate{}).Where("user_id = ?", userID).Count(&certificatesEarned)
+
+	var totalSeconds int64
+	ar.DB.Model(&models.UserLessonProgress{}).Where("user_id = ?", userID).Select("COALESCE(SUM(watched_seconds), 0)").Scan(&totalSeconds)
+
+	// Enrollments calculation
+	var subs []models.Subscription
+	ar.DB.Where("user_id = ? AND (status = 'active' OR status = 'approved')", userID).Find(&subs)
+	enrolledSet := make(map[string]bool)
+	for _, s := range subs {
+		if s.CourseSlug != "" {
+			enrolledSet[s.CourseSlug] = true
+		}
+		if s.EnrolledSlugs != "" {
+			for _, slug := range strings.Split(s.EnrolledSlugs, ",") {
+				slug = strings.TrimSpace(slug)
+				if slug != "" {
+					enrolledSet[slug] = true
+				}
+			}
+		}
+	}
+	if user.IsVIP || user.IsSubscribed {
+		var allCourses []models.Course
+		ar.DB.Where("is_published = ?", true).Find(&allCourses)
+		for _, crs := range allCourses {
+			enrolledSet[crs.Slug] = true
+		}
+	}
+
+	enrolledSlugsList := make([]string, 0, len(enrolledSet))
+	for s := range enrolledSet {
+		enrolledSlugsList = append(enrolledSlugsList, s)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"id":               user.ID,
-			"name":             user.Name,
-			"email":            user.Email,
-			"phone":            user.Phone,
-			"avatarUrl":        user.AvatarURL,
-			"role":             user.Role,
-			"isSubscribed":     user.IsSubscribed,
-			"isVip":            user.IsVIP,
-			"subscriptionPlan": user.SubscriptionPlan,
-			"createdAt":        user.CreatedAt,
+			"id":                   user.ID,
+			"name":                 user.Name,
+			"email":                user.Email,
+			"phone":                user.Phone,
+			"avatarUrl":            user.AvatarURL,
+			"role":                 user.Role,
+			"isSubscribed":         user.IsSubscribed,
+			"isVip":                user.IsVIP,
+			"subscriptionPlan":     user.SubscriptionPlan,
+			"coursesEnrolled":      len(enrolledSlugsList),
+			"lessonsCompleted":     lessonsCompleted,
+			"certificatesEarned":   certificatesEarned,
+			"totalLearningMinutes": totalSeconds / 60,
+			"enrolledCourseIds":    enrolledSlugsList,
+			"createdAt":            user.CreatedAt,
 		},
 	})
 }
