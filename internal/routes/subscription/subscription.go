@@ -69,6 +69,38 @@ func (sr *SubscriptionRouter) GetStatus(c *gin.Context) {
 		Order("created_at desc").First(&sub).Error
 
 	if err != nil {
+		// Check if user has a pending payment submitted awaiting admin review
+		var pendingSub models.Subscription
+		if pErr := sr.DB.Where("user_id = ? AND status = ?", userID, "pending").
+			Order("created_at desc").First(&pendingSub).Error; pErr == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": true,
+				"data": map[string]interface{}{
+					"isSubscribed":      false,
+					"hasPendingPayment": true,
+					"status":            "pending",
+					"pendingSubscription": map[string]interface{}{
+						"id":            pendingSub.ID,
+						"planType":      pendingSub.PlanType,
+						"amount":        pendingSub.Amount,
+						"currency":      pendingSub.Currency,
+						"paymentMethod": pendingSub.PaymentMethod,
+						"transactionId": pendingSub.TransactionID,
+						"courseSlug":    pendingSub.CourseSlug,
+						"createdAt":     pendingSub.CreatedAt.Format(time.RFC3339),
+					},
+					"expiresAt":            nil,
+					"enrolledCourseSlugs":  []string{},
+					"totalCertificates":    0,
+					"features":             []string{},
+					"canAccessMobileTools": false,
+					"canAccessChat":        false,
+					"canAccessCourses":     false,
+				},
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{"success": true, "data": notSubscribedResponse()})
 		return
 	}
@@ -122,6 +154,7 @@ func (sr *SubscriptionRouter) VerifyPayment(c *gin.Context) {
 		TransactionID string  `json:"transactionId"`
 		Amount        float64 `json:"amount"`
 		Currency      string  `json:"currency"`
+		Status        string  `json:"status"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
@@ -195,11 +228,16 @@ func (sr *SubscriptionRouter) VerifyPayment(c *gin.Context) {
 		enrolledSlugs = req.CourseSlug
 	}
 
+	finalStatus := "active"
+	if strings.EqualFold(req.Status, "pending") {
+		finalStatus = "pending"
+	}
+
 	sub := models.Subscription{
 		ID:            uuid.New().String(),
 		UserID:        req.UserID,
 		PlanType:      subscriptionPlanType,
-		Status:        "active",
+		Status:        finalStatus,
 		StartDate:     time.Now(),
 		EndDate:       time.Now().AddDate(0, durationMonths, 0),
 		PaymentMethod: req.PaymentMethod,
@@ -215,6 +253,22 @@ func (sr *SubscriptionRouter) VerifyPayment(c *gin.Context) {
 
 	if err := sr.DB.Create(&sub).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Failed to create subscription"})
+		return
+	}
+
+	if finalStatus == "pending" {
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "Payment submitted successfully! Course access will activate once admin verifies your payment screenshot.",
+			"data": gin.H{
+				"subscriptionId": sub.ID,
+				"planType":       sub.PlanType,
+				"status":         "pending",
+				"transactionId":  sub.TransactionID,
+				"amount":         sub.Amount,
+				"currency":       sub.Currency,
+			},
+		})
 		return
 	}
 

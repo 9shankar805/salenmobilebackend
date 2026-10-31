@@ -564,6 +564,18 @@ func (ar *AdminRouter) ApproveSubscription(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
+
+	// Update user's isSubscribed and subscription plan
+	var sub models.Subscription
+	if err := ar.DB.Where("id = ?", id).First(&sub).Error; err == nil && sub.UserID != "" {
+		isVIP := strings.EqualFold(sub.PlanType, "VIP") || strings.EqualFold(sub.PlanType, "LIFETIME") || strings.EqualFold(sub.PlanType, "ANNUAL")
+		ar.DB.Model(&models.User{}).Where("id = ?", sub.UserID).Updates(map[string]interface{}{
+			"is_subscribed":     true,
+			"is_vip":            isVIP,
+			"subscription_plan": sub.PlanType,
+		})
+	}
+
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Subscription approved"})
 }
 

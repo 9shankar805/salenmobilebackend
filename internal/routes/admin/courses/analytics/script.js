@@ -6,19 +6,43 @@ new Chart(document.getElementById('growthChart'), {
     datasets: [{
       label: 'Active Students',
       data: [8, 11, 14, 15, 17, 18, 18],
-      borderColor: '#6366f1',
-      backgroundColor: 'rgba(99,102,241,0.1)',
+      borderColor: '#38bdf8',
+      backgroundColor: 'rgba(56, 189, 248, 0.12)',
+      borderWidth: 3,
+      pointBackgroundColor: '#38bdf8',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
       fill: true,
-      tension: 0.3
+      tension: 0.35
     }]
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleColor: '#38bdf8',
+        bodyColor: '#ffffff',
+        borderColor: 'rgba(56, 189, 248, 0.3)',
+        borderWidth: 1,
+        padding: 10,
+        boxPadding: 4
+      }
+    },
     scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.05)' } },
-      y: { grid: { color: 'rgba(255,255,255,0.05)' }, min: 0 }
+      x: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans' } }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans' } },
+        min: 0
+      }
     }
   }
 });
@@ -31,17 +55,37 @@ new Chart(document.getElementById('funnelChart'), {
     datasets: [{
       label: 'Completions',
       data: [18, 16, 12, 9],
-      backgroundColor: ['#10b981', '#6366f1', '#06b6d4', '#8b5cf6'],
-      borderRadius: 6
+      backgroundColor: ['#38bdf8', '#2563eb', '#10b981', '#a855f7'],
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)'
     }]
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleColor: '#38bdf8',
+        bodyColor: '#ffffff',
+        borderColor: 'rgba(56, 189, 248, 0.3)',
+        borderWidth: 1,
+        padding: 10
+      }
+    },
     scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.05)' } },
-      y: { grid: { color: 'rgba(255,255,255,0.05)' }, min: 0, max: 20 }
+      x: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans' } }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans' } },
+        min: 0,
+        max: 20
+      }
     }
   }
 });
