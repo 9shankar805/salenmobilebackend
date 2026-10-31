@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Compliance & Safety Standards — Salen Mobile Guru Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="breadcrumbs">
+    <a href="/admin/courses"><i class="fas fa-arrow-left"></i> Courses</a>
+    <span>/</span>
+    <span>Advanced Mobile Motherboard Diagnostics</span>
+    <span>/</span>
+    <span class="current"><i class="fas fa-shield-halved" style="color:var(--success);margin-right:4px"></i>Compliance &amp; Safety</span>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-primary btn-sm" onclick="openWaiveModal()"><i class="fas fa-file-shield"></i> Grant Waiver</button>
+  </div>
+</header>
+
+<main class="container">
+  <!-- KPI Metrics -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--card-accent:var(--success)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Fully Compliant</div>
+      <div class="kpi-val" style="color:var(--success)">14</div>
+      <div style="font-size:11.5px;color:var(--text4)">Active ESD &amp; Safety records</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--warn)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Expiring Soon (&lt;30D)</div>
+      <div class="kpi-val" style="color:var(--warn)">3</div>
+      <div style="font-size:11.5px;color:var(--text4)">Requires annual re-certification</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--purple)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Approved Waivers</div>
+      <div class="kpi-val" style="color:var(--purple)">1</div>
+      <div style="font-size:11.5px;color:var(--text4)">Exemption by senior engineer</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--danger)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Non-Compliant / Overdue</div>
+      <div class="kpi-val" style="color:var(--danger)">0</div>
+      <div style="font-size:11.5px;color:var(--text4)">100% adherence to safety protocol</div>
+    </div>
+  </div>
+
+  <div class="content-box">
+    <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-weight:700;font-size:14px"><i class="fas fa-list-check" style="color:var(--primary);margin-right:8px"></i>Level 3 Hardware Safety &amp; ESD Protection Roster</div>
+      <span style="font-size:12px;color:var(--text3)">Renewal Cycle: 12 Months</span>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Learner</th>
+          <th>Status</th>
+          <th>Expiry Countdown</th>
+          <th>Last Certified</th>
+          <th>Renewal Cycle</th>
+          <th style="text-align:right">Staff Actions</th>
+        </tr>
+      </thead>
+      <tbody id="compliance-body">
+        <!-- Rendered by JS -->
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Waive Modal -->
+<div class="modal-overlay" id="waiveModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="font-weight:700;font-size:15px"><i class="fas fa-file-shield" style="color:var(--purple);margin-right:8px"></i>Grant Safety Waiver</div>
+      <button class="btn btn-outline btn-sm" onclick="closeWaiveModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Learner</label>
+        <select id="waive-student-select" class="form-input">
+          <option value="Aarav Sharma">Aarav Sharma</option>
+          <option value="Bikash Gurung">Bikash Gurung</option>
+          <option value="Chandra Prakash Thapa">Chandra Prakash Thapa</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Waiver Justification / Reason</label>
+        <textarea id="waive-reason" class="form-input" rows="3" placeholder="Holds IPC-7711/7721 Rework Certification from external testing laboratory."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Waiver Expiration Date</label>
+        <input type="date" id="waive-date" class="form-input"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeWaiveModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="applyWaiver()"><i class="fas fa-check"></i> Grant Exemption</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+

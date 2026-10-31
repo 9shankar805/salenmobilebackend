@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Diagnostic Labs & Exercises — Salen Mobile Guru Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="breadcrumbs">
+    <a href="/admin/courses"><i class="fas fa-arrow-left"></i> Courses</a>
+    <span>/</span>
+    <span>Advanced Mobile Motherboard Diagnostics</span>
+    <span>/</span>
+    <span class="current"><i class="fas fa-vial-circle-check" style="color:var(--purple);margin-right:4px"></i>Diagnostic Labs &amp; Exercises</span>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-primary btn-sm" onclick="showBuilder()"><i class="fas fa-plus"></i> New Diagnostic Lab</button>
+  </div>
+</header>
+
+<main class="container">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchView('catalog', this)"><i class="fas fa-list-check"></i> Lab Assessments Catalog</button>
+    <button class="nav-tab" onclick="switchView('builder', this)"><i class="fas fa-screwdriver-wrench"></i> Interactive Lab Builder</button>
+    <button class="nav-tab" onclick="switchView('simulator', this)"><i class="fas fa-play"></i> Student Simulator</button>
+  </div>
+
+  <!-- KPI Metrics -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--card-accent:var(--primary)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Active Diagnostic Labs</div>
+      <div class="kpi-val" id="kpi-total-labs" style="color:var(--primary)">5</div>
+      <div style="font-size:11.5px;color:var(--text4)">Practical board exercises</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--purple)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Total Questions</div>
+      <div class="kpi-val" id="kpi-total-q" style="color:var(--purple)">26</div>
+      <div style="font-size:11.5px;color:var(--text4)">Multimeter &amp; diode tests</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--success)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Passing Grade Threshold</div>
+      <div class="kpi-val" style="color:var(--success)">75%</div>
+      <div style="font-size:11.5px;color:var(--text4)">Required for hardware certificate</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--warn)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Average Lab Score</div>
+      <div class="kpi-val" style="color:var(--warn)">86.4%</div>
+      <div style="font-size:11.5px;color:var(--text4)">Based on 18 student attempts</div>
+    </div>
+  </div>
+
+  <!-- View 1: Catalog -->
+  <div id="view-catalog" class="view-panel">
+    <div class="labs-grid" id="labs-list-container">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+  <!-- View 2: Builder -->
+  <div id="view-builder" class="view-panel" style="display:none">
+    <div class="builder-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:14px">
+        <div>
+          <div style="font-size:17px;font-weight:800"><i class="fas fa-microchip" style="color:var(--primary);margin-right:8px"></i>Diagnostic Lab Builder</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Configure test points, multimeter diode tolerances, and question rubrics</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="addQuestion()"><i class="fas fa-plus"></i> Add Question</button>
+          <button class="btn btn-primary btn-sm" onclick="saveLab()"><i class="fas fa-floppy-disk"></i> Publish Lab</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div class="form-group">
+          <label>Lab Title</label>
+          <input type="text" id="builder-title" class="form-input" placeholder="e.g. Lab 3: iPhone 13 PMIC Short Circuit Isolation"/>
+        </div>
+        <div class="form-group">
+          <label>Total Max Points</label>
+          <input type="number" id="builder-points" class="form-input" value="50"/>
+        </div>
+      </div>
+
+      <div id="questions-builder-container">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- View 3: Student Simulator -->
+  <div id="view-simulator" class="view-panel" style="display:none">
+    <div class="builder-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-size:16px;font-weight:800" id="sim-title">Lab 1: VDD_MAIN Voltage Drop Diagnostic</div>
+          <div style="font-size:12px;color:var(--text3)">Student Test Simulation Mode &bull; Time Remaining: 24:18</div>
+        </div>
+        <span class="badge b-warn"><i class="fas fa-stopwatch"></i> Active Session</span>
+      </div>
+
+      <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:8px">Question 1 of 4: Diode Mode Measurement</div>
+        <p style="color:var(--text2);margin-bottom:14px">Using your digital multimeter on diode mode (Red probe on Ground), probe capacitor <strong>C1023</strong> on the VDD_MAIN line. What is the expected reading on a functional board?</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rs);cursor:pointer">
+            <input type="radio" name="sim_q1" value="0"/> <span>A: 0.000V (Direct short to ground)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rs);cursor:pointer">
+            <input type="radio" name="sim_q1" value="1"/> <span>B: 0.385V &plusmn; 0.03V (Normal PN junction drop)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rs);cursor:pointer">
+            <input type="radio" name="sim_q1" value="2"/> <span>C: OL / 1.000V (Open circuit / blown fuse resistor)</span>
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="alert('Simulation Check: Option B is correct! Normal diode drop is ~0.385V.')"><i class="fas fa-check"></i> Submit Simulation Answer</button>
+    </div>
+  </div>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
+

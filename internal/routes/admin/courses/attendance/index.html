@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Course Attendance — Salen Mobile Guru Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="breadcrumbs">
+    <a href="/admin/courses"><i class="fas fa-arrow-left"></i> Courses</a>
+    <span>/</span>
+    <span id="course-name">Advanced Mobile Motherboard Diagnostics</span>
+    <span>/</span>
+    <span class="current"><i class="fas fa-clipboard-user" style="color:var(--primary);margin-right:4px"></i>Attendance Ledger</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="btn btn-outline btn-sm" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
+    <button class="btn btn-primary btn-sm" onclick="openAddLectureModal()"><i class="fas fa-plus"></i> Add Lecture</button>
+  </div>
+</header>
+
+<main class="container">
+  <!-- KPI Metrics -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--card-accent:var(--primary)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Overall Attendance Rate</div>
+      <div class="kpi-val" id="kpi-rate" style="color:var(--primary)">91.4%</div>
+      <div class="kpi-sub"><span style="color:var(--success)"><i class="fas fa-arrow-trend-up"></i> +2.8%</span> from last week</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--success)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Total Enrolled Students</div>
+      <div class="kpi-val" id="kpi-students" style="color:var(--success)">18</div>
+      <div class="kpi-sub">Active batch learners</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--cyan)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Lectures Conducted</div>
+      <div class="kpi-val" id="kpi-lectures" style="color:var(--cyan)">8</div>
+      <div class="kpi-sub">Out of 24 scheduled sessions</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--purple)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Perfect Attendance</div>
+      <div class="kpi-val" id="kpi-perfect" style="color:var(--purple)">11</div>
+      <div class="kpi-sub">100% attendance rate</div>
+    </div>
+  </div>
+
+  <!-- Content Box -->
+  <div class="content-box">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" id="search-student" class="input-search" placeholder="Search student by name or email..." oninput="filterStudents()"/>
+        </div>
+        <select id="lecture-filter" class="form-input" style="max-width:200px" onchange="renderMatrix()">
+          <option value="all">Showing All 8 Lectures</option>
+          <option value="last">Latest Lecture (L08)</option>
+        </select>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-outline btn-sm" onclick="markAll('present')"><i class="fas fa-check-double" style="color:var(--success)"></i> Mark All Present</button>
+        <button class="btn btn-outline btn-sm" onclick="markAll('absent')"><i class="fas fa-times" style="color:var(--danger)"></i> Mark All Absent</button>
+      </div>
+    </div>
+
+    <!-- Interactive Attendance Matrix Table -->
+    <div class="matrix-container">
+      <table class="matrix" id="attendance-table">
+        <thead>
+          <tr id="matrix-head-row">
+            <!-- Injected by JS -->
+          </tr>
+        </thead>
+        <tbody id="matrix-body">
+          <!-- Injected by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table Footer / Pagination -->
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;color:var(--text3);font-size:12px">
+      <div id="table-info">Showing 18 students</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" disabled><i class="fas fa-chevron-left"></i> Previous</button>
+        <button class="btn btn-outline btn-sm" disabled>Next <i class="fas fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Add Lecture Modal -->
+<div class="modal-overlay" id="addLectureModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="font-weight:700;font-size:15px"><i class="fas fa-calendar-plus" style="color:var(--primary);margin-right:8px"></i>Add New Lecture Session</div>
+      <button class="btn btn-outline btn-sm" onclick="closeAddLectureModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Lecture Title</label>
+        <input type="text" id="new-lecture-title" class="form-input" placeholder="e.g. L09: Audio IC Reballing & Trace Jumpering"/>
+      </div>
+      <div class="form-group">
+        <label>Session Date</label>
+        <input type="date" id="new-lecture-date" class="form-input"/>
+      </div>
+      <div class="form-group">
+        <label>Instructor</label>
+        <input type="text" id="new-lecture-instructor" class="form-input" value="Master Salen"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeAddLectureModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveNewLecture()">Create Lecture</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+

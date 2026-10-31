@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gradebook & Marks Matrix — Salen Mobile Guru Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="breadcrumbs">
+    <a href="/admin/courses"><i class="fas fa-arrow-left"></i> Courses</a>
+    <span>/</span>
+    <span>Advanced Mobile Motherboard Diagnostics</span>
+    <span>/</span>
+    <span class="current"><i class="fas fa-chart-simple" style="color:var(--success);margin-right:4px"></i>Marks &amp; Gradebook Ledger</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="btn btn-outline btn-sm" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
+    <button class="btn btn-primary btn-sm" onclick="openAddAssessmentModal()"><i class="fas fa-plus"></i> Add Assessment</button>
+  </div>
+</header>
+
+<main class="container">
+  <!-- KPI Metrics -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--card-accent:var(--primary)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Class Average Score</div>
+      <div class="kpi-val" id="kpi-avg" style="color:var(--primary)">84.2%</div>
+      <div class="kpi-sub"><span style="color:var(--success)"><i class="fas fa-medal"></i> Grade B+</span> solid batch performance</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--success)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Passing Rate (&ge;70%)</div>
+      <div class="kpi-val" id="kpi-pass-rate" style="color:var(--success)">94.4%</div>
+      <div class="kpi-sub">17 of 18 students passing</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--purple)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Distinction (&ge;90%)</div>
+      <div class="kpi-val" id="kpi-distinction" style="color:var(--purple)">6</div>
+      <div class="kpi-sub">Master technicians level</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--warn)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Top Performing Student</div>
+      <div class="kpi-val" id="kpi-top" style="color:var(--warn);font-size:18px;margin-top:10px">Aarav Sharma</div>
+      <div class="kpi-sub">Overall 96.5% (Rank #1)</div>
+    </div>
+  </div>
+
+  <!-- Content Box -->
+  <div class="content-box">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" id="search-student" class="input-search" placeholder="Search student by name or email..." oninput="filterGrades()"/>
+        </div>
+        <select id="grade-filter" class="form-select" onchange="filterGrades()">
+          <option value="all">All Grade Brackets</option>
+          <option value="distinction">Distinction (&ge;90%)</option>
+          <option value="first">First Class (&ge;80%)</option>
+          <option value="pass">Passing (&ge;70%)</option>
+          <option value="risk">At Risk (&lt;70%)</option>
+        </select>
+      </div>
+      <div class="toolbar-right">
+        <span style="font-size:12px;color:var(--text3);margin-right:8px"><i class="fas fa-circle-info" style="color:var(--primary);margin-right:4px"></i>Click any score cell to edit</span>
+      </div>
+    </div>
+
+    <!-- Marks Table -->
+    <div class="matrix-container">
+      <table class="matrix" id="marks-table">
+        <thead>
+          <tr id="marks-head-row">
+            <!-- Injected by JS -->
+          </tr>
+        </thead>
+        <tbody id="marks-body">
+          <!-- Injected by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;color:var(--text3);font-size:12px">
+      <div id="table-info">Showing 18 students</div>
+      <div>Click score badge to adjust marks directly</div>
+    </div>
+  </div>
+</main>
+
+<!-- Edit Score Modal -->
+<div class="modal-overlay" id="editScoreModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="font-weight:700;font-size:15px"><i class="fas fa-pen-to-square" style="color:var(--primary);margin-right:8px"></i>Update Student Grade</div>
+      <button class="btn btn-outline btn-sm" onclick="closeEditModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px" id="modal-student-desc">Student Name</div>
+      <div class="form-group">
+        <label id="modal-assessment-label">Points Scored</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="number" id="modal-score-input" class="form-input" min="0" max="100" style="max-width:140px"/>
+          <span style="font-weight:700;color:var(--text3)" id="modal-max-points">/ 50 pts</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveScore()">Save Grade</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Assessment Modal -->
+<div class="modal-overlay" id="addAssessmentModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="font-weight:700;font-size:15px"><i class="fas fa-file-circle-plus" style="color:var(--primary);margin-right:8px"></i>Add Assessment Column</div>
+      <button class="btn btn-outline btn-sm" onclick="closeAddAssessmentModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Assessment Title</label>
+        <input type="text" id="new-assessment-title" class="form-input" placeholder="e.g. Lab 4: Face ID &amp; Dot Projector Repair"/>
+      </div>
+      <div class="form-group">
+        <label>Maximum Points</label>
+        <input type="number" id="new-assessment-max" class="form-input" value="50" min="5" max="200"/>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="new-assessment-cat" class="form-input">
+          <option value="Practical Lab">Practical Hardware Lab</option>
+          <option value="Quiz">Theoretical Quiz</option>
+          <option value="Midterm">Midterm Examination</option>
+          <option value="Final">Final Certification Project</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeAddAssessmentModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveNewAssessment()">Add Column</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+

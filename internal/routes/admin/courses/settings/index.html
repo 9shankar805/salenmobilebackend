@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Course Settings — Salen Mobile Guru Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="breadcrumbs">
+    <a href="/admin/courses"><i class="fas fa-arrow-left"></i> Courses</a>
+    <span>/</span>
+    <span>Advanced Mobile Motherboard Diagnostics</span>
+    <span>/</span>
+    <span class="current"><i class="fas fa-gear" style="color:var(--primary);margin-right:4px"></i>Course Settings</span>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-primary btn-sm" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button>
+  </div>
+</header>
+
+<main class="container">
+  <!-- General Info -->
+  <div class="settings-section">
+    <div class="section-title"><i class="fas fa-circle-info" style="color:var(--primary)"></i>General Course Details</div>
+    <div class="section-sub">Course title, slug identifier, and skill classification for Salen Mobile Guru</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="form-group">
+        <label>Course Title</label>
+        <input type="text" id="course-title" class="form-input" value="Advanced Mobile Motherboard Diagnostics"/>
+      </div>
+      <div class="form-group">
+        <label>URL Slug</label>
+        <input type="text" id="course-slug" class="form-input" value="advanced-mobile-motherboard-diagnostics"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Short Summary / Subtitle</label>
+      <input type="text" id="course-summary" class="form-input" value="Master multimeter diode mode analysis, thermal short circuit isolation, and BGA reballing."/>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="course-category" class="form-input">
+          <option value="Hardware" selected>Hardware &amp; Microsoldering</option>
+          <option value="Software">Software &amp; Flashing</option>
+          <option value="Schematics">Schematics &amp; Boardview</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Skill Level</label>
+        <select id="course-level" class="form-input">
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced" selected>Advanced</option>
+          <option value="Master">Master Technician</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Delivery Mode</label>
+        <select id="course-mode" class="form-input">
+          <option value="Self-Paced" selected>Self-Paced (Lifetime Access)</option>
+          <option value="Cohort">Fixed Cohort Batch</option>
+          <option value="Compliance">Safety &amp; Compliance Training</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Media & Thumbnail -->
+  <div class="settings-section">
+    <div class="section-title"><i class="fas fa-image" style="color:var(--cyan)"></i>Cover Media &amp; Branding</div>
+    <div class="section-sub">Course thumbnail graphic and preview trailer video</div>
+
+    <div class="form-group">
+      <label>Cover Thumbnail Image URL</label>
+      <input type="text" id="course-thumb-url" class="form-input" value="https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800" oninput="updateThumbPreview()"/>
+      <div class="thumb-preview-box">
+        <img id="thumb-preview-img" class="thumb-img" src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing & Access -->
+  <div class="settings-section">
+    <div class="section-title"><i class="fas fa-money-bill-wave" style="color:var(--success)"></i>Pricing &amp; Enrollment Access</div>
+    <div class="section-sub">Pricing in Nepalese Rupees (NPR) and student admission permissions</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="form-group">
+        <label>Selling Price (NPR)</label>
+        <input type="number" id="course-price" class="form-input" value="25000"/>
+      </div>
+      <div class="form-group">
+        <label>Original Listed Price (NPR)</label>
+        <input type="number" id="course-orig-price" class="form-input" value="35000"/>
+      </div>
+    </div>
+
+    <div class="form-group" style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-card-2);border-radius:var(--rs)">
+      <input type="checkbox" id="course-self-enroll" checked style="width:18px;height:18px"/>
+      <div>
+        <div style="font-weight:700">Allow Public Self-Enrollment</div>
+        <div style="font-size:11.5px;color:var(--text3)">Students can enroll directly via website checkout and payment gateway</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="settings-section danger-box">
+    <div class="section-title"><i class="fas fa-triangle-exclamation"></i>Danger Zone</div>
+    <div class="section-sub">Irreversible actions on this course module</div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-weight:700">Delete This Course</div>
+        <div style="font-size:12px;color:var(--text3)">Permanently remove this course, its curriculum, and all diagnostic lab records.</div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteCourse()"><i class="fas fa-trash"></i> Delete Course</button>
+    </div>
+  </div>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
+

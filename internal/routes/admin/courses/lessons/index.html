@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Curriculum & Lessons Studio — Salen Mobile Guru Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="breadcrumbs">
+    <a href="/admin/courses"><i class="fas fa-arrow-left"></i> Courses</a>
+    <span>/</span>
+    <span>Advanced Mobile Motherboard Diagnostics</span>
+    <span>/</span>
+    <span class="current"><i class="fas fa-book-open" style="color:var(--primary);margin-right:4px"></i>Curriculum &amp; Lessons</span>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-outline btn-sm" onclick="openAddModuleModal()"><i class="fas fa-folder-plus"></i> Add Module</button>
+    <button class="btn btn-primary btn-sm" onclick="openAddLessonModal()"><i class="fas fa-plus"></i> Add Lesson</button>
+  </div>
+</header>
+
+<main class="container">
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--card-accent:var(--primary)">
+      <div style="font-size:11.5px;font-weight:600;color:var(--text3)">Curriculum Modules</div>
+      <div class="kpi-val" id="kpi-modules" style="color:var(--primary)">4</div>
+      <div style="font-size:11.5px;color:var(--text4)">Structured learning tracks</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--purple)">
+      <div style="font-size:11.5px;font-weight:600;color:var(--text3)">Total Lessons</div>
+      <div class="kpi-val" id="kpi-lessons" style="color:var(--purple)">16</div>
+      <div style="font-size:11.5px;color:var(--text4)">Video lectures &amp; labs</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--cyan)">
+      <div style="font-size:11.5px;font-weight:600;color:var(--text3)">Total Content Duration</div>
+      <div class="kpi-val" id="kpi-duration" style="color:var(--cyan)">12.5 hrs</div>
+      <div style="font-size:11.5px;color:var(--text4)">Practical step-by-step repair</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--success)">
+      <div style="font-size:11.5px;font-weight:600;color:var(--text3)">Free Preview Lessons</div>
+      <div class="kpi-val" id="kpi-preview" style="color:var(--success)">3</div>
+      <div style="font-size:11.5px;color:var(--text4)">Open to guest learners</div>
+    </div>
+  </div>
+
+  <div class="workspace-grid">
+    <!-- Left: Curriculum Tree -->
+    <div class="curriculum-card">
+      <div class="curriculum-header">
+        <span style="font-weight:700;font-size:13px"><i class="fas fa-sitemap" style="color:var(--primary);margin-right:8px"></i>Course Syllabus</span>
+        <span class="badge badge-time" id="tree-summary">4 Modules</span>
+      </div>
+      <div id="module-accordion-container">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Right: Lesson Studio -->
+    <div class="studio-card">
+      <div class="studio-header">
+        <div>
+          <div style="font-size:11px;color:var(--text4);text-transform:uppercase;letter-spacing:0.5px" id="active-module-title">Module 1</div>
+          <div style="font-size:17px;font-weight:800;color:var(--text);margin-top:2px" id="active-lesson-title">Lesson Title</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="navLesson(-1)" id="btn-prev-lesson"><i class="fas fa-arrow-left"></i> Prev</button>
+          <button class="btn btn-outline btn-sm" onclick="navLesson(1)" id="btn-next-lesson">Next <i class="fas fa-arrow-right"></i></button>
+          <button class="btn btn-primary btn-sm" onclick="saveActiveLesson()"><i class="fas fa-save"></i> Save Lesson</button>
+        </div>
+      </div>
+
+      <!-- Studio Tabs -->
+      <div class="studio-tabs">
+        <button class="tab-btn active" onclick="switchStudioTab('video', this)"><i class="fas fa-play"></i> Video Lecture</button>
+        <button class="tab-btn" onclick="switchStudioTab('notes', this)"><i class="fas fa-file-lines"></i> Lecture Notes &amp; Schematics</button>
+        <button class="tab-btn" onclick="switchStudioTab('attachments', this)"><i class="fas fa-paperclip"></i> Resources &amp; PDF</button>
+        <button class="tab-btn" onclick="switchStudioTab('settings', this)"><i class="fas fa-gear"></i> Settings</button>
+      </div>
+
+      <!-- Tab Content: Video -->
+      <div id="tab-pane-video" class="tab-pane" style="padding:0">
+        <div class="video-wrap">
+          <iframe id="video-iframe" class="video-frame" src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+        </div>
+        <div style="padding:16px 20px">
+          <div class="form-group">
+            <label>Video Stream / Embed URL (YouTube, Vimeo, MP4)</label>
+            <input type="text" id="lesson-video-url" class="form-input" placeholder="https://www.youtube.com/watch?v=..." oninput="updateVideoPreview()"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Notes -->
+      <div id="tab-pane-notes" class="tab-pane" style="display:none;padding:20px">
+        <div class="form-group">
+          <label>Lecture Notes &amp; Repair Steps</label>
+          <textarea id="lesson-notes" class="form-input" rows="12" placeholder="Write diagnostic tips, multimeter diode readings, resistor jumper locations, and safety warnings..."></textarea>
+        </div>
+      </div>
+
+      <!-- Tab Content: Attachments -->
+      <div id="tab-pane-attachments" class="tab-pane" style="display:none;padding:20px">
+        <div style="border:2px dashed var(--border);border-radius:var(--rs);padding:30px;text-align:center;background:var(--bg-card-2);margin-bottom:16px">
+          <i class="fas fa-cloud-arrow-up" style="font-size:32px;color:var(--primary);margin-bottom:8px"></i>
+          <div style="font-weight:600">Upload Schematics, ZXW Boardview &amp; PDF Lab Sheets</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px">Support PDF, ZIP, PNG, BRD (up to 50MB)</div>
+        </div>
+        <div id="attachments-list" style="display:flex;flex-direction:column;gap:8px">
+          <div style="padding:10px 14px;background:var(--bg-card-2);border:1px solid var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px">
+              <i class="fas fa-file-pdf" style="color:var(--danger);font-size:18px"></i>
+              <div>
+                <div style="font-weight:600;font-size:12.5px">iPhone-13-Pro-PMIC-Schematic-Excerpt.pdf</div>
+                <div style="font-size:11px;color:var(--text4)">2.4 MB &bull; High Resolution Board Layout</div>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm"><i class="fas fa-download"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Settings -->
+      <div id="tab-pane-settings" class="tab-pane" style="display:none;padding:20px">
+        <div class="form-group">
+          <label>Lesson Title</label>
+          <input type="text" id="lesson-title-input" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Estimated Duration (e.g. 18m, 45m)</label>
+          <input type="text" id="lesson-duration-input" class="form-input"/>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:10px">
+          <input type="checkbox" id="lesson-preview-input" style="width:16px;height:16px"/>
+          <label for="lesson-preview-input" style="margin-bottom:0;cursor:pointer">Allow Free Preview (Students can view without subscription)</label>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Add Module Modal -->
+<div class="modal-overlay" id="addModuleModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="font-weight:700;font-size:15px"><i class="fas fa-folder-plus" style="color:var(--primary);margin-right:8px"></i>Add Curriculum Module</div>
+      <button class="btn btn-outline btn-sm" onclick="closeAddModuleModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Module Title</label>
+        <input type="text" id="new-module-title" class="form-input" placeholder="e.g. Module 5: Face ID &amp; Dot Projector Microsoldering"/>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="new-module-desc" class="form-input" rows="3" placeholder="Brief summary of what this module covers..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeAddModuleModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveNewModule()">Create Module</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Lesson Modal -->
+<div class="modal-overlay" id="addLessonModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="font-weight:700;font-size:15px"><i class="fas fa-video" style="color:var(--primary);margin-right:8px"></i>Add New Lesson</div>
+      <button class="btn btn-outline btn-sm" onclick="closeAddLessonModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Select Parent Module</label>
+        <select id="new-lesson-module-select" class="form-input">
+          <!-- Populated by JS -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Lesson Title</label>
+        <input type="text" id="new-lesson-title" class="form-input" placeholder="e.g. Diagnosing VDD_BOOST Short with Thermal Cam"/>
+      </div>
+      <div class="form-group">
+        <label>Duration (e.g. 24m)</label>
+        <input type="text" id="new-lesson-duration" class="form-input" value="20m"/>
+      </div>
+      <div class="form-group">
+        <label>YouTube / Video URL</label>
+        <input type="text" id="new-lesson-url" class="form-input" placeholder="https://www.youtube.com/watch?v=..."/>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="new-lesson-preview" style="width:16px;height:16px"/>
+        <label for="new-lesson-preview" style="margin-bottom:0">Enable Free Preview for guests</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeAddLessonModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveNewLesson()">Add Lesson</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+

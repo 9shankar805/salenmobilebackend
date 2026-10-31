@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Certificates Studio — Salen Mobile Guru Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="breadcrumbs">
+    <a href="/admin/courses"><i class="fas fa-arrow-left"></i> Courses</a>
+    <span>/</span>
+    <span>Advanced Mobile Motherboard Diagnostics</span>
+    <span>/</span>
+    <span class="current"><i class="fas fa-award" style="color:var(--gold);margin-right:4px"></i>Certificates Studio</span>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-gold btn-sm" onclick="issueCertPrompt()"><i class="fas fa-stamp"></i> Issue Certificate</button>
+  </div>
+</header>
+
+<main class="container">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('designer', this)"><i class="fas fa-pen-nib"></i> Certificate Designer</button>
+    <button class="nav-tab" onclick="switchTab('ledger', this)"><i class="fas fa-table-list"></i> Issued Certificates (8)</button>
+    <button class="nav-tab" onclick="switchTab('rules', this)"><i class="fas fa-sliders"></i> Eligibility Criteria</button>
+  </div>
+
+  <!-- KPI Metrics -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--card-accent:var(--gold)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Certificates Issued</div>
+      <div class="kpi-val" style="color:var(--gold)">8</div>
+      <div style="font-size:11.5px;color:var(--text4)">Cryptographically signed credentials</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--primary)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Eligible Students</div>
+      <div class="kpi-val" style="color:var(--primary)">9</div>
+      <div style="font-size:11.5px;color:var(--text4)">Met 100% course completion criteria</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--success)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Online QR Verifications</div>
+      <div class="kpi-val" style="color:var(--success)">64</div>
+      <div style="font-size:11.5px;color:var(--text4)">Employer &amp; customer scans</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--cyan)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Min Score Threshold</div>
+      <div class="kpi-val" style="color:var(--cyan)">75%</div>
+      <div style="font-size:11.5px;color:var(--text4)">Pass rate in practical labs</div>
+    </div>
+  </div>
+
+  <!-- Tab 1: Designer -->
+  <div id="tab-designer" class="tab-view">
+    <div class="designer-grid">
+      <!-- Left Controls -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:20px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:16px"><i class="fas fa-palette" style="color:var(--gold);margin-right:8px"></i>Customization</div>
+        <div class="form-group">
+          <label>Certificate Title</label>
+          <input type="text" id="cert-title-input" class="form-input" value="Certificate of Mastery" oninput="updateCertPreview()"/>
+        </div>
+        <div class="form-group">
+          <label>Course / Specialization Title</label>
+          <input type="text" id="cert-sub-input" class="form-input" value="Advanced Mobile Motherboard Diagnostics &amp; Microsoldering" oninput="updateCertPreview()"/>
+        </div>
+        <div class="form-group">
+          <label>Instructor Signatory Name</label>
+          <input type="text" id="cert-sign-input" class="form-input" value="Master Salen" oninput="updateCertPreview()"/>
+        </div>
+        <div class="form-group">
+          <label>Design Frame Theme</label>
+          <select id="cert-theme-select" class="form-input" onchange="updateTheme()">
+            <option value="gold">Gold Royal Deluxe</option>
+            <option value="cyan">Tech Cyan Neon</option>
+            <option value="white">Minimal Monochrome</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="alert('Certificate template saved!')"><i class="fas fa-save"></i> Save Template</button>
+      </div>
+
+      <!-- Right Live Preview -->
+      <div class="cert-canvas-wrap">
+        <div class="cert-frame" id="live-cert-frame">
+          <div>
+            <div class="cert-academy">Salen Mobile Guru Academy &bull; Nepal</div>
+            <div class="cert-hero" id="preview-title">Certificate of Mastery</div>
+            <div style="font-size:11.5px;color:var(--text4);text-transform:uppercase;letter-spacing:1px">This credential is proudly conferred upon</div>
+            <div class="cert-name" id="preview-student">Aarav Sharma</div>
+            <div class="cert-reason" id="preview-desc">For successfully demonstrating proficiency in BGA micro-soldering, thermal short circuit isolation, and Apple A15 Bionic motherboard schematics diagnostics.</div>
+          </div>
+          <div class="cert-footer">
+            <div style="text-align:left">
+              <div class="cert-sign-name" id="preview-sign">Master Salen</div>
+              <div class="cert-sign-title">Head Instructor &bull; Certified Board Specialist</div>
+            </div>
+            <div style="text-align:center">
+              <i class="fas fa-qrcode" style="font-size:38px;color:var(--gold)"></i>
+              <div style="font-size:9px;color:var(--text4);font-family:var(--mono);margin-top:2px">SMG-CERT-8841</div>
+            </div>
+            <div style="text-align:right">
+              <div class="cert-sign-name">Oct 28, 2026</div>
+              <div class="cert-sign-title">Date of Conferment</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Ledger -->
+  <div id="tab-ledger" class="tab-view" style="display:none">
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Certificate Serial</th>
+            <th>Issue Date</th>
+            <th>Status</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="cert-ledger-body">
+          <!-- Rendered by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 3: Rules -->
+  <div id="tab-rules" class="tab-view" style="display:none">
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:24px;max-width:600px">
+      <div style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-sliders" style="color:var(--primary);margin-right:8px"></i>Automated Issuance Criteria</div>
+      <div class="form-group">
+        <label>Minimum Overall Course Progress</label>
+        <input type="number" class="form-input" value="100"/>
+      </div>
+      <div class="form-group">
+        <label>Minimum Diagnostic Lab Passing Grade</label>
+        <input type="number" class="form-input" value="75"/>
+      </div>
+      <div class="form-group">
+        <label>Minimum Attendance Rate</label>
+        <input type="number" class="form-input" value="80"/>
+      </div>
+      <button class="btn btn-primary" onclick="alert('Rules updated!')"><i class="fas fa-check"></i> Save Rules</button>
+    </div>
+  </div>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
+

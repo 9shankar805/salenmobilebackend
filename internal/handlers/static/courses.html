@@ -1018,7 +1018,7 @@ function renderCourses(courses) {
 
     return `
       <div class="card" style="display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border);transition:transform .2s,box-shadow .2s;position:relative">
-        <div style="position:relative;height:140px;background:linear-gradient(135deg,#1e1b4b,#312e81);overflow:hidden;cursor:pointer" onclick="window.location.href='/admin/curriculum?courseId=${id}'" title="Open Curriculum &amp; Lessons">
+        <div style="position:relative;height:140px;background:linear-gradient(135deg,#1e1b4b,#312e81);overflow:hidden;cursor:pointer" onclick="window.location.href='/admin/courses/${id}'" title="Open Course Workspace">
           ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>` : ''}
           <div style="position:absolute;top:10px;left:10px;display:flex;gap:6px">
             <span class="badge b-purple">${cat}</span>
@@ -1031,7 +1031,7 @@ function renderCourses(courses) {
         </div>
         <div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:space-between">
           <div>
-            <div style="font-weight:800;font-size:15px;line-height:1.3;margin-bottom:6px;cursor:pointer" class="trunc2" title="Open Curriculum: ${title}" onclick="window.location.href='/admin/curriculum?courseId=${id}'">${title}</div>
+            <div style="font-weight:800;font-size:15px;line-height:1.3;margin-bottom:6px;cursor:pointer" class="trunc2" title="Open Course Workspace: ${title}" onclick="window.location.href='/admin/courses/${id}'">${title}</div>
             <div style="font-size:12px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
               <span><i class="fas fa-chalkboard-user" style="color:var(--primary);margin-right:4px"></i>${inst}</span>
               <span><i class="fas fa-video" style="color:var(--purple);margin-right:4px"></i>${lessons} Lessons</span>
@@ -1050,6 +1050,9 @@ function renderCourses(courses) {
               <button class="btn ${pub ? 'btn-outline' : 'btn-success'} btn-xs" style="flex:1" onclick="togglePublishCourse('${id}')" title="Toggle App Visibility">
                 <i class="fas ${pub ? 'fa-eye-slash' : 'fa-check'}"></i> ${pub ? 'Unpublish' : 'Publish'}
               </button>
+              <a href="/admin/courses/${id}" class="btn btn-outline btn-xs" title="Open Course Workspace (12 Modules)">
+                <i class="fas fa-layer-group" style="color:var(--cyan)"></i>
+              </a>
               <a href="/admin/curriculum?courseId=${id}" class="btn btn-primary btn-xs" title="Curriculum &amp; Lessons Builder">
                 <i class="fas fa-sitemap"></i>
               </a>
@@ -1104,7 +1107,7 @@ function renderCourses(courses) {
               <td><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectCourse('${id}', this.checked)"/></td>
               <td style="color:var(--text4)">${i+1}</td>
               <td>
-                <div style="font-weight:700;max-width:280px;cursor:pointer;color:var(--primary)" class="trunc" title="Open Curriculum: ${title}" onclick="window.location.href='/admin/curriculum?courseId=${id}'">${title}</div>
+                <div style="font-weight:700;max-width:280px;cursor:pointer;color:var(--primary)" class="trunc" title="Open Course Workspace: ${title}" onclick="window.location.href='/admin/courses/${id}'">${title}</div>
                 <div class="mono" style="font-size:11px;color:var(--text4)">${c.slug || c.Slug || '—'}</div>
               </td>
               <td><span class="badge b-gray">${cat}</span></td>
@@ -1120,6 +1123,9 @@ function renderCourses(courses) {
                 <button class="btn ${pub ? 'btn-outline' : 'btn-success'} btn-xs" onclick="togglePublishCourse('${id}')">
                   <i class="fas ${pub ? 'fa-eye-slash' : 'fa-check'}"></i> ${pub ? 'Draft' : 'Pub'}
                 </button>
+                <a href="/admin/courses/${id}" class="btn btn-outline btn-xs" style="margin-left:4px" title="Course Workspace">
+                  <i class="fas fa-layer-group" style="color:var(--cyan)"></i>
+                </a>
                 <button class="btn btn-outline btn-xs" style="margin-left:4px" onclick="editCourseById('${id}')" title="Edit course">
                   <i class="fas fa-pen"></i>
                 </button>

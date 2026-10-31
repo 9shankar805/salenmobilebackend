@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Tutor & Hardware Mentor — Salen Mobile Guru Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="breadcrumbs">
+    <a href="/admin/courses"><i class="fas fa-arrow-left"></i> Courses</a>
+    <span>/</span>
+    <span>Advanced Mobile Motherboard Diagnostics</span>
+    <span>/</span>
+    <span class="current"><i class="fas fa-robot" style="color:var(--purple);margin-right:4px"></i>AI Tutor &amp; Hardware Mentor</span>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-primary btn-sm" onclick="saveConfig()"><i class="fas fa-save"></i> Save Configuration</button>
+  </div>
+</header>
+
+<main class="container">
+  <!-- KPI Metrics -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--card-accent:var(--purple)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Student Queries Handled</div>
+      <div class="kpi-val" style="color:var(--purple)">428</div>
+      <div style="font-size:11.5px;color:var(--text4)">24/7 automated diagnostic assistance</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--success)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Hardware Resolution Rate</div>
+      <div class="kpi-val" style="color:var(--success)">92.5%</div>
+      <div style="font-size:11.5px;color:var(--text4)">Resolved without instructor escalation</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--cyan)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Average Response Latency</div>
+      <div class="kpi-val" style="color:var(--cyan)">640 ms</div>
+      <div style="font-size:11.5px;color:var(--text4)">Streaming Gemini 2.5 Flash Engine</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:var(--warn)">
+      <div style="font-size:12px;font-weight:600;color:var(--text3)">Guardrail Exam Filters</div>
+      <div class="kpi-val" style="color:var(--warn)">18</div>
+      <div style="font-size:11.5px;color:var(--text4)">Hints given during practical quizzes</div>
+    </div>
+  </div>
+
+  <div class="split-grid">
+    <!-- Left Configuration -->
+    <div class="config-card">
+      <div class="config-title"><i class="fas fa-sliders" style="color:var(--primary)"></i>AI Mentor Settings</div>
+      
+      <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg-card-2);border-radius:var(--rs);margin-bottom:16px">
+        <div>
+          <div style="font-weight:700">Enable AI Mentor</div>
+          <div style="font-size:11.5px;color:var(--text3)">Allow students to ask repair questions</div>
+        </div>
+        <input type="checkbox" id="ai-enabled" checked style="width:18px;height:18px"/>
+      </div>
+
+      <div class="form-group">
+        <label>Mentor Persona</label>
+        <select id="ai-persona" class="form-input">
+          <option value="hardware_lead">Senior Hardware Diagnostic Engineer (Technical &amp; Schematic-focused)</option>
+          <option value="socratic">Socratic Tutor (Guides through troubleshooting steps)</option>
+          <option value="friendly">Encouraging Workshop Instructor</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Exam / Assessment Policy</label>
+        <select id="ai-policy" class="form-input">
+          <option value="hints">Provide Diagnostic Hints Only (Never leak direct test answers)</option>
+          <option value="direct">Allow Full Explanations &amp; Schematics</option>
+          <option value="block">Block AI Assistance completely during practical tests</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Grounding Knowledge Base</label>
+        <select id="ai-grounding" class="form-input">
+          <option value="course_schematics">Course Lessons + Salen iPhone/Android Schematics Vault</option>
+          <option value="course_only">Course Video Transcripts Only</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Instructor Escalation Email</label>
+        <input type="email" id="ai-escalation" class="form-input" value="salen@salenmobile.com"/>
+      </div>
+    </div>
+
+    <!-- Right Chat Simulator -->
+    <div class="chat-card">
+      <div class="chat-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff"><i class="fas fa-robot"></i></div>
+          <div>
+            <div style="font-weight:700;font-size:13px">Salen AI Hardware Tutor &bull; Live Playground</div>
+            <div style="font-size:11px;color:var(--success)"><i class="fas fa-circle" style="font-size:8px"></i> Active &bull; Ready for hardware questions</div>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="resetChat()"><i class="fas fa-rotate"></i> Clear</button>
+      </div>
+
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg msg-ai">
+          Hello! I am your 24/7 Salen Mobile Guru Hardware Diagnostic Mentor. Ask me anything about diode mode test points, power sequences, BGA reballing curves, or short circuit isolation.
+        </div>
+      </div>
+
+      <div style="padding:8px 14px;background:var(--bg-card);display:flex;gap:6px;overflow-x:auto;border-top:1px solid var(--border)">
+        <button class="btn btn-outline btn-sm" onclick="sendPrompt('iPhone 13 no power, 0.05A stuck draw on DC supply?')">iPhone 13 0.05A stuck</button>
+        <button class="btn btn-outline btn-sm" onclick="sendPrompt('Expected diode reading on C1023 VDD_MAIN?')">C1023 diode reading</button>
+        <button class="btn btn-outline btn-sm" onclick="sendPrompt('Best temperature curve for PMIC reballing?')">PMIC reballing temp</button>
+      </div>
+
+      <div class="chat-input-bar">
+        <input type="text" id="chat-input" class="form-input" placeholder="Type a hardware repair question..." onkeydown="if(event.key==='Enter') sendUserMsg()"/>
+        <button class="btn btn-primary" onclick="sendUserMsg()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
+

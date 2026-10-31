@@ -1,7 +1,7 @@
 package admin
 
 import (
-	_ "embed"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -55,6 +55,48 @@ var templatesHTML []byte
 //go:embed static/smtp.html
 var smtpHTML []byte
 
+//go:embed courses/index.html
+var courseWorkspaceHTML []byte
+
+//go:embed courses/attendance/index.html
+var courseAttendanceHTML []byte
+
+//go:embed courses/marks/index.html
+var courseMarksHTML []byte
+
+//go:embed courses/lessons/index.html
+var courseLessonsHTML []byte
+
+//go:embed courses/exercises/index.html
+var courseExercisesHTML []byte
+
+//go:embed courses/submissions/index.html
+var courseSubmissionsHTML []byte
+
+//go:embed courses/people/index.html
+var coursePeopleHTML []byte
+
+//go:embed courses/certificates/index.html
+var courseCertificatesHTML []byte
+
+//go:embed courses/compliance/index.html
+var courseComplianceHTML []byte
+
+//go:embed courses/landingpage/index.html
+var courseLandingpageHTML []byte
+
+//go:embed courses/ai-tutor/index.html
+var courseAiTutorHTML []byte
+
+//go:embed courses/settings/index.html
+var courseSettingsHTML []byte
+
+//go:embed courses/analytics/index.html
+var courseAnalyticsHTML []byte
+
+//go:embed all:courses
+var coursesFS embed.FS
+
 type AdminRouter struct {
 	DB *gorm.DB
 }
@@ -78,6 +120,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	r.GET("/live.html", ar.ServeLiveWeb)
 	r.GET("/templates.html", ar.ServeTemplatesWeb)
 	r.GET("/smtp.html", ar.ServeSMTPWeb)
+	r.GET("/course-workspace.html", ar.ServeCourseWorkspaceWeb)
+	r.GET("/internal/routes/admin/courses/*any", ar.ServeCourseSubmoduleWeb)
 	r.GET("/api/templates", ar.ListTemplatesPublic)
 
 	// 2. Public admin login (no auth required)
@@ -164,6 +208,13 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 func (ar *AdminRouter) ServeAdminWeb(c *gin.Context) {
 	path := strings.ToLower(c.Request.URL.Path)
 	if strings.HasPrefix(path, "/admin/courses") {
+		trimmed := strings.TrimPrefix(path, "/admin/courses")
+		trimmed = strings.TrimPrefix(trimmed, "/")
+		if trimmed != "" {
+			// Sub-routes or individual course workspace (e.g. /admin/courses/:id, /admin/courses/:id/:module)
+			c.Data(http.StatusOK, "text/html; charset=utf-8", courseWorkspaceHTML)
+			return
+		}
 		c.Data(http.StatusOK, "text/html; charset=utf-8", coursesHTML)
 		return
 	}
@@ -196,6 +247,46 @@ func (ar *AdminRouter) ServeAdminWeb(c *gin.Context) {
 		return
 	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", adminHTML)
+}
+
+func (ar *AdminRouter) ServeCourseWorkspaceWeb(c *gin.Context) {
+	c.Data(http.StatusOK, "text/html; charset=utf-8", courseWorkspaceHTML)
+}
+
+func (ar *AdminRouter) ServeCourseSubmoduleWeb(c *gin.Context) {
+	relPath := strings.TrimPrefix(c.Request.URL.Path, "/internal/routes/admin/courses/")
+	relPath = strings.TrimPrefix(relPath, "/")
+
+	// If a specific file is requested (e.g. style.css, script.js, index.html)
+	if strings.Contains(relPath, ".") {
+		data, err := coursesFS.ReadFile("courses/" + relPath)
+		if err == nil {
+			if strings.HasSuffix(relPath, ".css") {
+				c.Data(http.StatusOK, "text/css; charset=utf-8", data)
+				return
+			}
+			if strings.HasSuffix(relPath, ".js") {
+				c.Data(http.StatusOK, "application/javascript; charset=utf-8", data)
+				return
+			}
+			if strings.HasSuffix(relPath, ".html") {
+				c.Data(http.StatusOK, "text/html; charset=utf-8", data)
+				return
+			}
+			c.Data(http.StatusOK, "application/octet-stream", data)
+			return
+		}
+	} else {
+		// Directory requested without filename, e.g. /attendance or /attendance/
+		indexPath := strings.TrimSuffix(relPath, "/") + "/index.html"
+		data, err := coursesFS.ReadFile("courses/" + indexPath)
+		if err == nil {
+			c.Data(http.StatusOK, "text/html; charset=utf-8", data)
+			return
+		}
+	}
+
+	c.Data(http.StatusOK, "text/html; charset=utf-8", courseWorkspaceHTML)
 }
 
 func (ar *AdminRouter) ServeCoursesWeb(c *gin.Context) {
