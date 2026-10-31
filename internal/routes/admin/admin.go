@@ -812,14 +812,50 @@ func (ar *AdminRouter) ListUsers(c *gin.Context) {
 func (ar *AdminRouter) ToggleUserVip(c *gin.Context) {
 	id := c.Param("id")
 	var user models.User
-	if err := ar.DB.Where("id = ?", id).First(&user).Error; err != nil {
+	if err := ar.DB.Where("id = ? OR email = ?", id, id).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "User not found"})
 		return
 	}
 
 	user.IsVIP = !user.IsVIP
+	if user.IsVIP {
+		user.IsSubscribed = true
+		if user.SubscriptionPlan == "" || user.SubscriptionPlan == "Free Member" {
+			user.SubscriptionPlan = "VIP All-Access Pass"
+		}
+
+		// Also ensure an active subscription record exists
+		var sub models.Subscription
+		if sErr := ar.DB.Where("user_id = ? AND status = ?", user.ID, "active").First(&sub).Error; sErr != nil {
+			sub = models.Subscription{
+				ID:            uuid.New().String(),
+				UserID:        user.ID,
+				PlanType:      "VIP",
+				Status:        "active",
+				StartDate:     time.Now(),
+				EndDate:       time.Now().AddDate(5, 0, 0),
+				PaymentMethod: "ADMIN_VIP_GRANT",
+				TransactionID: "VIP-" + uuid.New().String()[:8],
+				Amount:        0,
+				Currency:      "NPR",
+				EnrolledSlugs: "android-hardware-repairing-level-1,iphone-display-repairing,emmc-ufs-programming,borneo-zxw-schematic-reading,pmic-power-section-diagnosis",
+				CreatedAt:     time.Now(),
+				UpdatedAt:     time.Now(),
+			}
+			ar.DB.Create(&sub)
+		} else {
+			sub.PlanType = "VIP"
+			sub.EnrolledSlugs = "android-hardware-repairing-level-1,iphone-display-repairing,emmc-ufs-programming,borneo-zxw-schematic-reading,pmic-power-section-diagnosis"
+			ar.DB.Save(&sub)
+		}
+	}
 	ar.DB.Save(&user)
-	c.JSON(http.StatusOK, gin.H{"success": true, "isVip": user.IsVIP})
+	c.JSON(http.StatusOK, gin.H{
+		"success":      true,
+		"isVip":        user.IsVIP,
+		"isSubscribed": user.IsSubscribed,
+		"plan":         user.SubscriptionPlan,
+	})
 }
 
 func (ar *AdminRouter) ListCommunity(c *gin.Context) {

@@ -40,14 +40,15 @@ func (sr *SubscriptionRouter) GetStatus(c *gin.Context) {
 		return
 	}
 
-	// Admin / instructor always have full access
+	// Admin / instructor / VIP always have full access
 	var user models.User
-	if err := sr.DB.Where("id = ?", userID).First(&user).Error; err == nil {
-		if strings.EqualFold(user.Role, "ADMIN") || strings.EqualFold(user.Role, "INSTRUCTOR") {
+	if err := sr.DB.Where("id = ? OR email = ?", userID, userID).First(&user).Error; err == nil {
+		if strings.EqualFold(user.Role, "ADMIN") || strings.EqualFold(user.Role, "INSTRUCTOR") || user.IsVIP || user.IsSubscribed {
 			c.JSON(http.StatusOK, gin.H{
 				"success": true,
 				"data": map[string]interface{}{
 					"isSubscribed":         true,
+					"isVip":                true,
 					"planType":             "VIP",
 					"planCategory":         "FULL_ACCESS",
 					"status":               "active",
