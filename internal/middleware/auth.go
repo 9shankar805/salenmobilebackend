@@ -113,7 +113,16 @@ func RequireSubscription(db *gorm.DB, planCategory string) gin.HandlerFunc {
 			userID, _ = id.(string)
 		}
 		if userID == "" {
+			userID = c.GetHeader("X-User-Id")
+		}
+		if userID == "" {
+			userID = c.GetHeader("X-User-Email")
+		}
+		if userID == "" {
 			userID = c.Query("userId")
+		}
+		if userID == "" {
+			userID = c.Query("email")
 		}
 		if userID == "" {
 			userID = c.Query("id")
@@ -148,11 +157,15 @@ func RequireSubscription(db *gorm.DB, planCategory string) gin.HandlerFunc {
 // hasActiveSubscription returns true if userID holds an active subscription
 // satisfying the given planCategory.
 func hasActiveSubscription(db *gorm.DB, userID, planCategory string) bool {
-	// Admins and instructors always pass
-	var u struct{ Role string }
-	if db.Table("users").Select("role").Where("id = ?", userID).Scan(&u).Error == nil {
+	// Admins, instructors, VIP, and subscribed users always pass
+	var u struct {
+		Role         string
+		IsVIP        bool
+		IsSubscribed bool
+	}
+	if db.Table("users").Select("role, is_vip, is_subscribed").Where("id = ? OR LOWER(email) = LOWER(?)", userID, userID).Scan(&u).Error == nil {
 		r := strings.ToUpper(u.Role)
-		if r == "ADMIN" || r == "INSTRUCTOR" {
+		if r == "ADMIN" || r == "INSTRUCTOR" || u.IsVIP || u.IsSubscribed {
 			return true
 		}
 	}
@@ -163,12 +176,12 @@ func hasActiveSubscription(db *gorm.DB, userID, planCategory string) bool {
 	}
 	err := db.Table("subscriptions").
 		Select("plan_type, status").
-		Where("user_id = ? AND status = ?", userID, "active").
+		Where("(user_id = ? OR user_id IN (SELECT id FROM users WHERE LOWER(email) = LOWER(?))) AND status IN ('active', 'approved')", userID, userID).
 		Order("created_at desc").
 		Limit(1).
 		Scan(&sub).Error
 
-	if err != nil || sub.Status != "active" {
+	if err != nil || (sub.Status != "active" && sub.Status != "approved") {
 		return false
 	}
 

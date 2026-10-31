@@ -165,6 +165,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		adm.GET("/community", ar.ListCommunity)
 		adm.DELETE("/community/:id", ar.DeleteCommunityPost)
 		adm.POST("/community/:id/solve", ar.MarkSolved)
+		adm.POST("/community/:id/reply", ar.AddAdminCommunityReply)
 
 		// Live Masterclasses
 		adm.GET("/live-sessions", ar.ListLiveSessions)
@@ -871,10 +872,61 @@ func (ar *AdminRouter) DeleteCommunityPost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Post deleted"})
 }
 
+type AdminSolvePostRequest struct {
+	Solution string `json:"solution"`
+}
+
 func (ar *AdminRouter) MarkSolved(c *gin.Context) {
 	id := c.Param("id")
-	ar.DB.Model(&models.CommunityPost{}).Where("id = ?", id).Update("is_solved", true)
+	var req AdminSolvePostRequest
+	_ = c.ShouldBindJSON(&req)
+
+	updates := map[string]interface{}{
+		"is_solved": true,
+	}
+	if strings.TrimSpace(req.Solution) != "" {
+		updates["solution"] = strings.TrimSpace(req.Solution)
+	}
+	ar.DB.Model(&models.CommunityPost{}).Where("id = ?", id).Updates(updates)
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Post marked as solved"})
+}
+
+type AdminReplyPostRequest struct {
+	Body       string `json:"body" binding:"required"`
+	AuthorName string `json:"authorName"`
+}
+
+func (ar *AdminRouter) AddAdminCommunityReply(c *gin.Context) {
+	postID := c.Param("id")
+	var req AdminReplyPostRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	authorName := strings.TrimSpace(req.AuthorName)
+	if authorName == "" {
+		authorName = "Salen Master Trainer"
+	}
+
+	reply := models.CommunityReply{
+		ID:           uuid.New().String(),
+		PostID:       postID,
+		AuthorName:   authorName,
+		AuthorRole:   "Certified Hardware Instructor · Admin",
+		AuthorAvatar: "assets/banner_bg_img/banner_3.webp",
+		Body:         req.Body,
+		Upvotes:      5,
+		CreatedAt:    time.Now(),
+	}
+
+	if err := ar.DB.Create(&reply).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Failed to add reply"})
+		return
+	}
+
+	ar.DB.Model(&models.CommunityPost{}).Where("id = ?", postID).UpdateColumn("replies_count", gorm.Expr("replies_count + 1"))
+	c.JSON(http.StatusCreated, gin.H{"success": true, "data": reply, "message": "Admin reply added successfully"})
 }
 
 func (ar *AdminRouter) ListLiveSessions(c *gin.Context) {

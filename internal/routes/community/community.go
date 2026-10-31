@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"smg-backend/internal/middleware"
 	"smg-backend/internal/models"
 )
 
@@ -19,17 +18,14 @@ type CommunityRouter struct {
 func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	cr := &CommunityRouter{DB: db}
 
-	// Reading community posts is FREE — discovery/marketing value
+	// Reading community posts is open — discovery & peer knowledgebase
 	r.GET("/community", cr.GetQuestions)
 	r.GET("/org-site/community/:orgId", cr.GetQuestions)
 
-	// Creating posts, upvoting and replying requires any active subscription
-	commAuth := r.Group("/community", middleware.RequireSubscription(db, "ANY"))
-	{
-		commAuth.POST("", cr.CreatePost)
-		commAuth.POST("/:id/upvote", cr.UpvotePost)
-		commAuth.POST("/:id/reply", cr.AddReply)
-	}
+	// Creating posts, upvoting and replying in community forum & Q&A
+	r.POST("/community", cr.CreatePost)
+	r.POST("/community/:id/upvote", cr.UpvotePost)
+	r.POST("/community/:id/reply", cr.AddReply)
 }
 
 func (cr *CommunityRouter) GetQuestions(c *gin.Context) {
@@ -74,7 +70,11 @@ func (cr *CommunityRouter) CreatePost(c *gin.Context) {
 		req.OrganizationID = "smg"
 	}
 	if req.AuthorName == "" {
-		req.AuthorName = "Student Technician"
+		if headerName := c.GetHeader("X-User-Name"); headerName != "" {
+			req.AuthorName = headerName
+		} else {
+			req.AuthorName = "Student Technician"
+		}
 	}
 	if req.AuthorRole == "" {
 		req.AuthorRole = "Mobile Technician"
@@ -127,7 +127,11 @@ func (cr *CommunityRouter) AddReply(c *gin.Context) {
 	}
 
 	if req.AuthorName == "" {
-		req.AuthorName = "Master Technician"
+		if headerName := c.GetHeader("X-User-Name"); headerName != "" {
+			req.AuthorName = headerName
+		} else {
+			req.AuthorName = "Master Technician"
+		}
 	}
 	if req.AuthorRole == "" {
 		req.AuthorRole = "Certified Hardware Instructor"
