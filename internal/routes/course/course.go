@@ -1515,6 +1515,13 @@ func (cr *CourseRouter) GetCurriculumV1(c *gin.Context) {
 // progress percentage for the specified course.
 func (cr *CourseRouter) GetCourseProgressV1(c *gin.Context) {
 	userID := c.Param("userId")
+	if userID == "" {
+		userID = c.Query("userId")
+	}
+	var u struct{ ID string }
+	if cr.DB.Table("users").Select("id").Where("id = ? OR LOWER(email) = LOWER(?)", userID, userID).Scan(&u).Error == nil && u.ID != "" {
+		userID = u.ID
+	}
 	courseSlug := c.Param("courseSlug")
 
 	// Count total lessons in the course

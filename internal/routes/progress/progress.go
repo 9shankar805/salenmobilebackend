@@ -255,10 +255,18 @@ func (pr *ProgressRouter) GetCoursesProgress(c *gin.Context) {
 	// ── 1. Resolve enrolled course slugs ─────────────────────────────────────
 	var enrolledSlugs []string
 
-	// Check if admin/instructor → full access
-	var u struct{ Role string }
-	pr.DB.Table("users").Select("role").Where("id = ?", userID).Scan(&u)
-	isFullAccess := strings.EqualFold(u.Role, "ADMIN") || strings.EqualFold(u.Role, "INSTRUCTOR")
+	// Check if admin/instructor/VIP/subscribed → full access
+	var u struct {
+		ID           string
+		Role         string
+		IsVIP        bool
+		IsSubscribed bool
+	}
+	pr.DB.Table("users").Select("id, role, is_vip, is_subscribed").Where("id = ? OR LOWER(email) = LOWER(?)", userID, userID).Scan(&u)
+	if u.ID != "" {
+		userID = u.ID // Normalize userID to actual database UUID!
+	}
+	isFullAccess := strings.EqualFold(u.Role, "ADMIN") || strings.EqualFold(u.Role, "INSTRUCTOR") || u.IsVIP || u.IsSubscribed
 
 	if isFullAccess {
 		// Give access to every published course
@@ -275,7 +283,7 @@ func (pr *ProgressRouter) GetCoursesProgress(c *gin.Context) {
 		}
 		err := pr.DB.Table("subscriptions").
 			Select("plan_type, enrolled_slugs").
-			Where("user_id = ? AND status = ?", userID, "active").
+			Where("(user_id = ? OR user_id IN (SELECT id FROM users WHERE LOWER(email) = LOWER(?))) AND (status = 'active' OR status = 'approved')", userID, userID).
 			Order("created_at desc").
 			Limit(1).
 			Scan(&sub).Error
@@ -431,6 +439,13 @@ func (pr *ProgressRouter) GetCoursesProgress(c *gin.Context) {
 // Body: { "isCompleted": bool, "watchedSeconds": int }
 func (pr *ProgressRouter) UpdateLessonProgressV1(c *gin.Context) {
 	userID := c.Param("userId")
+	if userID == "" {
+		userID = c.Query("userId")
+	}
+	var u struct{ ID string }
+	if pr.DB.Table("users").Select("id").Where("id = ? OR LOWER(email) = LOWER(?)", userID, userID).Scan(&u).Error == nil && u.ID != "" {
+		userID = u.ID
+	}
 	courseSlug := c.Param("courseSlug")
 	lessonSlug := c.Param("lessonSlug")
 

@@ -119,6 +119,9 @@ func RequireSubscription(db *gorm.DB, planCategory string) gin.HandlerFunc {
 			userID = c.GetHeader("X-User-Email")
 		}
 		if userID == "" {
+			userID = c.Param("userId")
+		}
+		if userID == "" {
 			userID = c.Query("userId")
 		}
 		if userID == "" {
