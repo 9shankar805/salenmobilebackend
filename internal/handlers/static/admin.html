@@ -400,19 +400,20 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="sb-cat-pages" id="cat-academy-pages">
     
 
-      <div class="sb-page-link" id="link-courses" data-page="courses" onclick="navigateTo('courses')">
+      <div class="sb-page-link" id="link-courses" data-page="courses" onclick="window.location.href='/admin/courses'">
         <i class="fas fa-book-open"></i>
         <span class="sb-page-text">Courses Directory</span>
+        <span style="margin-left:auto;background:var(--primary-l);color:var(--primary);padding:1px 6px;border-radius:10px;font-size:10px;font-weight:700">STUDIO</span>
       </div>
         
 
-      <div class="sb-page-link" id="link-course-create" data-page="course-create" onclick="navigateTo('course-create')">
+      <div class="sb-page-link" id="link-course-create" data-page="course-create" onclick="window.location.href='/admin/courses?action=create'">
         <i class="fas fa-plus-circle"></i>
         <span class="sb-page-text">Course Studio Creator</span>
       </div>
         
 
-      <div class="sb-page-link" id="link-curriculum" data-page="curriculum" onclick="navigateTo('curriculum')">
+      <div class="sb-page-link" id="link-curriculum" data-page="curriculum" onclick="window.location.href='/admin/curriculum'">
         <i class="fas fa-sitemap"></i>
         <span class="sb-page-text">Curriculum Builder</span>
       </div>
@@ -474,7 +475,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="sb-cat-pages" id="cat-assessments-pages">
     
 
-      <div class="sb-page-link" id="link-quizzes" data-page="quizzes" onclick="navigateTo('quizzes')">
+      <div class="sb-page-link" id="link-quizzes" data-page="quizzes" onclick="window.location.href='/admin/quizzes'">
         <i class="fas fa-list-check"></i>
         <span class="sb-page-text">Assessment Quizzes</span>
       </div>
@@ -900,7 +901,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="sb-cat-pages" id="cat-subs-pages">
     
 
-      <div class="sb-page-link" id="link-subscriptions" data-page="subscriptions" onclick="navigateTo('subscriptions')">
+      <div class="sb-page-link" id="link-subscriptions" data-page="subscriptions" onclick="window.location.href='/admin/subscriptions'">
         <i class="fas fa-clock"></i>
         <span class="sb-page-text">Pending Payment Approvals</span>
       </div>
@@ -962,7 +963,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="sb-cat-pages" id="cat-live-comm-pages">
     
 
-      <div class="sb-page-link" id="link-live" data-page="live" onclick="navigateTo('live')">
+      <div class="sb-page-link" id="link-live" data-page="live" onclick="window.location.href='/admin/live'">
         <i class="fas fa-video"></i>
         <span class="sb-page-text">Live Masterclasses Schedule</span>
       </div>
@@ -1024,7 +1025,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="sb-cat-pages" id="cat-users-pages">
     
 
-      <div class="sb-page-link" id="link-students" data-page="students" onclick="navigateTo('students')">
+      <div class="sb-page-link" id="link-students" data-page="students" onclick="window.location.href='/admin/users'">
         <i class="fas fa-users"></i>
         <span class="sb-page-text">Students Directory</span>
       </div>
@@ -1161,15 +1162,15 @@ tbody tr:last-child td{border-bottom:none;}
       <!-- ═══════════════ 1. DASHBOARD ═══════════════ -->
       <div class="page active" id="page-dashboard">
         <div class="sg">
-          <div class="sc">
+          <div class="sc" onclick="window.location.href='/admin/users'" style="cursor:pointer" title="Open Students Directory">
             <div class="si" style="background:var(--primary-l);color:var(--primary)"><i class="fas fa-users"></i></div>
             <div><div class="sv" id="ds-students">—</div><div class="sl">Total Students</div><div class="sc-trend up"><i class="fas fa-arrow-up"></i> +12%</div></div>
           </div>
-          <div class="sc">
+          <div class="sc" onclick="window.location.href='/admin/courses'" style="cursor:pointer" title="Open Courses Studio">
             <div class="si" style="background:var(--success-l);color:var(--success)"><i class="fas fa-graduation-cap"></i></div>
             <div><div class="sv" id="ds-courses">—</div><div class="sl">Published Courses</div><div class="sc-trend up"><i class="fas fa-check"></i> Active</div></div>
           </div>
-          <div class="sc">
+          <div class="sc" onclick="window.location.href='/admin/subscriptions'" style="cursor:pointer" title="Open Subscriptions &amp; Payments">
             <div class="si" style="background:var(--warn-l);color:var(--warn)"><i class="fas fa-credit-card"></i></div>
             <div><div class="sv" id="ds-subs">—</div><div class="sl">Active Subscriptions</div><div class="sc-trend up"><i class="fas fa-arrow-up"></i> +8%</div></div>
           </div>
@@ -1307,12 +1308,13 @@ tbody tr:last-child td{border-bottom:none;}
             </select>
           </div>
           <div class="ab-right">
+            <a href="/admin/courses" class="btn btn-primary btn-sm"><i class="fas fa-arrow-up-right-from-square"></i> Open Full Courses Studio</a>
             <div style="display:flex;background:var(--bg-card-2);border:1px solid var(--border);border-radius:var(--rs);padding:2px">
               <button class="btn-ghost btn-xs active" id="btnViewGrid" onclick="setCourseView('grid')" title="Grid Cards View"><i class="fas fa-grip"></i></button>
               <button class="btn-ghost btn-xs" id="btnViewTable" onclick="setCourseView('table')" title="Table View"><i class="fas fa-list"></i></button>
             </div>
             <button class="btn btn-outline btn-sm" onclick="exportCoursesCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
-            <button class="btn btn-primary btn-sm" onclick="openMo('mo-addcourse')"><i class="fas fa-plus"></i> New Course</button>
+            <button class="btn btn-outline btn-sm" onclick="openMo('mo-addcourse')"><i class="fas fa-plus"></i> New Course</button>
           </div>
         </div>
 
@@ -2527,21 +2529,23 @@ document.addEventListener('keydown', e => {
 /* ── Command Palette (Cmd+K) ── */
 const CMD_ITEMS = [
   { icon: 'fa-gauge-high', label: 'Dashboard', desc: 'Overview metrics & stats', action: () => goPage('dashboard') },
+  { icon: 'fa-graduation-cap', label: 'Courses Studio', desc: 'Manage courses catalog & NPR pricing', action: () => window.location.href = '/admin/courses' },
+  { icon: 'fa-plus-circle', label: 'Create New Course', desc: 'Add course metadata & modules', action: () => window.location.href = '/admin/courses?action=create' },
+  { icon: 'fa-sitemap', label: 'Curriculum Builder', desc: 'Edit modules & video lessons', action: () => window.location.href = '/admin/curriculum' },
   { icon: 'fa-layer-group', label: 'Templates & Blueprints Vault', desc: 'Certificates, schematics, worksheets', action: () => window.location.href = '/admin/templates' },
   { icon: 'fa-chart-line', label: 'Analytics', desc: 'Revenue & student graphs', action: () => goPage('analytics') },
-  { icon: 'fa-graduation-cap', label: 'Courses Studio', desc: 'Manage courses catalog', action: () => goPage('courses') },
-  { icon: 'fa-sitemap', label: 'Curriculum Builder', desc: 'Edit modules & video lessons', action: () => goPage('curriculum') },
-  { icon: 'fa-clipboard-question', label: 'Quizzes & Tests', desc: 'Technical assessment studio', action: () => goPage('quizzes') },
+  { icon: 'fa-clipboard-question', label: 'Quizzes & Tests', desc: 'Technical assessment studio', action: () => window.location.href = '/admin/quizzes' },
   { icon: 'fa-microchip', label: 'Hardware & Diode Mode', desc: 'Redmi, iPhone diode readings', action: () => goPage('hardware') },
   { icon: 'fa-file-pdf', label: 'Schematics & Manuals', desc: 'PDF circuit schematics', action: () => goPage('schematics') },
-  { icon: 'fa-credit-card', label: 'Subscriptions', desc: 'Approve pending payments', action: () => goPage('subscriptions') },
+  { icon: 'fa-credit-card', label: 'Subscriptions', desc: 'Approve pending payments', action: () => window.location.href = '/admin/subscriptions' },
   { icon: 'fa-tags', label: 'Plans & Pricing', desc: 'Configure mobile/chat plan tiers', action: () => goPage('plans') },
   { icon: 'fa-cash-register', label: 'POS & Work Orders', desc: 'Customer repair tickets', action: () => goPage('pos') },
-  { icon: 'fa-video', label: 'Live Masterclasses', desc: 'Schedule Zoom classes', action: () => goPage('live') },
+  { icon: 'fa-video', label: 'Live Masterclasses', desc: 'Schedule Zoom classes', action: () => window.location.href = '/admin/live' },
   { icon: 'fa-comments', label: 'Community Q&A', desc: 'Moderate student questions', action: () => goPage('community') },
   { icon: 'fa-certificate', label: 'Certificates Hub', desc: 'Issue & verify certs', action: () => goPage('certificates') },
   { icon: 'fa-bell', label: 'Push Broadcaster', desc: 'Send mobile app push alerts', action: () => goPage('notifications') },
-  { icon: 'fa-users', label: 'Students Directory', desc: 'Search & manage user accounts', action: () => goPage('students') },
+  { icon: 'fa-users', label: 'Students Directory', desc: 'Search & manage user accounts', action: () => window.location.href = '/admin/users' },
+  { icon: 'fa-envelope-circle-check', label: 'SMTP Email & OTP Studio', desc: 'Configure Gmail & email delivery', action: () => window.location.href = '/admin/smtp' },
   { icon: 'fa-cloud', label: 'Media & R2 Vault', desc: 'Cloudflare R2 cloud storage', action: () => goPage('videos') },
   { icon: 'fa-mobile-screen', label: 'App CMS Banners', desc: 'Guest home carousel banners', action: () => goPage('cms') },
   { icon: 'fa-server', label: 'System Health', desc: 'Telemetry & microservice health', action: () => goPage('system') }
@@ -2726,10 +2730,39 @@ async function loadAnalytics() {
 /* ══════════════════════════════════════════════════════════════════
    3. COURSES STUDIO
 ══════════════════════════════════════════════════════════════════ */
+function setCourseView(mode) {
+  const g = document.getElementById('coursesGridView');
+  const t = document.getElementById('coursesTableView');
+  const bg = document.getElementById('btnViewGrid');
+  const bt = document.getElementById('btnViewTable');
+  if (mode === 'grid') {
+    if (g) g.style.display = 'grid';
+    if (t) t.style.display = 'none';
+    if (bg) bg.classList.add('active');
+    if (bt) bt.classList.remove('active');
+  } else {
+    if (g) g.style.display = 'none';
+    if (t) t.style.display = 'block';
+    if (bg) bg.classList.remove('active');
+    if (bt) bt.classList.add('active');
+  }
+}
+
 async function loadCourses() {
   const res = await api('GET', '/api/admin/courses');
   allCourses = res?.data || res?.courses || [];
   buildCourseMap(allCourses);
+
+  const total = allCourses.length;
+  const pub = allCourses.filter(c => c.isPublished || c.IsPublished).length;
+  const draft = total - pub;
+  const lessons = allCourses.reduce((acc, c) => acc + (c.lessons || c.LessonsCount || (c.Modules ? c.Modules.reduce((mAcc, m) => mAcc + ((m.Lessons||[]).length), 0) : 0)), 0);
+
+  if (document.getElementById('ck-total')) document.getElementById('ck-total').textContent = total;
+  if (document.getElementById('ck-pub')) document.getElementById('ck-pub').textContent = pub;
+  if (document.getElementById('ck-draft')) document.getElementById('ck-draft').textContent = draft;
+  if (document.getElementById('ck-lessons')) document.getElementById('ck-lessons').textContent = lessons;
+
   renderCourses(allCourses);
 }
 
@@ -2771,32 +2804,70 @@ function filterCourses() {
 
 function renderCourses(courses) {
   const el = document.getElementById('coursesTable');
-  if (!courses.length) { el.innerHTML = '<div class="empty"><i class="fas fa-graduation-cap"></i><span>No courses found</span></div>'; return; }
-  el.innerHTML = `<table>
-    <thead><tr><th style="width:36px">#</th><th>Course Title</th><th>Category</th><th>Slug</th><th>Price</th><th>Lessons</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody>${courses.map((c, i) => {
+  const gEl = document.getElementById('coursesGridView');
+  if (!courses.length) {
+    const emptyHtml = '<div class="empty"><i class="fas fa-graduation-cap"></i><span>No courses found</span></div>';
+    if (el) el.innerHTML = emptyHtml;
+    if (gEl) gEl.innerHTML = emptyHtml;
+    return;
+  }
+  if (gEl) {
+    gEl.innerHTML = courses.map(c => {
       const id = c.id || c.ID;
       const title = c.title || c.Title || '—';
-      const slug = c.slug || c.Slug || '—';
       const cat = c.category || c.Category || 'General';
       const price = c.price || c.Price || 0;
-      const les = c.lessons || c.LessonsCount || 0;
       const pub = !!(c.isPublished || c.IsPublished);
-      return `<tr>
-        <td style="color:var(--text4)">${i+1}</td>
-        <td><div style="font-weight:700;max-width:240px" class="trunc">${title}</div><div style="font-size:11px;color:var(--text4)">Instructor: ${c.instructorName||c.Instructor||'Salen Dangol'}</div></td>
-        <td><span class="badge b-gray">${cat}</span></td>
-        <td class="mono trunc" style="max-width:180px;color:var(--text3);font-size:11.5px">${slug}</td>
-        <td style="font-weight:700">NPR ${price.toLocaleString()}</td>
-        <td style="text-align:center"><span class="badge b-blue">${les}</span></td>
-        <td>${pub ? '<span class="badge b-green">Published</span>' : '<span class="badge b-gray">Draft</span>'}</td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-outline btn-xs" onclick="editCourseById('${id}')" title="Edit course metadata"><i class="fas fa-pen"></i></button>
-          <button class="btn btn-outline btn-xs" style="margin-left:4px" onclick="openCurrForCourse('${id}')" title="Curriculum Builder"><i class="fas fa-sitemap"></i></button>
-          <button class="btn btn-danger btn-xs" style="margin-left:4px" onclick="deleteCourse('${id}','${title.replace(/'/g,"\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
-        </td>
-      </tr>`;
-    }).join('')}</tbody></table>`;
+      const img = c.imageAsset || c.ImageAsset || '';
+      return `
+        <div class="card" style="display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border)">
+          <div style="position:relative;height:120px;background:linear-gradient(135deg,#1e1b4b,#312e81);overflow:hidden;cursor:pointer" onclick="window.location.href='/admin/curriculum?courseId=${id}'" title="Open Curriculum">
+            ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>` : ''}
+            <div style="position:absolute;top:8px;left:8px"><span class="badge b-purple">${cat}</span></div>
+            <div style="position:absolute;top:8px;right:8px"><span class="badge ${pub ? 'b-green' : 'b-gray'}">${pub ? 'Published' : 'Draft'}</span></div>
+          </div>
+          <div style="padding:14px;flex:1;display:flex;flex-direction:column;justify-content:space-between">
+            <div>
+              <div style="font-weight:700;font-size:14px;cursor:pointer" class="trunc2" title="Open Curriculum: ${title}" onclick="window.location.href='/admin/curriculum?courseId=${id}'">${title}</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+              <span style="font-weight:800;color:var(--primary)">NPR ${price.toLocaleString()}</span>
+              <div style="display:flex;gap:4px">
+                <a href="/admin/curriculum?courseId=${id}" class="btn btn-primary btn-xs" title="Curriculum Builder"><i class="fas fa-sitemap"></i></a>
+                <button class="btn btn-outline btn-xs" onclick="editCourseById('${id}')" title="Edit"><i class="fas fa-pen"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+  if (el) {
+    el.innerHTML = `<table>
+      <thead><tr><th style="width:36px">#</th><th>Course Title</th><th>Category</th><th>Slug</th><th>Price</th><th>Lessons</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${courses.map((c, i) => {
+        const id = c.id || c.ID;
+        const title = c.title || c.Title || '—';
+        const slug = c.slug || c.Slug || '—';
+        const cat = c.category || c.Category || 'General';
+        const price = c.price || c.Price || 0;
+        const les = c.lessons || c.LessonsCount || 0;
+        const pub = !!(c.isPublished || c.IsPublished);
+        return `<tr>
+          <td style="color:var(--text4)">${i+1}</td>
+          <td><div style="font-weight:700;max-width:240px;cursor:pointer;color:var(--primary)" class="trunc" title="Open Curriculum: ${title}" onclick="window.location.href='/admin/curriculum?courseId=${id}'">${title}</div><div style="font-size:11px;color:var(--text4)">Instructor: ${c.instructorName||c.Instructor||'Salen Dangol'}</div></td>
+          <td><span class="badge b-gray">${cat}</span></td>
+          <td class="mono trunc" style="max-width:180px;color:var(--text3);font-size:11.5px">${slug}</td>
+          <td style="font-weight:700">NPR ${price.toLocaleString()}</td>
+          <td style="text-align:center"><span class="badge b-blue">${les}</span></td>
+          <td>${pub ? '<span class="badge b-green">Published</span>' : '<span class="badge b-gray">Draft</span>'}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-outline btn-xs" onclick="editCourseById('${id}')" title="Edit course metadata"><i class="fas fa-pen"></i></button>
+            <a href="/admin/curriculum?courseId=${id}" class="btn btn-primary btn-xs" style="margin-left:4px" title="Curriculum Builder"><i class="fas fa-sitemap"></i></a>
+            <button class="btn btn-danger btn-xs" style="margin-left:4px" onclick="deleteCourse('${id}','${title.replace(/'/g,"\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>`;
+      }).join('')}</tbody></table>`;
+  }
 }
 
 function nc_slug() {
@@ -2903,11 +2974,7 @@ async function loadCurriculumPage() {
 }
 
 function openCurrForCourse(id) {
-  goPage('curriculum');
-  setTimeout(() => {
-    document.getElementById('currSel').value = id;
-    loadCurriculum();
-  }, 100);
+  window.location.href = '/admin/curriculum?courseId=' + id;
 }
 
 async function loadCurriculum() {
@@ -4406,8 +4473,15 @@ function filterSidebarPages() {
 
 // Universal Navigation across all 100+ pages
 function navigateTo(pageId) {
-  if (pageId === 'smtp') { window.location.href = '/admin/smtp'; return; }
+  if (pageId === 'courses') { window.location.href = '/admin/courses'; return; }
+  if (pageId === 'course-create') { window.location.href = '/admin/courses?action=create'; return; }
+  if (pageId === 'curriculum') { window.location.href = '/admin/curriculum'; return; }
+  if (pageId === 'quizzes' || pageId === 'quiz-create') { window.location.href = '/admin/quizzes'; return; }
+  if (pageId === 'subscriptions' || pageId === 'subs-enroll' || pageId === 'subs-active') { window.location.href = '/admin/subscriptions'; return; }
+  if (pageId === 'students' || pageId === 'users') { window.location.href = '/admin/users'; return; }
+  if (pageId === 'live') { window.location.href = '/admin/live'; return; }
   if (pageId === 'templates') { window.location.href = '/admin/templates'; return; }
+  if (pageId === 'smtp') { window.location.href = '/admin/smtp'; return; }
   const pageMeta = PAGE_LOOKUP[pageId];
   if (!pageMeta) return;
 
