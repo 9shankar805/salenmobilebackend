@@ -1,17 +1,18 @@
 package storage
 
 import (
-"context"
-"fmt"
-"io"
-"log"
-"net/url"
-"os"
-"strings"
-"time"
+	"context"
+	"fmt"
+	"io"
+	"log"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
-"github.com/minio/minio-go/v7"
-"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 type StorageService struct {
@@ -76,32 +77,53 @@ DefaultStorage = s
 return s
 }
 
-// UploadDirect streams the file directly to Cloudflare R2 without touching local server disk
+// UploadDirect streams the file to Cloudflare R2, falling back to local storage if R2 is unavailable
 func (s *StorageService) UploadDirect(folder string, filename string, r io.Reader, size int64, contentType string) (publicURL string, r2Key string, err error) {
-if !s.R2Enabled || s.R2Client == nil {
-return "", "", fmt.Errorf("Cloudflare R2 is not configured")
-}
+	if folder == "" {
+		folder = "uploads"
+	}
+	folder = strings.Trim(folder, "/")
+	r2Key = fmt.Sprintf("%s/%s", folder, filename)
 
-if folder == "" {
-folder = "uploads"
-}
-folder = strings.Trim(folder, "/")
-r2Key = fmt.Sprintf("%s/%s", folder, filename)
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
 
-if contentType == "" {
-contentType = "application/octet-stream"
-}
+	// 1. Attempt pure Cloudflare R2 upload if configured
+	if s != nil && s.R2Enabled && s.R2Client != nil {
+		_, err = s.R2Client.PutObject(context.Background(), s.R2Bucket, r2Key, r, size, minio.PutObjectOptions{
+			ContentType: contentType,
+		})
+		if err == nil {
+			publicURL = fmt.Sprintf("%s/%s", s.R2PublicURL, r2Key)
+			log.Printf("☁️ Directly stored to Cloudflare R2: %s", publicURL)
+			return publicURL, r2Key, nil
+		}
+		log.Printf("⚠️ Cloudflare R2 upload warning (%v), falling back to local storage", err)
+	}
 
-_, err = s.R2Client.PutObject(context.Background(), s.R2Bucket, r2Key, r, size, minio.PutObjectOptions{
-ContentType: contentType,
-})
-if err != nil {
-return "", "", fmt.Errorf("R2 upload error: %w", err)
-}
+	// 2. Local filesystem storage fallback
+	storageBase := os.Getenv("STORAGE_PATH")
+	if storageBase == "" {
+		storageBase = "storage"
+	}
+	targetDir := filepath.Join(storageBase, folder)
+	_ = os.MkdirAll(targetDir, 0755)
+	targetPath := filepath.Join(targetDir, filename)
 
-publicURL = fmt.Sprintf("%s/%s", s.R2PublicURL, r2Key)
-log.Printf("☁️ Directly stored to Cloudflare R2: %s", publicURL)
-return publicURL, r2Key, nil
+	outFile, err := os.Create(targetPath)
+	if err != nil {
+		return "", "", fmt.Errorf("storage write error: %w", err)
+	}
+	defer outFile.Close()
+
+	if _, err := io.Copy(outFile, r); err != nil {
+		return "", "", fmt.Errorf("storage copy error: %w", err)
+	}
+
+	localURL := fmt.Sprintf("/storage/%s", r2Key)
+	log.Printf("💾 Stored to local storage: %s", localURL)
+	return localURL, r2Key, nil
 }
 
 func (s *StorageService) GetObjectStream(objectKey string) (io.ReadCloser, minio.ObjectInfo, error) {

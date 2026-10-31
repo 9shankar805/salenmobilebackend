@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	"smg-backend/internal/mail"
 	"smg-backend/internal/models"
 )
 
@@ -29,6 +30,10 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	r.POST("/api/auth/sign-in/email", ar.SignInEmail)
 	r.POST("/api/auth/sign-out", ar.SignOut)
 	r.POST("/api/auth/sign-up", ar.SignUp)
+	r.POST("/api/auth/send-otp", ar.SendOTP)
+	r.POST("/api/auth/request-otp", ar.SendOTP)
+	r.POST("/api/auth/otp", ar.SendOTP)
+	r.POST("/api/auth/verify-otp", ar.VerifyOTP)
 
 	// User profile update — Flutter edit profile screen calls PUT /user/profile
 	r.PUT("/user/profile", ar.UpdateProfile)
@@ -134,11 +139,137 @@ func (ar *AccountRouter) SignInEmail(c *gin.Context) {
 	})
 }
 
+type SendOTPRequest struct {
+	Email   string `json:"email" binding:"required"`
+	Name    string `json:"name"`
+	Purpose string `json:"purpose"` // "signup", "login", "reset_password"
+}
+
+func (ar *AccountRouter) SendOTP(c *gin.Context) {
+	var req SendOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Email is required"})
+		return
+	}
+
+	email := strings.TrimSpace(strings.ToLower(req.Email))
+	if !strings.Contains(email, "@") || !strings.Contains(email, ".") {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid email address format"})
+		return
+	}
+
+	purpose := strings.ToLower(req.Purpose)
+	if purpose == "" {
+		purpose = "signup"
+	}
+
+	if purpose == "signup" {
+		var existing models.User
+		if err := ar.DB.Where("LOWER(email) = ?", email).First(&existing).Error; err == nil {
+			c.JSON(http.StatusConflict, gin.H{
+				"success": false,
+				"error":   "This email is already registered. Please log in or reset your password.",
+			})
+			return
+		}
+	}
+
+	// Generate secure 6-digit OTP code
+	code := mail.GenerateOTP()
+
+	// Invalidate previous OTPs for this email and purpose
+	ar.DB.Model(&models.EmailOTP{}).Where("LOWER(email) = ? AND purpose = ? AND verified = ?", email, purpose, false).
+		Update("verified", true)
+
+	otpRecord := models.EmailOTP{
+		ID:        uuid.New().String(),
+		Email:     email,
+		Code:      code,
+		Purpose:   purpose,
+		ExpiresAt: time.Now().Add(10 * time.Minute),
+		Verified:  false,
+		CreatedAt: time.Now(),
+	}
+
+	if err := ar.DB.Create(&otpRecord).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Failed generating authorization code"})
+		return
+	}
+
+	// Dispatch email via configured SMTP
+	recipientName := req.Name
+	if recipientName == "" {
+		recipientName = strings.Split(email, "@")[0]
+	}
+
+	err := mail.SendOTPEmail(ar.DB, email, recipientName, code, purpose)
+
+	smtpCfg := mail.GetSMTPSettings(ar.DB)
+	res := gin.H{
+		"success":   true,
+		"message":   "6-digit verification code sent to " + email,
+		"email":     email,
+		"expiresIn": 600,
+	}
+
+	if err != nil {
+		res["warning"] = "SMTP delivery notice: " + err.Error()
+	}
+
+	if !smtpCfg.Enabled {
+		res["debugOtp"] = code
+		res["note"] = "Custom SMTP is currently disabled in Admin Panel; using simulation mode."
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
+type VerifyOTPRequest struct {
+	Email   string `json:"email" binding:"required"`
+	Code    string `json:"code" binding:"required"`
+	Purpose string `json:"purpose"`
+}
+
+func (ar *AccountRouter) VerifyOTP(c *gin.Context) {
+	var req VerifyOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Email and code are required"})
+		return
+	}
+
+	email := strings.TrimSpace(strings.ToLower(req.Email))
+	code := strings.TrimSpace(req.Code)
+	purpose := strings.ToLower(req.Purpose)
+	if purpose == "" {
+		purpose = "signup"
+	}
+
+	var otp models.EmailOTP
+	err := ar.DB.Where("LOWER(email) = ? AND code = ? AND verified = ? AND expires_at > ?", email, code, false, time.Now()).
+		Order("created_at desc").First(&otp).Error
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Invalid or expired verification code. Please check your inbox or request a new code.",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Email verified successfully ✓",
+		"email":   email,
+	})
+}
+
 type SignUpRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required,min=8"`
 	Phone    string `json:"phone"`
+	OTP      string `json:"otp"`
+	Code     string `json:"code"`
 }
 
 func (ar *AccountRouter) SignUp(c *gin.Context) {
@@ -157,6 +288,37 @@ func (ar *AccountRouter) SignUp(c *gin.Context) {
 		return
 	}
 
+	otpCode := strings.TrimSpace(req.OTP)
+	if otpCode == "" {
+		otpCode = strings.TrimSpace(req.Code)
+	}
+
+	smtpCfg := mail.GetSMTPSettings(ar.DB)
+	emailVerified := false
+
+	// Validate OTP if provided or if custom SMTP is actively enforced
+	if otpCode != "" {
+		var otp models.EmailOTP
+		err := ar.DB.Where("LOWER(email) = ? AND code = ? AND verified = ? AND expires_at > ?", email, otpCode, false, time.Now()).
+			Order("created_at desc").First(&otp).Error
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error":   "Invalid or expired OTP verification code",
+			})
+			return
+		}
+		otp.Verified = true
+		ar.DB.Save(&otp)
+		emailVerified = true
+	} else if smtpCfg.Enabled {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Verification code (OTP) required. Please click 'Send Code' to receive your OTP in Gmail.",
+		})
+		return
+	}
+
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Could not process password"})
@@ -164,20 +326,24 @@ func (ar *AccountRouter) SignUp(c *gin.Context) {
 	}
 
 	user := models.User{
-		ID:           uuid.New().String(),
-		Name:         req.Name,
-		Email:        email,
-		Phone:        req.Phone,
-		PasswordHash: string(hashed),
-		Role:         "student",
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		ID:            uuid.New().String(),
+		Name:          req.Name,
+		Email:         email,
+		Phone:         req.Phone,
+		PasswordHash:  string(hashed),
+		Role:          "student",
+		EmailVerified: emailVerified,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
 	if err := ar.DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Could not create account"})
 		return
 	}
+
+	// Dispatch welcome email asynchronously
+	go mail.SendWelcomeEmail(ar.DB, user.Email, user.Name)
 
 	tokenStr, err := issueJWT(&user)
 	if err != nil {
@@ -189,10 +355,11 @@ func (ar *AccountRouter) SignUp(c *gin.Context) {
 		"success": true,
 		"token":   tokenStr,
 		"user": gin.H{
-			"id":    user.ID,
-			"email": user.Email,
-			"name":  user.Name,
-			"role":  user.Role,
+			"id":            user.ID,
+			"email":         user.Email,
+			"name":          user.Name,
+			"role":          user.Role,
+			"emailVerified": user.EmailVerified,
 		},
 	})
 }

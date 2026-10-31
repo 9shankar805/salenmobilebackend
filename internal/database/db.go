@@ -85,6 +85,7 @@ func InitDB(databaseURL string) *gorm.DB {
 		&models.QuizOption{},
 		&models.QuizResult{},
 		&models.MediaAsset{},
+		&models.TemplateAsset{},
 		&models.HardwareModel{},
 		&models.DiodeValue{},
 		&models.JumperTrace{},
@@ -108,6 +109,9 @@ func InitDB(databaseURL string) *gorm.DB {
 		&models.CourseCategory{},     // Guest home category chips
 		&models.SimulatorComponent{}, // Mobile simulator IC components
 		&models.UserDownload{},       // User downloaded lessons
+		// ── Email & SMTP Settings ──────────────────────────────────────────
+		&models.SMTPSettings{},
+		&models.EmailOTP{},
 	)
 	if err != nil {
 		log.Fatalf("AutoMigrate failed: %v", err)

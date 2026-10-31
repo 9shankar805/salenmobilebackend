@@ -30,6 +30,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	{
 		adm.GET("", cr.GetAllCertificates)
 		adm.POST("/issue", cr.IssueCertificate)
+		adm.DELETE("/:id", cr.RevokeCertificate)
 	}
 }
 
@@ -148,6 +149,12 @@ func (cr *CertificateRouter) GetAllCertificates(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": list})
+}
+
+func (cr *CertificateRouter) RevokeCertificate(c *gin.Context) {
+	id := c.Param("id")
+	cr.DB.Delete(&models.Certificate{}, "id = ? OR certificate_number = ?", id, id)
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Certificate revoked"})
 }
 
 func (cr *CertificateRouter) seedSampleCertificates() {

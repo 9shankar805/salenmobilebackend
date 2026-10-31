@@ -33,6 +33,16 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 
 	// Badges — computed from real quiz_results; userId optional (returns global definitions if empty)
 	r.GET("/quizzes/badges", qr.GetBadges)
+
+	// Admin Quiz Management
+	adm := r.Group("/api/admin/quizzes", middleware.AuthMiddleware(), middleware.AdminMiddleware())
+	{
+		adm.GET("", qr.AdminListQuizzes)
+		adm.POST("", qr.AdminSaveQuiz)
+		adm.DELETE("/:id", qr.AdminDeleteQuiz)
+		adm.GET("/results", qr.AdminListResults)
+		adm.DELETE("/results/:id", qr.AdminDeleteResult)
+	}
 }
 
 func (qr *QuizRouter) GetQuiz(c *gin.Context) {
@@ -397,4 +407,128 @@ func computeMaxStreak(daySet map[string]bool) int {
 		}
 	}
 	return max
+}
+
+func (qr *QuizRouter) AdminListQuizzes(c *gin.Context) {
+	var quizzes []models.Quiz
+	if err := qr.DB.Preload("Questions.Options", func(db *gorm.DB) *gorm.DB {
+		return db.Order("option_index asc")
+	}).Order("created_at desc").Find(&quizzes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"quizzes": quizzes,
+		"data":    quizzes,
+	})
+}
+
+func (qr *QuizRouter) AdminSaveQuiz(c *gin.Context) {
+	var req struct {
+		ID           string `json:"id"`
+		CourseSlug   string `json:"courseSlug" binding:"required"`
+		Title        string `json:"title" binding:"required"`
+		DurationMins int    `json:"durationMinutes"`
+		PassingScore int    `json:"passingScorePercent"`
+		Questions    []struct {
+			ID            string   `json:"id"`
+			Question      string   `json:"question" binding:"required"`
+			Explanation   string   `json:"explanation"`
+			CorrectOption int      `json:"correctOptionIndex"`
+			Options       []string `json:"options"`
+		} `json:"questions"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	quizID := req.ID
+	if quizID == "" {
+		quizID = "qz_" + uuid.New().String()[:8]
+	}
+
+	if req.PassingScore <= 0 {
+		req.PassingScore = 75
+	}
+	if req.DurationMins <= 0 {
+		req.DurationMins = 15
+	}
+
+	quiz := models.Quiz{
+		ID:             quizID,
+		CourseSlug:     req.CourseSlug,
+		Title:          req.Title,
+		DurationMins:   req.DurationMins,
+		TotalQuestions: len(req.Questions),
+		PassingScore:   req.PassingScore,
+		CreatedAt:      time.Now(),
+	}
+
+	// Upsert quiz
+	qr.DB.Save(&quiz)
+
+	// If questions provided, replace old ones
+	if len(req.Questions) > 0 {
+		var oldQIDs []string
+		qr.DB.Model(&models.QuizQuestion{}).Where("quiz_id = ?", quizID).Pluck("id", &oldQIDs)
+		if len(oldQIDs) > 0 {
+			qr.DB.Where("question_id IN ?", oldQIDs).Delete(&models.QuizOption{})
+			qr.DB.Where("quiz_id = ?", quizID).Delete(&models.QuizQuestion{})
+		}
+
+		for qi, q := range req.Questions {
+			qID := q.ID
+			if qID == "" {
+				qID = "qq_" + uuid.New().String()[:8]
+			}
+			question := models.QuizQuestion{
+				ID:            qID,
+				QuizID:        quizID,
+				QuestionText:  q.Question,
+				Explanation:   q.Explanation,
+				OrderNum:      qi + 1,
+				CorrectOption: q.CorrectOption,
+			}
+			qr.DB.Create(&question)
+
+			for oi, optText := range q.Options {
+				option := models.QuizOption{
+					ID:         "qo_" + uuid.New().String()[:8],
+					QuestionID: qID,
+					Text:       optText,
+					Index:      oi,
+				}
+				qr.DB.Create(&option)
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": quiz})
+}
+
+func (qr *QuizRouter) AdminDeleteQuiz(c *gin.Context) {
+	id := c.Param("id")
+	var qIDs []string
+	qr.DB.Model(&models.QuizQuestion{}).Where("quiz_id = ?", id).Pluck("id", &qIDs)
+	if len(qIDs) > 0 {
+		qr.DB.Where("question_id IN ?", qIDs).Delete(&models.QuizOption{})
+		qr.DB.Where("quiz_id = ?", id).Delete(&models.QuizQuestion{})
+	}
+	qr.DB.Delete(&models.Quiz{}, "id = ?", id)
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Quiz deleted"})
+}
+
+func (qr *QuizRouter) AdminListResults(c *gin.Context) {
+	var results []models.QuizResult
+	qr.DB.Order("attempted_at desc").Limit(100).Find(&results)
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": results})
+}
+
+func (qr *QuizRouter) AdminDeleteResult(c *gin.Context) {
+	id := c.Param("id")
+	qr.DB.Delete(&models.QuizResult{}, "id = ?", id)
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Result deleted"})
 }

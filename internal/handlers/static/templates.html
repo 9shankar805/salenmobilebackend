@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Templates &amp; Blueprints Studio — Salen Mobile Guru Enterprise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <style>
+:root{
+  --font:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+  --bg:#07090e;--bg-surface:#0d111a;--bg-card:#111622;--bg-card-hover:#161d2e;
+  --bg-input:#0a0d14;--bg-hover:rgba(255,255,255,0.04);
+  --border:#1a2336;--border-light:#243049;
+  --text:#f0f4fc;--text2:#9cb0d1;--text3:#5e7399;--text4:#3d4f6e;
+  --primary:#2563eb;--primary-h:#1d4ed8;--primary-l:rgba(37,99,235,0.12);--primary-glow:rgba(37,99,235,0.25);
+  --green:#10b981;--green-l:rgba(16,185,129,0.12);
+  --amber:#f59e0b;--amber-l:rgba(245,158,11,0.12);
+  --red:#ef4444;--red-l:rgba(239,68,68,0.12);
+  --purple:#8b5cf6;--purple-l:rgba(139,92,246,0.12);
+  --cyan:#06b6d4;--cyan-l:rgba(6,182,212,0.12);
+  --radius:12px;--shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+[data-theme="light"]{
+  --bg:#f4f6fb;--bg-surface:#ffffff;--bg-card:#ffffff;--bg-card-hover:#f8fafd;
+  --bg-input:#f1f4f9;--bg-hover:rgba(0,0,0,0.03);
+  --border:#e2e8f0;--border-light:#cbd5e1;
+  --text:#0f172a;--text2:#475569;--text3:#64748b;--text4:#94a3b8;
+  --primary:#2563eb;--primary-h:#1d4ed8;--primary-l:rgba(37,99,235,0.08);--primary-glow:rgba(37,99,235,0.15);
+  --shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;font-size:14px;line-height:1.5}
+a{text-decoration:none;color:inherit}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+
+/* Layout */
+#app{display:flex;height:100vh;overflow:hidden}
+#sb{width:260px;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:width .25s ease}
+#sb.collapsed{width:72px}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+#topbar{height:60px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
+#content{flex:1;overflow-y:auto;padding:24px 28px}
+
+/* Brand */
+.brand{display:flex;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border)}
+.brand-logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;box-shadow:0 0 20px rgba(59,130,246,0.4)}
+.brand-text{font-weight:800;font-size:15px;letter-spacing:-0.3px}
+.brand-sub{font-size:11px;color:var(--text3);font-weight:500}
+#sb.collapsed .brand-text,#sb.collapsed .brand-sub{display:none}
+
+/* Nav */
+.nav-sec{padding:14px 14px 6px;font-size:11px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:0.8px}
+#sb.collapsed .nav-sec{display:none}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;margin:2px 10px;border-radius:9px;color:var(--text2);font-weight:600;font-size:13px;transition:all .18s;cursor:pointer}
+.nav-item:hover{background:var(--bg-hover);color:var(--text)}
+.nav-item.active{background:var(--primary-l);color:var(--primary)}
+.nav-item i{width:18px;text-align:center;font-size:14px}
+#sb.collapsed .nav-item span,#sb.collapsed .nav-badge{display:none}
+.nav-badge{margin-left:auto;font-size:11px;padding:2px 7px;border-radius:20px;background:var(--border);color:var(--text3);font-weight:700}
+
+/* Topbar */
+.tb-title{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700}
+.tb-actions{display:flex;align-items:center;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:9px;border:none;background:var(--primary);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s}
+.btn:hover{background:var(--primary-h);box-shadow:0 0 16px var(--primary-glow)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-outline:hover{background:var(--bg-hover);color:var(--text);border-color:var(--border-light);box-shadow:none}
+.btn-green{background:var(--green)}
+.btn-green:hover{background:#059669;box-shadow:0 0 16px rgba(16,185,129,0.3)}
+.btn-purple{background:var(--purple)}
+.btn-purple:hover{background:#7c3aed;box-shadow:0 0 16px rgba(139,92,246,0.3)}
+.btn-danger{background:var(--red)}
+.btn-danger:hover{background:#dc2626}
+.btn-xs{padding:4px 9px;font-size:11px;border-radius:6px}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:7px}
+
+/* Page Header */
+.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;gap:16px;flex-wrap:wrap}
+.ph h1{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px}
+.ph p{color:var(--text3);font-size:13px}
+
+/* KPI Cards */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.sc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow)}
+.sc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sc-info{flex:1}
+.sc-val{font-size:24px;font-weight:800;letter-spacing:-0.5px;line-height:1.2}
+.sc-lbl{font-size:12px;color:var(--text3);font-weight:600;margin-top:2px}
+
+/* Starters Banner */
+.starters-box{background:linear-gradient(135deg,rgba(37,99,235,0.08),rgba(139,92,246,0.08));border:1px solid rgba(59,130,246,0.25);border-radius:var(--radius);padding:20px 24px;margin-bottom:24px}
+.starters-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:12px;color:var(--text)}
+.starters-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.starter-pill{background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .18s;font-size:12px;font-weight:700}
+.starter-pill:hover{border-color:var(--primary);transform:translateY(-1px);background:var(--bg-card-hover)}
+.starter-pill i{color:var(--primary);font-size:14px}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.srch-box{position:relative;flex:1;max-width:380px}
+.srch-box i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text4);font-size:13px}
+.srch{width:100%;height:38px;padding:0 14px 0 38px;background:var(--bg-input);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;transition:border-color .18s}
+.srch:focus{border-color:var(--primary)}
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap}
+.fp{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text3);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s}
+.fp:hover{color:var(--text);border-color:var(--border-light)}
+.fp.active{background:var(--primary-l);color:var(--primary);border-color:var(--primary)}
+
+/* Templates Grid */
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.tc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:all .2s ease}
+.tc:hover{transform:translateY(-2px);border-color:var(--border-light);box-shadow:0 12px 36px rgba(0,0,0,0.3)}
+.tc-thumb{height:160px;position:relative;background:#05070a;display:flex;align-items:center;justify-content:center;overflow:hidden;border-bottom:1px solid var(--border)}
+.tc-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .3s ease}
+.tc:hover .tc-thumb img{transform:scale(1.04)}
+.tc-ext-badge{position:absolute;top:10px;left:10px;font-size:10px;font-weight:800;font-family:var(--mono);padding:3px 7px;border-radius:6px;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);color:#fff;border:1px solid rgba(255,255,255,0.15)}
+.tc-def-badge{position:absolute;top:10px;right:10px;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;background:var(--amber);color:#000;display:flex;align-items:center;gap:4px}
+.tc-body{padding:18px;flex:1;display:flex;flex-direction:column}
+.tc-cat{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px}
+.tc-title{font-size:15px;font-weight:700;line-height:1.35;margin-bottom:8px;color:var(--text)}
+.tc-desc{font-size:12px;color:var(--text3);line-height:1.45;margin-bottom:14px;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tc-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text4);font-family:var(--mono);padding-top:12px;border-top:1px solid var(--border);margin-bottom:14px}
+.tc-actions{display:flex;gap:8px}
+
+/* Badge styles */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700}
+.b-blue{background:var(--primary-l);color:var(--primary)}
+.b-green{background:var(--green-l);color:var(--green)}
+.b-purple{background:var(--purple-l);color:var(--purple)}
+.b-amber{background:var(--amber-l);color:var(--amber)}
+.b-cyan{background:var(--cyan-l);color:var(--cyan)}
+.b-gray{background:rgba(255,255,255,0.06);color:var(--text3)}
+
+/* Modal */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(8px);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+.mo.show{display:flex}
+.mc{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:16px;width:100%;max-width:620px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,0.7);overflow:hidden}
+.mc-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mc-head h2{font-size:17px;font-weight:800}
+.mc-body{padding:24px;overflow-y:auto;flex:1}
+.mc-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+
+/* Form */
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.fc{width:100%;padding:9px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border-color .18s}
+.fc:focus{border-color:var(--primary)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Dropzone */
+.dropzone{border:2px dashed var(--border-light);border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s ease;background:var(--bg-card);position:relative}
+.dropzone:hover,.dropzone.dragover{border-color:var(--primary);background:var(--primary-l)}
+.dz-icon{font-size:32px;color:var(--primary);margin-bottom:8px}
+.dz-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.dz-sub{font-size:11px;color:var(--text4)}
+.dz-prog{height:6px;background:var(--border);border-radius:3px;margin-top:14px;overflow:hidden;display:none}
+.dz-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--purple));width:0%;transition:width .15s}
+.dz-prev{margin-top:12px;border-radius:8px;overflow:hidden;max-height:160px;display:none;background:#000;border:1px solid var(--border)}
+.dz-prev img{width:100%;height:100%;object-fit:contain}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:8px}
+.ti{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:10px;padding:12px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);font-weight:600;font-size:13px;animation:slideIn .2s ease}
+.ti-s{border-left:4px solid var(--green)}
+.ti-e{border-left:4px solid var(--red)}
+@keyframes slideIn{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Empty */
+.empty{padding:60px 20px;text-align:center;color:var(--text4)}
+.empty i{font-size:42px;margin-bottom:12px;display:block;opacity:.4}
+
+/* Login */
+#login{position:fixed;inset:0;background:var(--bg);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px}
+.lc{width:100%;max-width:400px;background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:32px;box-shadow:var(--shadow)}
+.lc-logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;margin:0 auto 16px}
+.lc-title{font-size:20px;font-weight:800;text-align:center;margin-bottom:4px}
+.lc-sub{font-size:12px;color:var(--text3);text-align:center;margin-bottom:24px}
+.lf{margin-bottom:14px}
+.lf label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px}
+.li{width:100%;padding:10px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none}
+.li:focus{border-color:var(--primary)}
+.lerr{color:var(--red);font-size:12px;margin-top:10px;text-align:center;display:none}
+</style>
+</head>
+<body>
+
+<!-- AUTH GATE -->
+<div id="login" style="display:none">
+  <div class="lc">
+    <div class="lc-logo"><i class="fas fa-microchip"></i></div>
+    <div class="lc-title">SMG Staff Authentication</div>
+    <div class="lc-sub">Salen Mobile Guru Enterprise System</div>
+    <div class="lf"><label>Admin Email</label><input class="li" id="lemail" placeholder="admin@salenmobileguru.com"/></div>
+    <div class="lf"><label>Password</label><input class="li" type="password" id="lpass" placeholder="••••••••••••"/></div>
+    <button class="btn" style="width:100%;padding:12px;justify-content:center;margin-top:10px" id="lbtn" onclick="doLogin()"><i class="fas fa-lock"></i> Authorize Access</button>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sb">
+    <div class="brand">
+      <div class="brand-logo"><i class="fas fa-microchip"></i></div>
+      <div>
+        <div class="brand-text">Salen Mobile Guru</div>
+        <div class="brand-sub">Enterprise Studio v2.4</div>
+      </div>
+    </div>
+
+    <div class="nav-sec">Main Command</div>
+    <a href="/admin" class="nav-item"><i class="fas fa-gauge-high"></i><span>Dashboard</span></a>
+    <a href="/admin/courses" class="nav-item"><i class="fas fa-book-open"></i><span>Courses Studio</span></a>
+    <a href="/admin/curriculum" class="nav-item"><i class="fas fa-sitemap"></i><span>Curriculum Builder</span></a>
+    <a href="/admin/quizzes" class="nav-item"><i class="fas fa-list-check"></i><span>Quizzes &amp; Labs</span></a>
+    <a href="/admin/subscriptions" class="nav-item"><i class="fas fa-credit-card"></i><span>Subscriptions</span></a>
+    <a href="/admin/users" class="nav-item"><i class="fas fa-users"></i><span>Students Directory</span></a>
+    <a href="/admin/live" class="nav-item"><i class="fas fa-video"></i><span>Live Masterclasses</span></a>
+    <a href="/admin/templates" class="nav-item active"><i class="fas fa-layer-group"></i><span>Templates Vault</span><span class="nav-badge" id="sbTmplCount">8</span></a>
+
+    <div style="margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px">
+      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:13px" id="sbAv">A</div>
+      <div style="flex:1;overflow:hidden">
+        <div style="font-weight:700;font-size:13px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden" id="sbName">Admin</div>
+        <div style="font-size:11px;color:var(--text3)">Master Trainer</div>
+      </div>
+      <button onclick="signOut()" style="background:transparent;border:none;color:var(--text4);cursor:pointer" title="Sign Out"><i class="fas fa-arrow-right-from-bracket"></i></button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+    <!-- TOPBAR -->
+    <header id="topbar">
+      <div class="tb-title">
+        <button onclick="toggleSidebar()" style="background:transparent;border:none;color:var(--text2);cursor:pointer;margin-right:8px"><i class="fas fa-bars"></i></button>
+        <i class="fas fa-layer-group" style="color:var(--primary)"></i>
+        <span>Templates &amp; Blueprints Studio</span>
+      </div>
+      <div class="tb-actions">
+        <button class="btn btn-outline btn-sm" onclick="openCmdPalette()"><i class="fas fa-terminal"></i> <span style="font-size:11px;opacity:0.8">⌘K</span></button>
+        <button class="btn btn-outline btn-sm" onclick="toggleTheme()"><i class="fas fa-moon" id="themeIcon"></i></button>
+        <button class="btn btn-sm" onclick="openUploadModal()"><i class="fas fa-cloud-arrow-up"></i> Upload Template</button>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div id="content">
+      <div class="ph">
+        <div>
+          <h1>Templates &amp; Asset Vault</h1>
+          <p>Deploy official certificate blueprints, multimeter checklists, schematic sheets, and quiz import templates</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-outline" onclick="loadTemplates()"><i class="fas fa-rotate"></i> Sync Cloud Vault</button>
+          <button class="btn" onclick="openUploadModal()"><i class="fas fa-plus"></i> New Blueprint Upload</button>
+        </div>
+      </div>
+
+      <!-- KPI METRICS -->
+      <div class="sg">
+        <div class="sc">
+          <div class="sc-icon" style="background:var(--primary-l);color:var(--primary)"><i class="fas fa-layer-group"></i></div>
+          <div class="sc-info">
+            <div class="sc-val" id="tk-total">0</div>
+            <div class="sc-lbl">Total Templates</div>
+          </div>
+        </div>
+        <div class="sc">
+          <div class="sc-icon" style="background:var(--amber-l);color:var(--amber)"><i class="fas fa-certificate"></i></div>
+          <div class="sc-info">
+            <div class="sc-val" id="tk-certs">0</div>
+            <div class="sc-lbl">Certificate Blueprints</div>
+          </div>
+        </div>
+        <div class="sc">
+          <div class="sc-icon" style="background:var(--purple-l);color:var(--purple)"><i class="fas fa-microchip"></i></div>
+          <div class="sc-info">
+            <div class="sc-val" id="tk-schematics">0</div>
+            <div class="sc-lbl">Schematic &amp; Worksheets</div>
+          </div>
+        </div>
+        <div class="sc">
+          <div class="sc-icon" style="background:var(--green-l);color:var(--green)"><i class="fas fa-download"></i></div>
+          <div class="sc-info">
+            <div class="sc-val" id="tk-downloads">0</div>
+            <div class="sc-lbl">Total Student Downloads</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUICK STARTERS BOX -->
+      <div class="starters-box">
+        <div class="starters-title"><i class="fas fa-sparkles" style="color:var(--amber)"></i> Official Technical Starter Blueprints</div>
+        <div class="starters-grid">
+          <div class="starter-pill" onclick="downloadBlueprint('cert')">
+            <i class="fas fa-award"></i>
+            <div>
+              <div>Certificate SVG</div>
+              <div style="font-size:10px;color:var(--text3);font-weight:400">Guilloche Borders</div>
+            </div>
+          </div>
+          <div class="starter-pill" onclick="downloadBlueprint('diode')">
+            <i class="fas fa-bolt"></i>
+            <div>
+              <div>Diode Probing Sheet</div>
+              <div style="font-size:10px;color:var(--text3);font-weight:400">Type-C &amp; PMIC Coils</div>
+            </div>
+          </div>
+          <div class="starter-pill" onclick="downloadBlueprint('quiz')">
+            <i class="fas fa-table"></i>
+            <div>
+              <div>Quiz Import CSV</div>
+              <div style="font-size:10px;color:var(--text3);font-weight:400">4-Choice Schema</div>
+            </div>
+          </div>
+          <div class="starter-pill" onclick="downloadBlueprint('user')">
+            <i class="fas fa-users-gear"></i>
+            <div>
+              <div>Student Batch CSV</div>
+              <div style="font-size:10px;color:var(--text3);font-weight:400">Technician Onboarding</div>
+            </div>
+          </div>
+          <div class="starter-pill" onclick="downloadBlueprint('flow')">
+            <i class="fas fa-diagram-project"></i>
+            <div>
+              <div>PMIC Power Flow</div>
+              <div style="font-size:10px;color:var(--text3);font-weight:400">Dead Boot Tree</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <div class="srch-box">
+          <i class="fas fa-magnifying-glass"></i>
+          <input class="srch" id="tmplSearch" placeholder="Search templates by title, tag, or author…" oninput="filterTemplates()"/>
+        </div>
+        <div class="filter-pills">
+          <div class="fp active" data-cat="all" onclick="setCategoryFilter('all',this)">All (All Types)</div>
+          <div class="fp" data-cat="certificate" onclick="setCategoryFilter('certificate',this)">Certificates</div>
+          <div class="fp" data-cat="schematic" onclick="setCategoryFilter('schematic',this)">Schematics &amp; Flowcharts</div>
+          <div class="fp" data-cat="worksheet" onclick="setCategoryFilter('worksheet',this)">Worksheets</div>
+          <div class="fp" data-cat="quiz" onclick="setCategoryFilter('quiz',this)">Assessments</div>
+          <div class="fp" data-cat="curriculum" onclick="setCategoryFilter('curriculum',this)">Curriculum</div>
+          <div class="fp" data-cat="banner" onclick="setCategoryFilter('banner',this)">Banners</div>
+        </div>
+      </div>
+
+      <!-- TEMPLATES GRID -->
+      <div class="tg" id="templatesGrid">
+        <div class="empty"><i class="fas fa-spinner fa-spin"></i><span>Loading Templates Vault…</span></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- UPLOAD TEMPLATE MODAL -->
+<div class="mo" id="mo-upload">
+  <div class="mc">
+    <div class="mc-head">
+      <h2><i class="fas fa-cloud-arrow-up" style="color:var(--primary);margin-right:8px"></i>Upload Template / Blueprint</h2>
+      <button onclick="closeMo('mo-upload')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="mc-body">
+      <!-- DROPZONE -->
+      <div class="dropzone" id="tmplDropzone" onclick="document.getElementById('tmplFileInput').click()">
+        <input type="file" id="tmplFileInput" style="display:none" accept=".svg,.pdf,.png,.jpg,.jpeg,.webp,.csv,.json,.zip,.fz,.cad,.brd" onchange="handleFileSelect(this)"/>
+        <div class="dz-icon"><i class="fas fa-cloud-arrow-up"></i></div>
+        <div class="dz-title" id="dzTitle">Drag &amp; drop template file here, or click to browse</div>
+        <div class="dz-sub">Accepts SVG, PDF, PNG, JPG, CSV, JSON, ZIP, FZ, CAD (Direct to Cloudflare R2)</div>
+        <div class="dz-prog" id="dzProg"><div class="dz-fill" id="dzFill"></div></div>
+        <div class="dz-prev" id="dzPrev"><img id="dzPrevImg" src="" alt="Preview"/></div>
+      </div>
+
+      <div style="margin-top:18px">
+        <div class="fg">
+          <label>Template Title *</label>
+          <input class="fc" id="ut-title" placeholder="e.g. Master Technician Distinction Certificate 300DPI"/>
+        </div>
+        <div class="fr">
+          <div class="fg">
+            <label>Category *</label>
+            <select class="fc" id="ut-cat">
+              <option value="certificate">Certificate Background</option>
+              <option value="schematic">Schematic &amp; Power Flowchart</option>
+              <option value="worksheet">Diagnostic &amp; Multimeter Worksheet</option>
+              <option value="quiz">Assessment &amp; Question Bank</option>
+              <option value="curriculum">Curriculum &amp; Lesson Notes</option>
+              <option value="banner">Broadcast Banner &amp; Poster</option>
+              <option value="diagnostic">Motherboard Diagnostic Lab</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Author / Faculty</label>
+            <input class="fc" id="ut-author" placeholder="Salen Mobile Guru Academy" value="Salen Mobile Guru Academy"/>
+          </div>
+        </div>
+        <div class="fg">
+          <label>File URL (Populated automatically on upload, or paste external CDN)</label>
+          <input class="fc mono" id="ut-url" placeholder="https://pub-de6175c42cb241aab9f5c23b24292596.r2.dev/templates/..."/>
+        </div>
+        <div class="fg">
+          <label>Usage Description &amp; Technical Instructions</label>
+          <textarea class="fc" id="ut-desc" rows="3" placeholder="Provide details on paper size, multimeter probing rules, or import procedures..."></textarea>
+        </div>
+        <div class="fr">
+          <div class="fg">
+            <label>Tags (comma separated)</label>
+            <input class="fc" id="ut-tags" placeholder="certificate, gold, pmic, 300dpi"/>
+          </div>
+          <div class="fg" style="display:flex;align-items:center;margin-top:22px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <input type="checkbox" id="ut-default" style="width:16px;height:16px"/>
+              <span>Set as Active Default for this Category</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mc-foot">
+      <button class="btn btn-outline" onclick="closeMo('mo-upload')">Cancel</button>
+      <button class="btn" id="saveTmplBtn" onclick="saveTemplate()"><i class="fas fa-check"></i> Save Template</button>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="mo" id="mo-prev">
+  <div class="mc" style="max-width:850px;height:85vh">
+    <div class="mc-head">
+      <h2 id="prevTitle">Template Preview</h2>
+      <button onclick="closeMo('mo-prev')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="mc-body" id="prevContent" style="padding:0;background:#05070a;display:flex;align-items:center;justify-content:center;overflow:hidden">
+      <!-- Media preview inserted here -->
+    </div>
+    <div class="mc-foot" style="justify-content:space-between">
+      <div id="prevInfo" style="font-size:12px;color:var(--text3)"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline btn-sm" id="prevCopyBtn" onclick="copyPrevUrl()"><i class="fas fa-link"></i> Copy Link</button>
+        <button class="btn btn-sm" id="prevDlBtn" onclick="downloadPrev()"><i class="fas fa-download"></i> Download</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMAND PALETTE (Cmd+K) -->
+<div class="mo" id="mo-cmd">
+  <div class="mc" style="max-width:540px">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <i class="fas fa-magnifying-glass" style="color:var(--primary)"></i>
+      <input id="cmdSearch" style="flex:1;background:transparent;border:none;outline:none;font-size:14px;color:var(--text)" placeholder="Type a command or navigate to page..." oninput="filterCmd()"/>
+      <span style="font-size:11px;color:var(--text4)">ESC</span>
+    </div>
+    <div class="mc-body" id="cmdList" style="padding:10px;max-height:340px"></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast"></div>
+
+<script>
+let TOKEN = localStorage.getItem('smg_admin_token') || '';
+let ADMIN = null;
+try { ADMIN = JSON.parse(localStorage.getItem('smg_admin_user') || 'null'); } catch(e){}
+const API = '';
+
+let allTemplates = [];
+let currentCategory = 'all';
+let currentPreviewItem = null;
+let uploadedFileMeta = null;
+
+/* Theme */
+function initTheme() {
+  const t = localStorage.getItem('smg_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  const icon = document.getElementById('themeIcon');
+  if (icon) icon.className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const nxt = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', nxt);
+  localStorage.setItem('smg_theme', nxt);
+  const icon = document.getElementById('themeIcon');
+  if (icon) icon.className = nxt === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+initTheme();
+
+/* Toast */
+function toast(msg, t='s') {
+  const icons = { s: 'fa-circle-check', e: 'fa-circle-xmark', i: 'fa-circle-info' };
+  const el = document.createElement('div');
+  el.className = `ti ti-${t}`;
+  el.innerHTML = `<i class="fas ${icons[t] || icons.s}"></i> <span>${msg}</span>`;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.remove(), 4200);
+}
+
+/* API */
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const res = await fetch(API + path, opts);
+    if (res.status === 401) { signOut(); return null; }
+    const data = await res.json().catch(() => ({ success: false, error: 'Invalid JSON' }));
+    if (!res.ok && !data.error) data.error = 'HTTP ' + res.status;
+    return data;
+  } catch (e) {
+    return { success: false, error: 'Network error: ' + e.message };
+  }
+}
+
+/* Auth */
+async function doLogin() {
+  const email = document.getElementById('lemail').value.trim();
+  const pass = document.getElementById('lpass').value;
+  const err = document.getElementById('lerr');
+  const btn = document.getElementById('lbtn');
+  if (!email || !pass) { err.textContent = 'Enter email and password'; err.style.display = 'block'; return; }
+  btn.disabled = true;
+  const res = await fetch(API + '/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password: pass })
+  }).then(r => r.json()).catch(() => null);
+
+  btn.disabled = false;
+  if (!res?.success) {
+    err.textContent = res?.error || 'Invalid credentials';
+    err.style.display = 'block';
+    return;
+  }
+  TOKEN = res.token;
+  ADMIN = res.admin;
+  localStorage.setItem('smg_admin_token', TOKEN);
+  localStorage.setItem('smg_admin_user', JSON.stringify(ADMIN));
+  bootApp();
+  toast('Welcome back, ' + (ADMIN.name || 'Admin') + '!', 's');
+}
+document.getElementById('lpass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function signOut() {
+  TOKEN = '';
+  ADMIN = null;
+  localStorage.removeItem('smg_admin_token');
+  localStorage.removeItem('smg_admin_user');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login').style.display = 'flex';
+}
+
+function bootApp() {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  if (ADMIN) {
+    document.getElementById('sbAv').textContent = (ADMIN.name || 'A')[0].toUpperCase();
+    document.getElementById('sbName').textContent = ADMIN.name || ADMIN.email;
+  }
+  loadTemplates();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (TOKEN && ADMIN) bootApp();
+  else {
+    document.getElementById('login').style.display = 'flex';
+  }
+});
+
+function toggleSidebar() { document.getElementById('sb').classList.toggle('collapsed'); }
+function openMo(id) { document.getElementById(id).classList.add('show'); }
+function closeMo(id) { document.getElementById(id).classList.remove('show'); }
+
+/* ── Templates Logic ── */
+async function loadTemplates() {
+  const res = await api('GET', '/api/admin/templates');
+  allTemplates = res?.data || [];
+  updateKPIs(allTemplates);
+  filterTemplates();
+}
+
+function updateKPIs(list) {
+  const total = list.length;
+  const certs = list.filter(t => (t.category || '').toLowerCase() === 'certificate').length;
+  const schems = list.filter(t => ['schematic', 'worksheet', 'diagnostic'].includes((t.category || '').toLowerCase())).length;
+  const downloads = list.reduce((acc, cur) => acc + (cur.downloadsCount || 0), 0);
+
+  document.getElementById('tk-total').textContent = total;
+  document.getElementById('tk-certs').textContent = certs;
+  document.getElementById('tk-schematics').textContent = schems;
+  document.getElementById('tk-downloads').textContent = downloads.toLocaleString();
+  document.getElementById('sbTmplCount').textContent = total;
+}
+
+function setCategoryFilter(cat, btn) {
+  currentCategory = cat;
+  document.querySelectorAll('.fp').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterTemplates();
+}
+
+function filterTemplates() {
+  const q = document.getElementById('tmplSearch').value.toLowerCase().trim();
+  const filtered = allTemplates.filter(t => {
+    const title = (t.title || '').toLowerCase();
+    const desc = (t.description || '').toLowerCase();
+    const tags = (t.tags || '').toLowerCase();
+    const cat = (t.category || '').toLowerCase();
+
+    const matchQ = !q || title.includes(q) || desc.includes(q) || tags.includes(q);
+    const matchCat = currentCategory === 'all' || cat === currentCategory.toLowerCase();
+    return matchQ && matchCat;
+  });
+
+  renderTemplates(filtered);
+}
+
+function renderTemplates(list) {
+  const el = document.getElementById('templatesGrid');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty" style="grid-column:1/-1"><i class="fas fa-layer-group"></i><span>No templates found in this view</span></div>';
+    return;
+  }
+
+  el.innerHTML = list.map(t => {
+    const id = t.id || t.ID;
+    const cat = (t.category || 'template').toUpperCase();
+    const ext = (t.fileType || 'PDF').toUpperCase();
+    const isDef = !!t.isDefault;
+    const thumb = t.thumbnailUrl || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600';
+    const catColor = cat === 'CERTIFICATE' ? 'b-amber' : cat === 'SCHEMATIC' ? 'b-purple' : cat === 'WORKSHEET' ? 'b-blue' : 'b-cyan';
+
+    return `
+      <div class="tc" id="card-${id}">
+        <div class="tc-thumb">
+          <img src="${thumb}" alt="${t.title}" onerror="this.src='https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600'"/>
+          <span class="tc-ext-badge"><i class="fas fa-file"></i> ${ext}</span>
+          ${isDef ? '<span class="tc-def-badge"><i class="fas fa-star"></i> DEFAULT</span>' : ''}
+        </div>
+        <div class="tc-body">
+          <div class="tc-cat"><span class="badge ${catColor}">${cat}</span></div>
+          <div class="tc-title">${t.title || 'Untitled Blueprint'}</div>
+          <div class="tc-desc">${t.description || 'Official Salen Mobile Guru educational asset blueprint.'}</div>
+          <div class="tc-meta">
+            <span><i class="fas fa-hard-drive"></i> ${t.fileSize || '1.2 MB'}</span>
+            <span><i class="fas fa-download"></i> ${t.downloadsCount || 0} downloads</span>
+          </div>
+          <div class="tc-actions">
+            <button class="btn btn-outline btn-xs" style="flex:1" onclick="previewItem('${id}')"><i class="fas fa-eye"></i> Preview</button>
+            <button class="btn btn-outline btn-xs" onclick="downloadItem('${t.fileUrl}')" title="Download Blueprint"><i class="fas fa-download"></i></button>
+            <button class="btn btn-outline btn-xs" onclick="copyLink('${t.fileUrl}')" title="Copy URL"><i class="fas fa-link"></i></button>
+            <button class="btn btn-outline btn-xs ${isDef?'btn-amber':''}" onclick="toggleDefault('${id}')" title="Toggle Default"><i class="fas fa-star"></i></button>
+            <button class="btn btn-danger btn-xs" onclick="deleteTemplate('${id}')" title="Delete Blueprint"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* Upload handling */
+function openUploadModal() {
+  uploadedFileMeta = null;
+  document.getElementById('ut-title').value = '';
+  document.getElementById('ut-url').value = '';
+  document.getElementById('ut-desc').value = '';
+  document.getElementById('ut-tags').value = '';
+  document.getElementById('ut-default').checked = false;
+  document.getElementById('dzProg').style.display = 'none';
+  document.getElementById('dzPrev').style.display = 'none';
+  document.getElementById('dzTitle').textContent = 'Drag & drop template file here, or click to browse';
+  openMo('mo-upload');
+}
+
+// Drag and drop events
+const dz = document.getElementById('tmplDropzone');
+['dragenter', 'dragover'].forEach(name => {
+  dz.addEventListener(name, e => { e.preventDefault(); dz.classList.add('dragover'); });
+});
+['dragleave', 'drop'].forEach(name => {
+  dz.addEventListener(name, e => { e.preventDefault(); dz.classList.remove('dragover'); });
+});
+dz.addEventListener('drop', e => {
+  const dt = e.dataTransfer;
+  const files = dt.files;
+  if (files.length) uploadFileDirect(files[0]);
+});
+
+function handleFileSelect(input) {
+  if (input.files.length) uploadFileDirect(input.files[0]);
+}
+
+async function uploadFileDirect(file) {
+  const dzTitle = document.getElementById('dzTitle');
+  const prog = document.getElementById('dzProg');
+  const fill = document.getElementById('dzFill');
+  const prevBox = document.getElementById('dzPrev');
+  const prevImg = document.getElementById('dzPrevImg');
+
+  dzTitle.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Streaming <b>${file.name}</b> to Cloudflare R2…`;
+  prog.style.display = 'block';
+  fill.style.width = '10%';
+
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('folder', 'templates');
+
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', API + '/api/admin/media/upload');
+    xhr.setRequestHeader('Authorization', 'Bearer ' + TOKEN);
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable) {
+        const pct = Math.round(e.loaded / e.total * 100);
+        fill.style.width = pct + '%';
+        dzTitle.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Uploading… ${pct}%`;
+      }
+    };
+    xhr.onload = () => {
+      try {
+        const res = JSON.parse(xhr.responseText);
+        if (res.success && (res.publicUrl || res.url)) {
+          const url = res.publicUrl || res.url;
+          document.getElementById('ut-url').value = url;
+          dzTitle.innerHTML = `<i class="fas fa-circle-check" style="color:var(--green)"></i> <b>${file.name}</b> uploaded successfully ✓`;
+          toast('File stored in Cloudflare R2 ✓');
+
+          // Auto-fill title if empty
+          const titleField = document.getElementById('ut-title');
+          if (!titleField.value) {
+            const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+            titleField.value = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+          }
+
+          // Show preview if image
+          if (file.type.startsWith('image/')) {
+            prevImg.src = url;
+            prevBox.style.display = 'block';
+          }
+
+          uploadedFileMeta = {
+            name: file.name,
+            size: file.size,
+            type: file.name.split('.').pop().toUpperCase(),
+            url: url
+          };
+        } else {
+          dzTitle.textContent = 'Upload failed: ' + (res.error || 'Server error');
+          toast('Upload failed: ' + (res.error || 'Error'), 'e');
+        }
+      } catch (err) {
+        dzTitle.textContent = 'Upload parsing error';
+      }
+    };
+    xhr.onerror = () => { dzTitle.textContent = 'Network error during upload'; };
+    xhr.send(fd);
+  } catch (err) {
+    dzTitle.textContent = 'Upload error: ' + err.message;
+  }
+}
+
+async function saveTemplate() {
+  const title = document.getElementById('ut-title').value.trim();
+  const fileUrl = document.getElementById('ut-url').value.trim();
+  const category = document.getElementById('ut-cat').value;
+  if (!title || !fileUrl) {
+    toast('Template title and file URL required', 'e');
+    return;
+  }
+
+  const ext = fileUrl.split('.').pop().toUpperCase();
+  const body = {
+    title,
+    category,
+    fileUrl,
+    description: document.getElementById('ut-desc').value.trim(),
+    author: document.getElementById('ut-author').value.trim(),
+    tags: document.getElementById('ut-tags').value.trim(),
+    isDefault: document.getElementById('ut-default').checked,
+    fileType: ext.length > 5 ? 'FILE' : ext,
+    thumbnailUrl: (uploadedFileMeta && uploadedFileMeta.url && ['PNG','JPG','JPEG','WEBP','SVG'].includes(ext)) 
+      ? fileUrl 
+      : 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600'
+  };
+
+  const btn = document.getElementById('saveTmplBtn');
+  btn.disabled = true;
+  const res = await api('POST', '/api/admin/templates', body);
+  btn.disabled = false;
+
+  if (res?.success) {
+    toast('Template registered successfully ✓');
+    closeMo('mo-upload');
+    loadTemplates();
+  } else {
+    toast(res?.error || 'Failed to save template', 'e');
+  }
+}
+
+async function toggleDefault(id) {
+  const res = await api('PATCH', `/api/admin/templates/${id}/default`);
+  if (res?.success) {
+    toast('Default template updated ✓');
+    loadTemplates();
+  } else {
+    toast(res?.error || 'Failed to update', 'e');
+  }
+}
+
+async function deleteTemplate(id) {
+  if (!confirm('Are you sure you want to permanently delete this template blueprint?')) return;
+  const res = await api('DELETE', `/api/admin/templates/${id}`);
+  if (res?.success) {
+    toast('Template deleted');
+    loadTemplates();
+  } else {
+    toast(res?.error || 'Delete failed', 'e');
+  }
+}
+
+/* Actions */
+function copyLink(url) {
+  navigator.clipboard.writeText(url).then(() => toast('Blueprint link copied to clipboard ✓'));
+}
+
+function downloadItem(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.download = url.split('/').pop() || 'template';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function previewItem(id) {
+  const item = allTemplates.find(t => (t.id || t.ID) === id);
+  if (!item) return;
+  currentPreviewItem = item;
+
+  document.getElementById('prevTitle').textContent = item.title;
+  document.getElementById('prevInfo').textContent = `${item.category.toUpperCase()} • ${item.fileType} • ${item.fileSize || ''}`;
+  const cont = document.getElementById('prevContent');
+
+  const ext = (item.fileType || '').toUpperCase();
+  const url = item.fileUrl;
+
+  if (['PNG','JPG','JPEG','WEBP','SVG'].includes(ext)) {
+    cont.innerHTML = `<img src="${url}" style="max-width:100%;max-height:100%;object-fit:contain" alt="Preview"/>`;
+  } else if (ext === 'PDF') {
+    cont.innerHTML = `<iframe src="${url}#toolbar=0" style="width:100%;height:100%;border:none"></iframe>`;
+  } else {
+    cont.innerHTML = `
+      <div style="text-align:center;padding:40px;color:var(--text3)">
+        <i class="fas fa-file-code" style="font-size:64px;margin-bottom:16px;color:var(--primary)"></i>
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">${item.title}</div>
+        <div style="font-size:13px;max-width:400px;margin:0 auto 20px">${item.description}</div>
+        <button class="btn" onclick="downloadItem('${url}')"><i class="fas fa-download"></i> Download ${ext} File</button>
+      </div>
+    `;
+  }
+
+  openMo('mo-prev');
+}
+
+function copyPrevUrl() {
+  if (currentPreviewItem) copyLink(currentPreviewItem.fileUrl);
+}
+function downloadPrev() {
+  if (currentPreviewItem) downloadItem(currentPreviewItem.fileUrl);
+}
+
+/* Quick Starters */
+function downloadBlueprint(type) {
+  const map = {
+    cert: { title: 'Certificate SVG Blueprint', ext: 'svg', content: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 850"><rect width="1200" height="850" fill="#0d111a"/><rect x="40" y="40" width="1120" height="770" fill="none" stroke="#f59e0b" stroke-width="4"/><text x="600" y="240" fill="#f59e0b" font-size="48" text-anchor="middle" font-weight="bold">SALEN MOBILE GURU ACADEMY</text><text x="600" y="320" fill="#ffffff" font-size="28" text-anchor="middle">CERTIFICATE OF DISTINCTION</text><text x="600" y="440" fill="#9cb0d1" font-size="20" text-anchor="middle">This certifies that</text><text x="600" y="510" fill="#3b82f6" font-size="38" text-anchor="middle" font-weight="bold">{{STUDENT_NAME}}</text><text x="600" y="580" fill="#9cb0d1" font-size="18" text-anchor="middle">has successfully mastered Level 3 Hardware Micro-Soldering</text></svg>` },
+    diode: { title: 'Diode Mode Probing Worksheet', ext: 'csv', content: `Component / Line Name,Pin Number,Expected Diode Value (Red Probe GND),Tolerance,Notes / Common Fault\nType-C VBUS Pin A4/B9,Pin 1,0.520 V,±0.040,Short indicates charging OVP FET shorted\nType-C CC1 Pin A5,Pin 2,0.610 V,±0.030,Open line means no fast charge negotiation\nType-C CC2 Pin B5,Pin 3,0.610 V,±0.030,Open line means single orientation charge\nDisplay FPC VSP (+5.5V),Pin 8,0.580 V,±0.050,No voltage = Display blank but phone vibrates\nDisplay FPC VSN (-5.5V),Pin 10,0.585 V,±0.050,Negative charge pump rail shorted\nPMIC VPH_PWR Buck Coil,L2001,0.380 V,±0.035,Dead boot main system power rail\nPMIC LDO 1.8V Always,C2104,0.490 V,±0.030,Power button pull-up line` },
+    quiz: { title: 'Assessment Questions Import Template', ext: 'csv', content: `Question Text,Option A,Option B,Option C,Option D,Correct Option (A/B/C/D),Explanation\n"When measuring diode mode on VPH_PWR, red probe is placed on:","Ground (GND)","VPH Coil Pin","Battery Terminal Positive","Microscope Base","A","In diode mode testing on mobile motherboards, red probe is connected to GND to forward-bias semiconductor PN junctions."\n"What is the expected reading of a healthy buck coil resistance to GND?","Near 0 Ohms (< 2 Ohms)","High impedance or diode drop > 0.3V","Infinite Megaohms","Negative voltage","B","Buck coils feeding core rails have low resistance but healthy coils typically show a characteristic diode drop."` },
+    user: { title: 'Student Batch Import Template', ext: 'csv', content: `Full Name,Email,Phone,Role,Subscription Plan,VIP Status\nBikash Thapa,bikash.tech@gmail.com,+977-9841234567,STUDENT,Android Hardware Level 1,No\nSuman Shrestha,suman.hardware@outlook.com,+977-9851122334,STUDENT,Master Tech All Access,Yes\nKamal Adhikari,kamal.repair@gmail.com,+977-9860987654,STUDENT,Schematic Pro,No` },
+    flow: { title: 'PMIC Power Sequencing Flowchart', ext: 'md', content: `# PMIC Boot Sequence Troubleshooting Flowchart\n\n1. [Battery Connected: 3.8V - 4.2V]\n   └── Check VBAT / VBUSDET voltage at OVP input\n2. [VPH_PWR Generation]\n   └── PMIC internal buck converter produces ~3.8V\n   └── Measure diode drop on L2001 (Healthy = ~0.380V)\n3. [Power Key Trigger]\n   └── Pin 1.8V pulled down to 0V upon button press\n4. [Buck Rails Turn ON]\n   └── VDD_CORE (0.8V)\n   └── VDD_MODEM (0.75V)\n   └── VDD_MEM (1.1V)\n5. [LDO Regulators Turn ON]\n   └── 1.8V PMIC clock, 2.8V eMMC/UFS VCC\n6. [PS_HOLD Assertion]\n   └── CPU sends 1.8V high signal to lock PMIC on.` }
+  };
+
+  const item = map[type];
+  if (!item) return;
+
+  const mime = item.ext === 'csv' ? 'text/csv' : item.ext === 'svg' ? 'image/svg+xml' : 'text/markdown';
+  const blob = new Blob([item.content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `smg_${type}_template.${item.ext}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast(`Downloaded ${item.title} ✓`);
+}
+
+/* Command Palette */
+const CMD_ITEMS = [
+  { icon: 'fa-cloud-arrow-up', label: 'Upload New Template', desc: 'Add certificate, worksheet or schematic', action: openUploadModal },
+  { icon: 'fa-certificate', label: 'Certificate Blueprints', desc: 'Filter certificate templates', action: () => setCategoryFilter('certificate', document.querySelector('[data-cat="certificate"]')) },
+  { icon: 'fa-microchip', label: 'Schematics & Flowcharts', desc: 'Filter PCB diagrams', action: () => setCategoryFilter('schematic', document.querySelector('[data-cat="schematic"]')) },
+  { icon: 'fa-book-open', label: 'Courses Studio', desc: 'Manage courses catalog & cover graphics', action: () => window.location.href = '/admin/courses' },
+  { icon: 'fa-sitemap', label: 'Curriculum Builder', desc: 'Module & video lesson workspace', action: () => window.location.href = '/admin/curriculum' },
+  { icon: 'fa-list-check', label: 'Quizzes & Diagnostics', desc: 'Assessment questions & exams', action: () => window.location.href = '/admin/quizzes' },
+  { icon: 'fa-credit-card', label: 'Subscriptions Ledger', desc: 'Payment receipts & approvals', action: () => window.location.href = '/admin/subscriptions' },
+  { icon: 'fa-users', label: 'Students Directory', desc: 'Technician profiles & VIP access', action: () => window.location.href = '/admin/users' },
+  { icon: 'fa-video', label: 'Live Masterclasses', desc: 'Broadcast schedule & webinar posters', action: () => window.location.href = '/admin/live' },
+  { icon: 'fa-gauge-high', label: 'Dashboard', desc: 'Return to Command Center', action: () => window.location.href = '/admin' }
+];
+
+function openCmdPalette() {
+  openMo('mo-cmd');
+  document.getElementById('cmdSearch').value = '';
+  filterCmd();
+  setTimeout(() => document.getElementById('cmdSearch').focus(), 100);
+}
+
+function filterCmd() {
+  const q = document.getElementById('cmdSearch').value.toLowerCase().trim();
+  const list = document.getElementById('cmdList');
+  const matched = CMD_ITEMS.filter(it => !q || it.label.toLowerCase().includes(q) || it.desc.toLowerCase().includes(q));
+  if (!matched.length) {
+    list.innerHTML = '<div style="padding:18px;text-align:center;color:var(--text4)">No actions found</div>';
+    return;
+  }
+  list.innerHTML = matched.map((it, idx) => `
+    <div onclick="CMD_ITEMS[${CMD_ITEMS.indexOf(it)}].action();closeMo('mo-cmd')" style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+      <i class="fas ${it.icon}" style="width:20px;text-align:center;color:var(--primary);font-size:14px"></i>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:13px">${it.label}</div>
+        <div style="font-size:11px;color:var(--text4)">${it.desc}</div>
+      </div>
+      <i class="fas fa-arrow-right" style="color:var(--text4);font-size:11px"></i>
+    </div>
+  `).join('');
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    openCmdPalette();
+  }
+  if (e.key === 'Escape') {
+    closeMo('mo-cmd');
+    closeMo('mo-upload');
+    closeMo('mo-prev');
+  }
+});
+</script>
+</body>
+</html>

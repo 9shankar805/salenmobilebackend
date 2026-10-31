@@ -34,9 +34,14 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	// Admin calculator endpoints
 	admCalc := r.Group("/api/admin/calculator", middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
+		admCalc.GET("/pricing-matrix", c.GetPricingMatrix)
 		admCalc.POST("/pricing-matrix", c.CreatePricingItem)
 		admCalc.DELETE("/pricing-matrix/:id", c.DeletePricingItem)
 		admCalc.GET("/work-orders", c.GetAllWorkOrders)
+		admCalc.POST("/work-orders", c.CreateWorkOrder)
+		admCalc.PATCH("/work-orders/:id/status", c.UpdateWorkOrderStatus)
+		admCalc.PUT("/work-orders/:id/status", c.UpdateWorkOrderStatus)
+		admCalc.DELETE("/work-orders/:id", c.DeleteWorkOrder)
 	}
 }
 
@@ -149,6 +154,12 @@ func (cr *CalculatorRouter) UpdateWorkOrderStatus(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Work order status updated"})
+}
+
+func (cr *CalculatorRouter) DeleteWorkOrder(c *gin.Context) {
+	id := c.Param("id")
+	cr.DB.Delete(&models.WorkOrder{}, "id = ?", id)
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Work order deleted"})
 }
 
 func (cr *CalculatorRouter) seedDefaults() {

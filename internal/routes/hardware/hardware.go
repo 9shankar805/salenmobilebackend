@@ -31,10 +31,17 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	// Admin Hardware Management APIs
 	admHw := r.Group("/api/admin/hardware", middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
+		admHw.GET("/models", h.GetModels)
 		admHw.POST("/models", h.CreateModel)
-		admHw.POST("/diode-values", h.CreateDiodeValue)
-		admHw.POST("/jumpers", h.CreateJumper)
 		admHw.DELETE("/models/:id", h.DeleteModel)
+
+		admHw.GET("/diode-values", h.GetDiodeValues)
+		admHw.POST("/diode-values", h.CreateDiodeValue)
+		admHw.DELETE("/diode-values/:id", h.DeleteDiodeValue)
+
+		admHw.GET("/jumpers", h.GetJumpers)
+		admHw.POST("/jumpers", h.CreateJumper)
+		admHw.DELETE("/jumpers/:id", h.DeleteJumper)
 	}
 }
 
@@ -154,6 +161,18 @@ func (h *HardwareRouter) DeleteModel(c *gin.Context) {
 	h.DB.Where("model_id = ?", id).Delete(&models.JumperTrace{})
 	h.DB.Delete(&models.HardwareModel{}, "id = ?", id)
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Model and related data deleted"})
+}
+
+func (h *HardwareRouter) DeleteDiodeValue(c *gin.Context) {
+	id := c.Param("id")
+	h.DB.Delete(&models.DiodeValue{}, "id = ?", id)
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Diode value deleted"})
+}
+
+func (h *HardwareRouter) DeleteJumper(c *gin.Context) {
+	id := c.Param("id")
+	h.DB.Delete(&models.JumperTrace{}, "id = ?", id)
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Jumper trace deleted"})
 }
 
 func (h *HardwareRouter) seedHardwareDefaults() {

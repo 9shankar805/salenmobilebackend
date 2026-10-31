@@ -14,6 +14,7 @@ type User struct {
 	PasswordHash     string    `json:"-"`
 	IsSubscribed     bool      `json:"isSubscribed"`
 	IsVIP            bool      `json:"isVip"`
+	EmailVerified    bool      `json:"emailVerified"`
 	SubscriptionPlan string    `json:"subscriptionPlan"`
 	CreatedAt        time.Time `json:"createdAt"`
 	UpdatedAt        time.Time `json:"updatedAt"`
@@ -249,6 +250,23 @@ type MediaAsset struct {
 	SizeFormatted string    `json:"size"`
 	Category      string    `json:"category"`
 	CreatedAt     time.Time `json:"createdAt"`
+}
+
+type TemplateAsset struct {
+	ID             string    `json:"id" gorm:"primaryKey"`
+	Title          string    `json:"title"`
+	Category       string    `json:"category"` // certificate, schematic, worksheet, quiz, curriculum, notification, banner, diagnostic
+	Description    string    `json:"description"`
+	FileURL        string    `json:"fileUrl"`
+	ThumbnailURL   string    `json:"thumbnailUrl"`
+	FileType       string    `json:"fileType"` // PDF, PNG, SVG, JSON, CSV, ZIP
+	FileSize       string    `json:"fileSize"`
+	DownloadsCount int       `json:"downloadsCount"`
+	IsDefault      bool      `json:"isDefault"`
+	Author         string    `json:"author"`
+	Tags           string    `json:"tags"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -597,4 +615,31 @@ type UserDownload struct {
 	SizeFmt    string    `json:"size"`
 	ImageAsset string    `json:"imageAsset"`
 	DownloadedAt time.Time `json:"downloadedAt"`
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SMTP SETTINGS & EMAIL OTP VERIFICATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+type SMTPSettings struct {
+	ID           string    `json:"id" gorm:"primaryKey"` // "default"
+	Enabled      bool      `json:"enabled"`
+	SenderEmail  string    `json:"senderEmail"`  // support@yourdomain.com
+	SenderName   string    `json:"senderName"`   // Salen Mobile Guru
+	Host         string    `json:"host"`         // smtp.host.com (e.g. smtp.gmail.com)
+	Port         int       `json:"port"`         // 587 or 465
+	Username     string    `json:"username"`     // username or email
+	Password     string    `json:"password"`     // app password
+	SecurityMode string    `json:"securityMode"` // STARTTLS, SSL, NONE
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+type EmailOTP struct {
+	ID        string    `json:"id" gorm:"primaryKey"`
+	Email     string    `json:"email" gorm:"size:191;index"`
+	Code      string    `json:"code" gorm:"size:10"`
+	Purpose   string    `json:"purpose" gorm:"size:50"` // "signup", "login", "reset_password"
+	ExpiresAt time.Time `json:"expiresAt"`
+	Verified  bool      `json:"verified"`
+	CreatedAt time.Time `json:"createdAt"`
 }

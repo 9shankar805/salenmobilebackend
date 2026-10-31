@@ -44,6 +44,11 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		adm.POST("/upload", mr.UploadFile)
 		adm.DELETE("/:id", mr.DeleteMedia)
 	}
+
+	admRoot := r.Group("/api/admin", middleware.AuthMiddleware(), middleware.AdminMiddleware())
+	{
+		admRoot.POST("/upload", mr.UploadFile)
+	}
 }
 
 func (mr *MediaRouter) ListMedia(c *gin.Context) {
@@ -173,15 +178,36 @@ func (mr *MediaRouter) StreamR2Object(c *gin.Context) {
 	key := c.Param("key")
 	key = strings.TrimPrefix(key, "/")
 
-	// 1. Check local storage folder first (e.g. PDFs, images, schematics)
-	localPath := filepath.Join("/var/www/salenmobilebackend/storage", key)
-	if fi, err := os.Stat(localPath); err == nil && !fi.IsDir() {
-		if strings.HasSuffix(strings.ToLower(key), ".pdf") {
-			c.Header("Content-Type", "application/pdf")
-			c.Header("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", filepath.Base(key)))
+	// 1. Check local storage folder first (e.g. PDFs, images, schematics, templates)
+	candidates := []string{
+		filepath.Join("storage", key),
+		filepath.Join("/var/www/salenmobilebackend/storage", key),
+	}
+	if sp := os.Getenv("STORAGE_PATH"); sp != "" {
+		candidates = append([]string{filepath.Join(sp, key)}, candidates...)
+	}
+	for _, localPath := range candidates {
+		if fi, err := os.Stat(localPath); err == nil && !fi.IsDir() {
+			ext := strings.ToLower(filepath.Ext(key))
+			if ext == ".pdf" {
+				c.Header("Content-Type", "application/pdf")
+				c.Header("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", filepath.Base(key)))
+			} else if ext == ".png" {
+				c.Header("Content-Type", "image/png")
+			} else if ext == ".jpg" || ext == ".jpeg" {
+				c.Header("Content-Type", "image/jpeg")
+			} else if ext == ".webp" {
+				c.Header("Content-Type", "image/webp")
+			} else if ext == ".svg" {
+				c.Header("Content-Type", "image/svg+xml")
+			} else if ext == ".json" {
+				c.Header("Content-Type", "application/json")
+			} else if ext == ".csv" {
+				c.Header("Content-Type", "text/csv")
+			}
+			c.File(localPath)
+			return
 		}
-		c.File(localPath)
-		return
 	}
 
 	// 2. Stream from Cloudflare R2

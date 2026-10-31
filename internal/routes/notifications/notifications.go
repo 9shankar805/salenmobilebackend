@@ -30,7 +30,9 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	adm := r.Group("/api/admin/notifications", middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
 		adm.GET("", nr.GetAllNotifications)
+		adm.POST("", nr.BroadcastNotification)
 		adm.POST("/broadcast", nr.BroadcastNotification)
+		adm.DELETE("/:id", nr.DeleteNotification)
 	}
 }
 
@@ -171,6 +173,12 @@ func (nr *NotificationsRouter) GetAllNotifications(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": list})
+}
+
+func (nr *NotificationsRouter) DeleteNotification(c *gin.Context) {
+	id := c.Param("id")
+	nr.DB.Delete(&models.InAppNotification{}, "id = ?", id)
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Notification deleted"})
 }
 
 func (nr *NotificationsRouter) seedSampleNotifications() {
