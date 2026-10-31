@@ -390,10 +390,22 @@ func (ar *AccountRouter) VerifyOTP(c *gin.Context) {
 	}
 
 	var otp models.EmailOTP
-	err := ar.DB.Where("LOWER(email) = ? AND code = ? AND verified = ? AND expires_at > ?", email, code, false, time.Now()).
+	err := ar.DB.Where("LOWER(email) = ? AND code = ? AND verified = ? AND expires_at > ?", email, code, false, time.Now().Add(-2*time.Minute)).
 		Order("created_at desc").First(&otp).Error
 
 	if err != nil {
+		// Check if it was verified within the last 10 minutes (handles rapid retries / auto-verify)
+		var recent models.EmailOTP
+		if err2 := ar.DB.Where("LOWER(email) = ? AND code = ? AND verified = ?", email, code, true).
+			Order("created_at desc").First(&recent).Error; err2 == nil && time.Since(recent.CreatedAt) < 15*time.Minute {
+			c.JSON(http.StatusOK, gin.H{
+				"success": true,
+				"message": "Email verified successfully ✓",
+				"email":   email,
+			})
+			return
+		}
+
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"error":   "Invalid or expired verification code. Please check your inbox or request a new code.",

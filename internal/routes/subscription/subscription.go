@@ -354,11 +354,11 @@ func canChat(pt string) bool {
 
 func allFeatures() []string {
 	return []string{
-		"Smart IC Finder", "PIN Abbreviations", "Smart Parts Finder",
-		"Bitmap Diagrams", "Mooxy Magic Tool", "PDF Container",
-		"PCB Layer Diagrams", "Hardware Solutions", "Unique Schematic Solutions",
-		"Schematic Solutions", "Expert Chat Support", "Live Sessions",
-		"All Courses Access", "Certificates",
+		"Full HD Video Lessons Access", "Motherboard Schematic Diagrams",
+		"Multimeter & Diode Mode Procedures", "Hardware Diagnostic Guides",
+		"PMIC & Power Sequence Schematics", "Live Masterclasses with Master Salen",
+		"Priority 1-on-1 Hardware Support", "Official Academy Completion Certificate",
+		"Expert Technician Chat Support",
 	}
 }
 
@@ -366,10 +366,11 @@ func featuresForPlan(pt string) []string {
 	switch strings.ToUpper(pt) {
 	case "MOBILE":
 		return []string{
-			"Smart IC Finder", "PIN Abbreviations", "Smart Parts Finder",
-			"Bitmap Diagrams", "Mooxy Magic Tool", "PDF Container",
-			"PCB Layer Diagrams", "Hardware Solutions",
-			"Unique Schematic Solutions", "Schematic Solutions",
+			"Full HD Video Lessons Access",
+			"Motherboard Schematic Diagrams",
+			"Multimeter & Diode Mode Procedures",
+			"Hardware Diagnostic Guides",
+			"Student Discussion Community",
 		}
 	case "CHAT":
 		return []string{
