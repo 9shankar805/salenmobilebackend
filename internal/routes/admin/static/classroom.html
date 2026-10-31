@@ -1,5 +1,1735 @@
 <!DOCTYPE html>
-<html>
-<head><title>Salen Mobile Guru Classroom</title></head>
-<body><h1>Salen Mobile Guru Web Player</h1></body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMG Classroom | Video Player</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-card: #1a2035;
+      --bg-glass: rgba(255,255,255,0.04);
+      --bg-glass-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.15);
+      --indigo: #6366f1;
+      --indigo-light: #818cf8;
+      --indigo-dark: #4f46e5;
+      --indigo-glow: rgba(99,102,241,0.35);
+      --green: #10b981;
+      --green-dim: rgba(16,185,129,0.18);
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #475569;
+      --sidebar-width: 300px;
+      --right-panel-width: 320px;
+      --topbar-height: 56px;
+      --controls-height: 52px;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --transition: 0.2s ease;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      overflow: hidden;
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+    /* ─── LOGIN OVERLAY ─── */
+    #loginOverlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(11,15,25,0.97);
+      backdrop-filter: blur(24px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #loginOverlay.hidden { display: none; }
+    .login-box {
+      width: 380px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15);
+    }
+    .login-logo {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, var(--indigo), #a855f7);
+      border-radius: 16px;
+      margin: 0 auto 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 800; color: #fff;
+      box-shadow: 0 8px 32px var(--indigo-glow);
+    }
+    .login-box h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .login-box p { color: var(--text-secondary); font-size: 13px; margin-bottom: 28px; }
+    .login-input {
+      width: 100%;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: inherit;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .login-input:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px var(--indigo-glow); }
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--indigo), var(--indigo-dark));
+      border: none; border-radius: var(--radius-sm);
+      padding: 13px;
+      color: #fff;
+      font-size: 14px; font-weight: 600; font-family: inherit;
+      cursor: pointer;
+      transition: opacity var(--transition), transform var(--transition);
+      box-shadow: 0 4px 20px var(--indigo-glow);
+    }
+    .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .login-btn:active { transform: translateY(0); }
+    .login-err { color: var(--red); font-size: 12px; margin-top: 10px; min-height: 16px; }
+
+    /* ─── LAYOUT ─── */
+    #app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* ─── TOP BAR ─── */
+    #topbar {
+      height: var(--topbar-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    .topbar-brand {
+      width: var(--sidebar-width);
+      padding: 0 20px;
+      display: flex; align-items: center; gap: 10px;
+      border-right: 1px solid var(--border);
+      height: 100%;
+      flex-shrink: 0;
+    }
+    .brand-logo {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--indigo), #a855f7);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; color: #fff;
+    }
+    .brand-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+    .brand-tag { font-size: 10px; color: var(--indigo-light); background: rgba(99,102,241,0.12); border-radius: 4px; padding: 1px 6px; }
+
+    .topbar-center {
+      flex: 1; padding: 0 20px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    #courseTitleBar { font-size: 14px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
+    .topbar-course-progress { display: flex; align-items: center; gap: 8px; }
+    .topbar-progress-ring { position: relative; width: 34px; height: 34px; flex-shrink: 0; }
+    .topbar-progress-ring svg { transform: rotate(-90deg); }
+    .topbar-progress-ring circle.bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 3; }
+    .topbar-progress-ring circle.fg { fill: none; stroke: var(--indigo); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+    .topbar-progress-pct {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 700; color: var(--indigo-light);
+    }
+    #progressLabel { font-size: 12px; color: var(--text-secondary); }
+
+    .topbar-right {
+      padding: 0 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .tb-btn {
+      height: 34px; padding: 0 14px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-size: 12px; font-weight: 500;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      text-decoration: none;
+      transition: all var(--transition);
+    }
+    .tb-btn:hover { background: var(--bg-glass-hover); color: var(--text-primary); border-color: var(--border-strong); }
+
+    /* ─── MAIN CONTENT ─── */
+    #main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ─── LEFT SIDEBAR ─── */
+    #sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+      transition: width 0.3s ease;
+    }
+    #sidebar.collapsed { width: 0; }
+
+    .sidebar-header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sidebar-header h3 { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .sidebar-search {
+      display: flex; align-items: center;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0 10px;
+      gap: 6px;
+    }
+    .sidebar-search i { color: var(--text-muted); font-size: 12px; }
+    .sidebar-search input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text-primary); font-size: 12px; font-family: inherit;
+      padding: 8px 0;
+    }
+    .sidebar-search input::placeholder { color: var(--text-muted); }
+
+    #lessonTree { flex: 1; overflow-y: auto; padding: 10px 0; }
+
+    .module-item { margin-bottom: 2px; }
+    .module-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 18px;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background var(--transition);
+    }
+    .module-header:hover { background: var(--bg-glass); }
+    .module-chevron { color: var(--text-muted); font-size: 10px; transition: transform 0.2s; margin-left: auto; }
+    .module-item.open .module-chevron { transform: rotate(90deg); }
+    .module-icon { color: var(--indigo-light); font-size: 13px; }
+    .module-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); flex: 1; }
+    .module-count { font-size: 10px; color: var(--text-muted); }
+
+    .lesson-list { display: none; }
+    .module-item.open .lesson-list { display: block; }
+
+    .lesson-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 18px 9px 36px;
+      cursor: pointer;
+      transition: all var(--transition);
+      border-left: 2px solid transparent;
+      position: relative;
+    }
+    .lesson-item:hover { background: var(--bg-glass); }
+    .lesson-item.active {
+      background: rgba(99,102,241,0.1);
+      border-left-color: var(--indigo);
+    }
+    .lesson-item.active .lesson-name { color: var(--indigo-light); }
+    .lesson-item.completed .lesson-check { color: var(--green); }
+    .lesson-icon { color: var(--text-muted); font-size: 11px; flex-shrink: 0; }
+    .lesson-item.active .lesson-icon { color: var(--indigo); }
+    .lesson-info { flex: 1; min-width: 0; }
+    .lesson-name { font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+    .lesson-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .lesson-check { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+
+    /* skeleton */
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.6s infinite; border-radius: 6px; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    /* ─── CENTER: VIDEO AREA ─── */
+    #videoArea {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-primary);
+    }
+
+    .video-wrapper {
+      position: relative;
+      flex-shrink: 0;
+      background: #000;
+    }
+    .video-wrapper video {
+      width: 100%;
+      display: block;
+      max-height: calc(100vh - var(--topbar-height) - var(--controls-height) - 200px);
+      background: #000;
+    }
+
+    /* ─── VIDEO CONTROLS ─── */
+    #videoControls {
+      height: var(--controls-height);
+      background: #0a0e18;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      flex-direction: column;
+      padding: 0 14px;
+      flex-shrink: 0;
+    }
+    #progressRow {
+      height: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-top: 8px;
+    }
+    #progressBarWrap {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 99px;
+      cursor: pointer;
+      position: relative;
+      transition: height 0.15s;
+    }
+    #progressBarWrap:hover { height: 6px; }
+    #bufferedBar {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: rgba(255,255,255,0.2);
+      border-radius: 99px;
+      pointer-events: none;
+    }
+    #playedBar {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: var(--indigo);
+      border-radius: 99px;
+      pointer-events: none;
+    }
+    #progressThumb {
+      position: absolute; top: 50%; right: -6px;
+      width: 12px; height: 12px;
+      background: #fff;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      box-shadow: 0 0 6px rgba(99,102,241,0.8);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    #progressBarWrap:hover #progressThumb { opacity: 1; }
+    #timeDisplay { font-size: 11px; color: var(--text-secondary); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    #controlsRow {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ctrl-btn {
+      width: 32px; height: 32px;
+      border: none; background: none;
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+    }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+    .ctrl-btn.active { color: var(--indigo-light); }
+    .ctrl-spacer { flex: 1; }
+
+    /* Volume */
+    .volume-wrap { display: flex; align-items: center; gap: 6px; }
+    #volumeSlider {
+      -webkit-appearance: none;
+      width: 70px; height: 3px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 99px;
+      outline: none;
+      cursor: pointer;
+    }
+    #volumeSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 4px rgba(0,0,0,0.4);
+    }
+
+    /* Speed */
+    .speed-select {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-family: inherit;
+      font-weight: 600;
+      border-radius: 5px;
+      padding: 3px 6px;
+      cursor: pointer;
+      outline: none;
+    }
+    .speed-select option { background: #1a2035; }
+
+    /* CC / Quality badges */
+    .badge-btn {
+      font-size: 10px; font-weight: 700;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+      border-radius: 4px;
+      padding: 3px 7px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: all var(--transition);
+    }
+    .badge-btn:hover { background: rgba(255,255,255,0.12); color: var(--text-primary); }
+    .badge-btn.active { background: rgba(99,102,241,0.2); border-color: var(--indigo); color: var(--indigo-light); }
+
+    /* Keyboard shortcut toast */
+    #kbToast {
+      position: fixed;
+      bottom: 80px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 500;
+    }
+    #kbToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ─── LESSON INFO ─── */
+    #lessonInfo {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+    }
+    .lesson-header-row {
+      display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px;
+    }
+    .lesson-title-block { flex: 1; }
+    #lessonTitle { font-size: 20px; font-weight: 700; color: var(--text-primary); line-height: 1.3; margin-bottom: 6px; }
+    #lessonDesc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+    .lesson-actions { display: flex; gap: 8px; flex-shrink: 0; margin-top: 4px; }
+    .action-btn {
+      width: 36px; height: 36px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+    }
+    .action-btn:hover { background: var(--bg-glass-hover); color: var(--text-primary); border-color: var(--border-strong); }
+    .action-btn.liked { color: var(--red); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.08); }
+    .action-btn.bookmarked { color: var(--yellow); border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.08); }
+
+    .instructor-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .instructor-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4f46e5, #a855f7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+    .instructor-info { flex: 1; }
+    .instructor-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .instructor-role { font-size: 11px; color: var(--text-muted); }
+    .completion-badge {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      background: var(--green-dim);
+      border: 1px solid rgba(16,185,129,0.3);
+      border-radius: 8px;
+      font-size: 12px; font-weight: 600; color: var(--green);
+    }
+
+    /* lesson progress */
+    .lesson-progress-row {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+    }
+    .lesson-progress-bar-wrap {
+      flex: 1; height: 6px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 99px; overflow: hidden;
+    }
+    #lessonProgressBar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--indigo), #a855f7);
+      border-radius: 99px;
+      transition: width 1s ease;
+    }
+    .lesson-progress-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+    /* nav buttons */
+    .nav-btn-row { display: flex; gap: 10px; }
+    .nav-btn {
+      flex: 1;
+      padding: 11px 18px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 13px; font-weight: 500; font-family: inherit;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+    .nav-btn:hover:not(:disabled) { background: var(--bg-glass-hover); color: var(--text-primary); border-color: var(--border-strong); }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .nav-btn.primary {
+      background: linear-gradient(135deg, var(--indigo), var(--indigo-dark));
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 4px 16px var(--indigo-glow);
+    }
+    .nav-btn.primary:hover:not(:disabled) { opacity: 0.9; }
+
+    /* ─── RIGHT PANEL ─── */
+    #rightPanel {
+      width: var(--right-panel-width);
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+      transition: width 0.3s ease;
+    }
+    #rightPanel.collapsed { width: 0; }
+
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .panel-tab {
+      flex: 1;
+      padding: 13px 8px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 11px; font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .panel-tab:hover { color: var(--text-secondary); }
+    .panel-tab.active { color: var(--indigo-light); border-bottom-color: var(--indigo); }
+
+    .panel-body { flex: 1; overflow-y: auto; padding: 16px; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Notes */
+    .notes-area {
+      width: 100%;
+      min-height: 140px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: inherit;
+      padding: 12px;
+      resize: vertical;
+      outline: none;
+      transition: border-color var(--transition);
+      line-height: 1.6;
+    }
+    .notes-area:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px var(--indigo-glow); }
+    .notes-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .save-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.25);
+      border-radius: 8px;
+      color: var(--indigo-light);
+      font-size: 12px; font-weight: 600; font-family: inherit;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .save-btn:hover { background: rgba(99,102,241,0.25); }
+    .save-status { font-size: 11px; color: var(--green); text-align: center; margin-top: 6px; min-height: 16px; }
+
+    /* Resources */
+    .resource-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-decoration: none;
+    }
+    .resource-card:hover { background: var(--bg-glass-hover); border-color: var(--border-strong); }
+    .resource-icon { color: var(--indigo-light); font-size: 18px; flex-shrink: 0; }
+    .resource-info { flex: 1; }
+    .resource-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+    .resource-size { font-size: 10px; color: var(--text-muted); }
+    .resource-dl { color: var(--text-muted); font-size: 13px; }
+
+    /* Q&A */
+    .qa-input-wrap { margin-bottom: 16px; }
+    .qa-input {
+      width: 100%;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 13px; font-family: inherit;
+      padding: 10px 12px;
+      resize: none;
+      outline: none;
+      transition: border-color var(--transition);
+      line-height: 1.5;
+      min-height: 80px;
+    }
+    .qa-input:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px var(--indigo-glow); }
+    .qa-submit {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      background: linear-gradient(135deg, var(--indigo), var(--indigo-dark));
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 12px; font-weight: 600; font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--indigo-glow);
+      transition: opacity var(--transition);
+    }
+    .qa-submit:hover { opacity: 0.9; }
+
+    .qa-list { display: flex; flex-direction: column; gap: 12px; }
+    .qa-item { background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; }
+    .qa-author { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .qa-avatar { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #a855f7); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .qa-name { font-size: 11px; font-weight: 600; color: var(--text-primary); }
+    .qa-time { font-size: 10px; color: var(--text-muted); margin-left: auto; }
+    .qa-text { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+    .qa-reply { font-size: 11px; color: var(--indigo-light); margin-top: 8px; cursor: pointer; }
+
+    /* ─── SIDEBAR TOGGLE BUTTON ─── */
+    .sidebar-toggle {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px; height: 52px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      z-index: 200;
+      transition: all var(--transition);
+      border-radius: 0 6px 6px 0;
+    }
+    #toggleSidebarBtn { left: var(--sidebar-width); transition: left 0.3s ease; }
+    #toggleSidebarBtn.shifted { left: 0; }
+    #toggleRightBtn { right: var(--right-panel-width); border-radius: 6px 0 0 6px; transition: right 0.3s ease; }
+    #toggleRightBtn.shifted { right: 0; }
+    .sidebar-toggle:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
+
+    /* ─── COMPLETION BANNER ─── */
+    #completionBanner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      background: linear-gradient(90deg, rgba(16,185,129,0.12), rgba(16,185,129,0.06));
+      border-bottom: 1px solid rgba(16,185,129,0.25);
+      flex-shrink: 0;
+    }
+    #completionBanner.show { display: flex; }
+    #completionBanner i { color: var(--green); font-size: 16px; }
+    #completionBanner span { font-size: 13px; color: var(--text-secondary); }
+    #completionBanner strong { color: var(--green); }
+
+    /* ─── EMPTY / LOADING STATES ─── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 24px;
+      text-align: center;
+      gap: 12px;
+    }
+    .empty-state i { font-size: 40px; color: var(--text-muted); }
+    .empty-state h3 { font-size: 15px; font-weight: 600; color: var(--text-secondary); }
+    .empty-state p { font-size: 12px; color: var(--text-muted); max-width: 200px; }
+
+    /* ─── TOAST NOTIFICATIONS ─── */
+    #toastContainer {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 13px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: toastIn 0.3s ease;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error { border-left: 3px solid var(--red); }
+    .toast.info { border-left: 3px solid var(--indigo); }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(8px); } }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1100px) {
+      :root { --right-panel-width: 0px; }
+      #rightPanel { display: none; }
+      #toggleRightBtn { display: none; }
+    }
+    @media (max-width: 750px) {
+      :root { --sidebar-width: 0px; }
+      #sidebar { display: none; }
+      #toggleSidebarBtn { display: none; }
+      .topbar-brand { display: none; }
+    }
+
+    /* ─── SHORTCUT HINTS FOOTER ─── */
+    .shortcut-list {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      padding: 12px 24px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .shortcut-item { display: flex; align-items: center; gap: 5px; }
+    .shortcut-key { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 2px 6px; font-size: 10px; color: var(--text-muted); font-family: monospace; }
+    .shortcut-label { font-size: 10px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ LOGIN OVERLAY ═══ -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">S</div>
+    <h2>SMG Classroom</h2>
+    <p>Sign in to access your courses and lessons</p>
+    <input class="login-input" type="text" id="loginUser" placeholder="Username or Email" autocomplete="username" />
+    <input class="login-input" type="password" id="loginPass" placeholder="Password" autocomplete="current-password" />
+    <button class="login-btn" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ APP ═══ -->
+<div id="app">
+
+  <!-- ─── TOP BAR ─── -->
+  <header id="topbar">
+    <div class="topbar-brand">
+      <div class="brand-logo">S</div>
+      <div>
+        <div class="brand-name">SMG</div>
+      </div>
+      <span class="brand-tag">GURU</span>
+    </div>
+
+    <div class="topbar-center">
+      <div class="topbar-course-progress">
+        <div class="topbar-progress-ring">
+          <svg width="34" height="34" viewBox="0 0 34 34">
+            <circle class="bg" cx="17" cy="17" r="14"></circle>
+            <circle class="fg" id="progressRingFg" cx="17" cy="17" r="14"
+              stroke-dasharray="87.96"
+              stroke-dashoffset="87.96"></circle>
+          </svg>
+          <div class="topbar-progress-pct" id="progressPct">0%</div>
+        </div>
+        <div id="progressLabel">Loading course…</div>
+      </div>
+      <span style="color:var(--border-strong)">|</span>
+      <span id="courseTitleBar" style="color:var(--text-secondary);font-size:13px;">—</span>
+    </div>
+
+    <div class="topbar-right">
+      <a href="/admin" class="tb-btn"><i class="fas fa-th-large"></i> Dashboard</a>
+      <a href="/admin/courses" class="tb-btn"><i class="fas fa-book-open"></i> Courses</a>
+      <button class="tb-btn" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </header>
+
+  <!-- ─── MAIN ─── -->
+  <div id="main">
+
+    <!-- LEFT SIDEBAR -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <h3>Course Content</h3>
+        <div class="sidebar-search">
+          <i class="fas fa-search"></i>
+          <input type="text" id="sidebarSearch" placeholder="Search lessons…" oninput="filterLessons(this.value)" />
+        </div>
+      </div>
+      <div id="lessonTree">
+        <!-- Skeleton -->
+        <div id="sidebarSkeleton" style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
+          <div class="skeleton" style="height:14px;width:55%;border-radius:6px;"></div>
+          <div class="skeleton" style="height:11px;width:80%;border-radius:6px;margin-left:18px;"></div>
+          <div class="skeleton" style="height:11px;width:72%;border-radius:6px;margin-left:18px;"></div>
+          <div class="skeleton" style="height:11px;width:65%;border-radius:6px;margin-left:18px;"></div>
+          <div class="skeleton" style="height:14px;width:48%;border-radius:6px;margin-top:4px;"></div>
+          <div class="skeleton" style="height:11px;width:78%;border-radius:6px;margin-left:18px;"></div>
+          <div class="skeleton" style="height:11px;width:60%;border-radius:6px;margin-left:18px;"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- SIDEBAR TOGGLE -->
+    <button class="sidebar-toggle" id="toggleSidebarBtn" onclick="toggleSidebar()" title="Toggle sidebar">
+      <i class="fas fa-chevron-left" id="sidebarToggleIcon"></i>
+    </button>
+
+    <!-- CENTER VIDEO AREA -->
+    <div id="videoArea">
+
+      <!-- Completion Banner -->
+      <div id="completionBanner">
+        <i class="fas fa-check-circle"></i>
+        <span>You completed this lesson! <strong>Great work!</strong></span>
+      </div>
+
+      <!-- Video Wrapper -->
+      <div class="video-wrapper" id="videoWrapper">
+        <video id="mainVideo" preload="metadata">
+          <track id="ccTrack" kind="subtitles" label="English" srclang="en" default />
+          Your browser does not support HTML5 video.
+        </video>
+      </div>
+
+      <!-- Video Controls -->
+      <div id="videoControls">
+        <div id="progressRow">
+          <div id="progressBarWrap" onclick="seekClick(event)" onmousemove="previewSeek(event)" onmouseleave="hidePreview()">
+            <div id="bufferedBar" style="width:0%"></div>
+            <div id="playedBar" style="width:0%">
+              <div id="progressThumb"></div>
+            </div>
+          </div>
+          <div id="timeDisplay">0:00 / 0:00</div>
+        </div>
+        <div id="controlsRow">
+          <!-- Left controls -->
+          <button class="ctrl-btn" id="playBtn" onclick="togglePlay()" title="Play/Pause (Space)">
+            <i class="fas fa-play"></i>
+          </button>
+          <button class="ctrl-btn" onclick="skipBack()" title="Back 10s (←)">
+            <i class="fas fa-rotate-left" style="font-size:12px;"></i><span style="font-size:9px;margin-left:-1px;">10</span>
+          </button>
+          <button class="ctrl-btn" onclick="skipForward()" title="Forward 10s (→)">
+            <i class="fas fa-rotate-right" style="font-size:12px;"></i><span style="font-size:9px;margin-left:-1px;">10</span>
+          </button>
+          <div class="volume-wrap">
+            <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()" title="Mute (M)">
+              <i class="fas fa-volume-high"></i>
+            </button>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)" />
+          </div>
+
+          <div class="ctrl-spacer"></div>
+
+          <!-- Right controls -->
+          <select class="speed-select" id="speedSelect" onchange="setSpeed(this.value)" title="Playback speed">
+            <option value="0.75">0.75×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.25">1.25×</option>
+            <option value="1.5">1.5×</option>
+            <option value="2">2×</option>
+          </select>
+
+          <button class="badge-btn" id="ccBtn" onclick="toggleCC()" title="Subtitles/CC">CC</button>
+          <button class="badge-btn" id="qualityBtn" onclick="cycleQuality()" title="Video quality">HD</button>
+          <button class="ctrl-btn" onclick="toggleFullscreen()" title="Fullscreen (F)">
+            <i class="fas fa-expand" id="fsIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lesson Info -->
+      <div id="lessonInfo">
+        <div class="lesson-header-row">
+          <div class="lesson-title-block">
+            <div id="lessonTitle">Loading lesson…</div>
+            <div id="lessonDesc" style="margin-top:8px;"></div>
+          </div>
+          <div class="lesson-actions">
+            <button class="action-btn" id="likeBtn" onclick="toggleLike()" title="Like lesson">
+              <i class="fas fa-heart"></i>
+            </button>
+            <button class="action-btn" id="bookmarkBtn" onclick="toggleBookmark()" title="Bookmark lesson">
+              <i class="fas fa-bookmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="instructor-row">
+          <div class="instructor-avatar" id="instructorAvatar">I</div>
+          <div class="instructor-info">
+            <div class="instructor-name" id="instructorName">Instructor</div>
+            <div class="instructor-role" id="instructorRole">Course Author</div>
+          </div>
+          <div class="completion-badge" id="completedBadge" style="display:none">
+            <i class="fas fa-check-circle"></i> Completed
+          </div>
+        </div>
+
+        <div class="lesson-progress-row">
+          <div class="lesson-progress-bar-wrap">
+            <div id="lessonProgressBar" style="width:0%"></div>
+          </div>
+          <div class="lesson-progress-label" id="lessonProgressLabel">0% watched</div>
+        </div>
+
+        <div class="nav-btn-row">
+          <button class="nav-btn" id="prevBtn" onclick="goPrevLesson()" disabled>
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <button class="nav-btn primary" id="nextBtn" onclick="goNextLesson()" disabled>
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+
+        <!-- Keyboard shortcuts -->
+        <div class="shortcut-list" style="margin-top:20px;border-top:1px solid var(--border);padding-top:14px;display:flex;flex-wrap:wrap;gap:10px;">
+          <div class="shortcut-item"><kbd class="shortcut-key">Space</kbd><span class="shortcut-label">Play/Pause</span></div>
+          <div class="shortcut-item"><kbd class="shortcut-key">F</kbd><span class="shortcut-label">Fullscreen</span></div>
+          <div class="shortcut-item"><kbd class="shortcut-key">M</kbd><span class="shortcut-label">Mute</span></div>
+          <div class="shortcut-item"><kbd class="shortcut-key">←</kbd><span class="shortcut-label">-10s</span></div>
+          <div class="shortcut-item"><kbd class="shortcut-key">→</kbd><span class="shortcut-label">+10s</span></div>
+          <div class="shortcut-item"><kbd class="shortcut-key">0–9</kbd><span class="shortcut-label">Jump %</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL TOGGLE -->
+    <button class="sidebar-toggle" id="toggleRightBtn" onclick="toggleRightPanel()" title="Toggle panel">
+      <i class="fas fa-chevron-right" id="rightToggleIcon"></i>
+    </button>
+
+    <!-- RIGHT PANEL -->
+    <aside id="rightPanel">
+      <div class="panel-tabs">
+        <div class="panel-tab active" onclick="switchTab('notes',this)"><i class="fas fa-pencil"></i> Notes</div>
+        <div class="panel-tab" onclick="switchTab('resources',this)"><i class="fas fa-download"></i> Resources</div>
+        <div class="panel-tab" onclick="switchTab('qa',this)"><i class="fas fa-comments"></i> Q&amp;A</div>
+      </div>
+      <div class="panel-body">
+        <!-- NOTES TAB -->
+        <div class="tab-pane active" id="tab-notes">
+          <textarea class="notes-area" id="notesArea" placeholder="Take notes here… Your notes are saved automatically per lesson." oninput="scheduleNoteSave()"></textarea>
+          <div class="notes-hint"><i class="fas fa-info-circle"></i> Notes auto-save to your browser</div>
+          <button class="save-btn" onclick="saveNotes()"><i class="fas fa-floppy-disk"></i> Save Notes</button>
+          <div class="save-status" id="noteStatus"></div>
+        </div>
+
+        <!-- RESOURCES TAB -->
+        <div class="tab-pane" id="tab-resources">
+          <div id="resourceList">
+            <div class="empty-state" style="padding:30px 0;">
+              <i class="fas fa-folder-open"></i>
+              <h3>No resources yet</h3>
+              <p>Downloads for this lesson will appear here</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q&A TAB -->
+        <div class="tab-pane" id="tab-qa">
+          <div class="qa-input-wrap">
+            <textarea class="qa-input" id="qaInput" placeholder="Ask a question about this lesson…" rows="3"></textarea>
+            <button class="qa-submit" onclick="submitQuestion()"><i class="fas fa-paper-plane"></i> Post Question</button>
+          </div>
+          <div class="qa-list" id="qaList">
+            <!-- sample -->
+            <div class="qa-item">
+              <div class="qa-author">
+                <div class="qa-avatar">J</div>
+                <div class="qa-name">John D.</div>
+                <div class="qa-time">2 days ago</div>
+              </div>
+              <div class="qa-text">Great explanation! Does this also apply to async patterns in newer versions?</div>
+              <div class="qa-reply"><i class="fas fa-reply"></i> Reply</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ─── KEYBOARD TOAST ─── -->
+<div id="kbToast"></div>
+
+<!-- ─── TOAST CONTAINER ─── -->
+<div id="toastContainer"></div>
+
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   SMG CLASSROOM — full JS
+   ════════════════════════════════════════════════════════════ */
+
+const API = '/api';
+const TOKEN_KEY = 'smg_admin_token';
+
+// ── State ──────────────────────────────────────────────────
+let state = {
+  courseSlug: '',
+  lessonId: '',
+  course: null,
+  lessons: [],   // flat list
+  modules: [],   // grouped
+  currentLesson: null,
+  currentIndex: -1,
+  isPlaying: false,
+  isMuted: false,
+  ccEnabled: false,
+  qualityIndex: 0,
+  qualities: ['HD', '720p', '480p', '360p'],
+  noteSaveTimer: null,
+  liked: false,
+  bookmarked: false,
+  completedLessons: {},
+  sidebarOpen: true,
+  rightPanelOpen: true,
+};
+
+const video = document.getElementById('mainVideo');
+const playBtn = document.getElementById('playBtn');
+const muteBtn = document.getElementById('muteBtn');
+const volumeSlider = document.getElementById('volumeSlider');
+const playedBar = document.getElementById('playedBar');
+const bufferedBar = document.getElementById('bufferedBar');
+const timeDisplay = document.getElementById('timeDisplay');
+const progressRingFg = document.getElementById('progressRingFg');
+const RING_CIRCUMFERENCE = 87.96;
+
+// ── Boot ───────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  checkLogin();
+});
+
+function checkLogin() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) {
+    document.getElementById('loginOverlay').classList.remove('hidden');
+  } else {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    init();
+  }
+}
+
+async function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  err.textContent = '';
+  if (!user || !pass) { err.textContent = 'Please enter credentials.'; return; }
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass }),
+    });
+    const data = await res.json();
+    if (res.ok && (data.token || data.access_token)) {
+      localStorage.setItem(TOKEN_KEY, data.token || data.access_token);
+      document.getElementById('loginOverlay').classList.add('hidden');
+      init();
+    } else {
+      err.textContent = data.message || data.error || 'Invalid credentials.';
+    }
+  } catch (e) {
+    // Demo mode: if API is unavailable, allow with placeholder
+    localStorage.setItem(TOKEN_KEY, 'demo-token');
+    document.getElementById('loginOverlay').classList.add('hidden');
+    init();
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem(TOKEN_KEY);
+  window.location.reload();
+}
+
+// ── Init ───────────────────────────────────────────────────
+function init() {
+  parseUrlParams();
+  loadCompletedFromStorage();
+  attachVideoEvents();
+  attachKeyboardShortcuts();
+  loadCourse();
+}
+
+function parseUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  state.courseSlug = params.get('course') || 'default-course';
+  state.lessonId = params.get('lesson') || '';
+}
+
+function loadCompletedFromStorage() {
+  const raw = localStorage.getItem(`smg_completed_${state.courseSlug}`);
+  state.completedLessons = raw ? JSON.parse(raw) : {};
+}
+
+function saveCompletedToStorage() {
+  localStorage.setItem(`smg_completed_${state.courseSlug}`, JSON.stringify(state.completedLessons));
+}
+
+// ── Load Course Data ───────────────────────────────────────
+async function loadCourse() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  try {
+    const res = await fetch(`${API}/content/course/${state.courseSlug}/lessons`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    processCourseData(data);
+  } catch (e) {
+    // Load demo data so the UI is still useful
+    processCourseData(getDemoData());
+  }
+}
+
+function getDemoData() {
+  return {
+    course: {
+      title: 'SMG Demo Course',
+      instructor: { name: 'Sarah Mitchell', role: 'Senior Instructor' },
+    },
+    modules: [
+      {
+        id: 'm1', title: 'Getting Started', icon: 'fa-rocket',
+        lessons: [
+          { id: 'l1', title: 'Welcome & Course Overview', duration: '4:30', videoUrl: '', description: 'An introduction to what you will learn in this course.', resources: [] },
+          { id: 'l2', title: 'Setting Up Your Environment', duration: '8:15', videoUrl: '', description: 'Configure your dev environment step by step.', resources: [{ name: 'Setup Guide.pdf', size: '1.2 MB', icon: 'fa-file-pdf' }] },
+          { id: 'l3', title: 'Your First Project', duration: '12:00', videoUrl: '', description: 'Build your first project from scratch.', resources: [] },
+        ]
+      },
+      {
+        id: 'm2', title: 'Core Concepts', icon: 'fa-layer-group',
+        lessons: [
+          { id: 'l4', title: 'Understanding the Architecture', duration: '15:20', videoUrl: '', description: 'Deep dive into the system architecture.', resources: [] },
+          { id: 'l5', title: 'Data Flow & State Management', duration: '18:45', videoUrl: '', description: 'Learn how data flows through the application.', resources: [{ name: 'Cheatsheet.pdf', size: '800 KB', icon: 'fa-file-pdf' }] },
+        ]
+      },
+      {
+        id: 'm3', title: 'Advanced Topics', icon: 'fa-graduation-cap',
+        lessons: [
+          { id: 'l6', title: 'Performance Optimization', duration: '22:10', videoUrl: '', description: 'Techniques to make your app blazing fast.', resources: [] },
+          { id: 'l7', title: 'Security Best Practices', duration: '19:30', videoUrl: '', description: 'Harden your application against common vulnerabilities.', resources: [] },
+          { id: 'l8', title: 'Deployment & CI/CD', duration: '25:00', videoUrl: '', description: 'Ship your project with confidence using modern DevOps.', resources: [{ name: 'Pipeline Config.zip', size: '42 KB', icon: 'fa-file-zipper' }] },
+        ]
+      }
+    ]
+  };
+}
+
+function processCourseData(data) {
+  state.course = data.course || {};
+  state.modules = data.modules || [];
+
+  // Flatten lessons
+  state.lessons = [];
+  state.modules.forEach(m => {
+    (m.lessons || []).forEach(l => {
+      state.lessons.push({ ...l, moduleTitle: m.title });
+    });
+  });
+
+  // Update UI
+  document.getElementById('courseTitleBar').textContent = state.course.title || state.courseSlug;
+  if (state.course.instructor) {
+    document.getElementById('instructorName').textContent = state.course.instructor.name || 'Instructor';
+    document.getElementById('instructorRole').textContent = state.course.instructor.role || 'Course Author';
+    const av = document.getElementById('instructorAvatar');
+    av.textContent = (state.course.instructor.name || 'I')[0].toUpperCase();
+  }
+
+  renderSidebar();
+  updateCourseProgress();
+
+  // Select lesson
+  const target = state.lessonId
+    ? state.lessons.find(l => String(l.id) === String(state.lessonId))
+    : state.lessons[0];
+  if (target) selectLesson(target);
+}
+
+// ── Sidebar ────────────────────────────────────────────────
+function renderSidebar(filter = '') {
+  document.getElementById('sidebarSkeleton').style.display = 'none';
+  const tree = document.getElementById('lessonTree');
+  tree.innerHTML = '';
+
+  state.modules.forEach((mod, mi) => {
+    const lessons = (mod.lessons || []).filter(l =>
+      !filter || l.title.toLowerCase().includes(filter.toLowerCase())
+    );
+    if (!lessons.length) return;
+
+    const div = document.createElement('div');
+    div.className = 'module-item' + (mi === 0 || filter ? ' open' : '');
+    div.innerHTML = `
+      <div class="module-header" onclick="toggleModule(this.parentElement)">
+        <i class="fas ${mod.icon || 'fa-folder'} module-icon"></i>
+        <span class="module-title">${escHtml(mod.title)}</span>
+        <span class="module-count">${lessons.length}</span>
+        <i class="fas fa-chevron-right module-chevron"></i>
+      </div>
+      <div class="lesson-list">
+        ${lessons.map(l => lessonItemHtml(l)).join('')}
+      </div>
+    `;
+    tree.appendChild(div);
+  });
+
+  if (!tree.innerHTML.trim()) {
+    tree.innerHTML = `<div class="empty-state"><i class="fas fa-search"></i><h3>No results</h3><p>Try a different search term</p></div>`;
+  }
+}
+
+function lessonItemHtml(l) {
+  const isActive = String(l.id) === String(state.lessonId);
+  const isDone = !!state.completedLessons[l.id];
+  return `
+    <div class="lesson-item${isActive ? ' active' : ''}${isDone ? ' completed' : ''}"
+         data-id="${l.id}"
+         onclick="selectLessonById('${l.id}')">
+      <i class="fas ${isDone ? 'fa-circle-check' : 'fa-circle-play'} lesson-icon"></i>
+      <div class="lesson-info">
+        <div class="lesson-name">${escHtml(l.title)}</div>
+        <div class="lesson-meta">${l.duration || ''}</div>
+      </div>
+      <i class="fas fa-check lesson-check" style="display:${isDone?'block':'none'}"></i>
+    </div>
+  `;
+}
+
+function filterLessons(val) {
+  renderSidebar(val);
+}
+
+function toggleModule(el) {
+  el.classList.toggle('open');
+}
+
+// ── Lesson Selection ───────────────────────────────────────
+function selectLessonById(id) {
+  const lesson = state.lessons.find(l => String(l.id) === String(id));
+  if (lesson) selectLesson(lesson);
+}
+
+function selectLesson(lesson) {
+  state.currentLesson = lesson;
+  state.lessonId = lesson.id;
+  state.currentIndex = state.lessons.findIndex(l => String(l.id) === String(lesson.id));
+
+  // Update URL silently
+  const url = new URL(window.location);
+  url.searchParams.set('course', state.courseSlug);
+  url.searchParams.set('lesson', lesson.id);
+  window.history.replaceState({}, '', url.toString());
+
+  // Update sidebar highlight
+  document.querySelectorAll('.lesson-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id == lesson.id);
+  });
+
+  // Scroll active item into view
+  const activeEl = document.querySelector(`.lesson-item[data-id="${lesson.id}"]`);
+  if (activeEl) activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+  // Open parent module
+  if (activeEl) {
+    const parent = activeEl.closest('.module-item');
+    if (parent && !parent.classList.contains('open')) parent.classList.add('open');
+  }
+
+  // Load video
+  loadLesson(lesson);
+}
+
+function loadLesson(lesson) {
+  // Info pane
+  document.getElementById('lessonTitle').textContent = lesson.title || '—';
+  document.getElementById('lessonDesc').textContent = lesson.description || '';
+
+  // Completion state
+  const done = !!state.completedLessons[lesson.id];
+  const badge = document.getElementById('completedBadge');
+  badge.style.display = done ? 'flex' : 'none';
+  document.getElementById('completionBanner').classList.toggle('show', done);
+
+  // Like/Bookmark
+  const prefs = getLessonPrefs(lesson.id);
+  state.liked = prefs.liked || false;
+  state.bookmarked = prefs.bookmarked || false;
+  updateLikeBookmark();
+
+  // Resources
+  renderResources(lesson.resources || []);
+
+  // Notes
+  const notes = localStorage.getItem(`smg_notes_${state.courseSlug}_${lesson.id}`) || '';
+  document.getElementById('notesArea').value = notes;
+  document.getElementById('noteStatus').textContent = '';
+
+  // Nav buttons
+  document.getElementById('prevBtn').disabled = state.currentIndex <= 0;
+  document.getElementById('nextBtn').disabled = state.currentIndex >= state.lessons.length - 1;
+
+  // Video
+  if (lesson.videoUrl) {
+    video.src = lesson.videoUrl;
+  } else {
+    video.src = '';
+    video.removeAttribute('src');
+  }
+
+  // Restore saved position
+  const saved = getSavedProgress(lesson.id);
+  if (saved > 0 && saved < 0.95) {
+    video.addEventListener('loadedmetadata', function onMeta() {
+      video.currentTime = saved * video.duration;
+      video.removeEventListener('loadedmetadata', onMeta);
+    });
+  }
+
+  updateLessonProgress(0);
+  video.load();
+}
+
+// ── Video Events ───────────────────────────────────────────
+function attachVideoEvents() {
+  video.addEventListener('play', () => {
+    state.isPlaying = true;
+    playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+  });
+  video.addEventListener('pause', () => {
+    state.isPlaying = false;
+    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+  });
+  video.addEventListener('timeupdate', onTimeUpdate);
+  video.addEventListener('progress', updateBuffered);
+  video.addEventListener('volumechange', updateVolumeUI);
+  video.addEventListener('ended', onVideoEnded);
+  video.addEventListener('dblclick', toggleFullscreen);
+
+  document.addEventListener('fullscreenchange', () => {
+    const icon = document.getElementById('fsIcon');
+    if (document.fullscreenElement) {
+      icon.className = 'fas fa-compress';
+    } else {
+      icon.className = 'fas fa-expand';
+    }
+  });
+}
+
+function onTimeUpdate() {
+  if (!video.duration) return;
+  const pct = video.currentTime / video.duration;
+  playedBar.style.width = (pct * 100) + '%';
+  timeDisplay.textContent = `${fmtTime(video.currentTime)} / ${fmtTime(video.duration)}`;
+
+  updateLessonProgress(pct);
+  autosaveProgress(pct);
+
+  // Auto-complete at 90%
+  if (pct >= 0.9 && state.currentLesson && !state.completedLessons[state.currentLesson.id]) {
+    markLessonComplete(state.currentLesson.id);
+  }
+}
+
+function updateBuffered() {
+  if (!video.duration || !video.buffered.length) return;
+  const end = video.buffered.end(video.buffered.length - 1);
+  bufferedBar.style.width = ((end / video.duration) * 100) + '%';
+}
+
+function onVideoEnded() {
+  if (state.currentLesson) markLessonComplete(state.currentLesson.id);
+  // Auto advance after 3s
+  if (state.currentIndex < state.lessons.length - 1) {
+    showToast('Moving to next lesson in 3s…', 'info');
+    setTimeout(goNextLesson, 3000);
+  }
+}
+
+function updateLessonProgress(pct) {
+  const p = Math.round(pct * 100);
+  document.getElementById('lessonProgressBar').style.width = p + '%';
+  document.getElementById('lessonProgressLabel').textContent = p + '% watched';
+}
+
+// ── Video Controls ─────────────────────────────────────────
+function togglePlay() {
+  if (video.paused) video.play().catch(() => {});
+  else video.pause();
+}
+
+function skipBack() { video.currentTime = Math.max(0, video.currentTime - 10); showKbToast('⟵ -10s'); }
+function skipForward() { video.currentTime = Math.min(video.duration || 0, video.currentTime + 10); showKbToast('+10s ⟶'); }
+
+function seekClick(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  if (video.duration) video.currentTime = pct * video.duration;
+}
+
+function previewSeek() { /* tooltip could go here */ }
+function hidePreview() {}
+
+function toggleMute() {
+  video.muted = !video.muted;
+  showKbToast(video.muted ? 'Muted 🔇' : 'Unmuted 🔊');
+}
+function setVolume(v) { video.volume = parseFloat(v); if (parseFloat(v) > 0) video.muted = false; }
+
+function updateVolumeUI() {
+  const icon = muteBtn.querySelector('i');
+  if (video.muted || video.volume === 0) {
+    icon.className = 'fas fa-volume-xmark';
+  } else if (video.volume < 0.4) {
+    icon.className = 'fas fa-volume-low';
+  } else {
+    icon.className = 'fas fa-volume-high';
+  }
+  volumeSlider.value = video.muted ? 0 : video.volume;
+}
+
+function setSpeed(v) { video.playbackRate = parseFloat(v); showKbToast('Speed: ' + v + '×'); }
+
+function toggleCC() {
+  state.ccEnabled = !state.ccEnabled;
+  const btn = document.getElementById('ccBtn');
+  btn.classList.toggle('active', state.ccEnabled);
+  const track = video.textTracks[0];
+  if (track) track.mode = state.ccEnabled ? 'showing' : 'hidden';
+  showKbToast(state.ccEnabled ? 'Subtitles ON' : 'Subtitles OFF');
+}
+
+function cycleQuality() {
+  state.qualityIndex = (state.qualityIndex + 1) % state.qualities.length;
+  const q = state.qualities[state.qualityIndex];
+  document.getElementById('qualityBtn').textContent = q;
+  showToast('Quality: ' + q, 'info');
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.getElementById('videoWrapper').requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// ── Progress Save ──────────────────────────────────────────
+function autosaveProgress(pct) {
+  if (!state.currentLesson) return;
+  localStorage.setItem(
+    `smg_progress_${state.courseSlug}_${state.currentLesson.id}`,
+    JSON.stringify(pct)
+  );
+}
+
+function getSavedProgress(lessonId) {
+  const raw = localStorage.getItem(`smg_progress_${state.courseSlug}_${lessonId}`);
+  return raw ? parseFloat(JSON.parse(raw)) : 0;
+}
+
+// ── Completion ─────────────────────────────────────────────
+function markLessonComplete(lessonId) {
+  if (state.completedLessons[lessonId]) return;
+  state.completedLessons[lessonId] = true;
+  saveCompletedToStorage();
+  document.getElementById('completedBadge').style.display = 'flex';
+  document.getElementById('completionBanner').classList.add('show');
+  updateCourseProgress();
+  renderSidebar(document.getElementById('sidebarSearch').value);
+  showToast('Lesson completed! 🎉', 'success');
+}
+
+function updateCourseProgress() {
+  const total = state.lessons.length;
+  const done = Object.keys(state.completedLessons).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('progressLabel').textContent = `${done} of ${total} lessons`;
+  document.getElementById('progressPct').textContent = pct + '%';
+  const offset = RING_CIRCUMFERENCE - (pct / 100) * RING_CIRCUMFERENCE;
+  progressRingFg.style.strokeDashoffset = offset;
+}
+
+// ── Navigation ─────────────────────────────────────────────
+function goPrevLesson() {
+  if (state.currentIndex > 0) selectLesson(state.lessons[state.currentIndex - 1]);
+}
+function goNextLesson() {
+  if (state.currentIndex < state.lessons.length - 1) selectLesson(state.lessons[state.currentIndex + 1]);
+}
+
+// ── Like / Bookmark ────────────────────────────────────────
+function toggleLike() {
+  state.liked = !state.liked;
+  saveLessonPrefs();
+  updateLikeBookmark();
+  showToast(state.liked ? 'Lesson liked ❤️' : 'Like removed', 'info');
+}
+function toggleBookmark() {
+  state.bookmarked = !state.bookmarked;
+  saveLessonPrefs();
+  updateLikeBookmark();
+  showToast(state.bookmarked ? 'Bookmarked 🔖' : 'Bookmark removed', 'info');
+}
+function updateLikeBookmark() {
+  document.getElementById('likeBtn').classList.toggle('liked', state.liked);
+  document.getElementById('bookmarkBtn').classList.toggle('bookmarked', state.bookmarked);
+}
+function getLessonPrefs(id) {
+  const raw = localStorage.getItem(`smg_prefs_${state.courseSlug}_${id}`);
+  return raw ? JSON.parse(raw) : {};
+}
+function saveLessonPrefs() {
+  if (!state.currentLesson) return;
+  localStorage.setItem(
+    `smg_prefs_${state.courseSlug}_${state.currentLesson.id}`,
+    JSON.stringify({ liked: state.liked, bookmarked: state.bookmarked })
+  );
+}
+
+// ── Sidebar Toggle ─────────────────────────────────────────
+function toggleSidebar() {
+  state.sidebarOpen = !state.sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('collapsed', !state.sidebarOpen);
+  const btn = document.getElementById('toggleSidebarBtn');
+  btn.classList.toggle('shifted', !state.sidebarOpen);
+  document.getElementById('sidebarToggleIcon').className = state.sidebarOpen
+    ? 'fas fa-chevron-left' : 'fas fa-chevron-right';
+}
+function toggleRightPanel() {
+  state.rightPanelOpen = !state.rightPanelOpen;
+  document.getElementById('rightPanel').classList.toggle('collapsed', !state.rightPanelOpen);
+  const btn = document.getElementById('toggleRightBtn');
+  btn.classList.toggle('shifted', !state.rightPanelOpen);
+  document.getElementById('rightToggleIcon').className = state.rightPanelOpen
+    ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+}
+
+// ── Notes ──────────────────────────────────────────────────
+function scheduleNoteSave() {
+  clearTimeout(state.noteSaveTimer);
+  state.noteSaveTimer = setTimeout(saveNotes, 1200);
+}
+function saveNotes() {
+  if (!state.currentLesson) return;
+  const val = document.getElementById('notesArea').value;
+  localStorage.setItem(`smg_notes_${state.courseSlug}_${state.currentLesson.id}`, val);
+  const s = document.getElementById('noteStatus');
+  s.textContent = '✓ Saved';
+  setTimeout(() => { s.textContent = ''; }, 2000);
+}
+
+// ── Resources ──────────────────────────────────────────────
+function renderResources(resources) {
+  const list = document.getElementById('resourceList');
+  if (!resources || !resources.length) {
+    list.innerHTML = `<div class="empty-state" style="padding:30px 0;"><i class="fas fa-folder-open"></i><h3>No resources yet</h3><p>Downloads for this lesson will appear here</p></div>`;
+    return;
+  }
+  list.innerHTML = resources.map(r => `
+    <a class="resource-card" href="${r.url || '#'}" target="_blank" rel="noopener">
+      <i class="fas ${r.icon || 'fa-file'} resource-icon"></i>
+      <div class="resource-info">
+        <div class="resource-name">${escHtml(r.name)}</div>
+        <div class="resource-size">${r.size || ''}</div>
+      </div>
+      <i class="fas fa-download resource-dl"></i>
+    </a>
+  `).join('');
+}
+
+// ── Q&A ────────────────────────────────────────────────────
+function submitQuestion() {
+  const input = document.getElementById('qaInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const list = document.getElementById('qaList');
+  const item = document.createElement('div');
+  item.className = 'qa-item';
+  item.innerHTML = `
+    <div class="qa-author">
+      <div class="qa-avatar">Y</div>
+      <div class="qa-name">You</div>
+      <div class="qa-time">Just now</div>
+    </div>
+    <div class="qa-text">${escHtml(text)}</div>
+    <div class="qa-reply" style="color:var(--text-muted);cursor:default;">Awaiting reply…</div>
+  `;
+  list.prepend(item);
+  input.value = '';
+  showToast('Question posted!', 'success');
+}
+
+// ── Tabs ───────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── Keyboard Shortcuts ─────────────────────────────────────
+function attachKeyboardShortcuts() {
+  document.addEventListener('keydown', e => {
+    const tag = document.activeElement.tagName.toLowerCase();
+    if (['input', 'textarea', 'select'].includes(tag)) return;
+
+    switch (e.key) {
+      case ' ':
+      case 'k':
+        e.preventDefault();
+        togglePlay();
+        showKbToast(video.paused ? '▶ Play' : '⏸ Pause');
+        break;
+      case 'f':
+      case 'F':
+        e.preventDefault();
+        toggleFullscreen();
+        break;
+      case 'm':
+      case 'M':
+        e.preventDefault();
+        toggleMute();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        skipBack();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        skipForward();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        video.volume = Math.min(1, video.volume + 0.1);
+        showKbToast(`Volume ${Math.round(video.volume * 100)}%`);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        video.volume = Math.max(0, video.volume - 0.1);
+        showKbToast(`Volume ${Math.round(video.volume * 100)}%`);
+        break;
+      default:
+        // 0-9: seek to %
+        if (e.key >= '0' && e.key <= '9') {
+          const pct = parseInt(e.key, 10) / 10;
+          if (video.duration) video.currentTime = pct * video.duration;
+          showKbToast(`Jump to ${pct * 100}%`);
+        }
+    }
+  });
+}
+
+// ── Toast / KB Toast ───────────────────────────────────────
+let kbToastTimer = null;
+function showKbToast(msg) {
+  const t = document.getElementById('kbToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(kbToastTimer);
+  kbToastTimer = setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+function showToast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icons = { success: 'fa-check-circle', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+  t.innerHTML = `<i class="fas ${icons[type] || icons.info}" style="color:${type==='success'?'var(--green)':type==='error'?'var(--red)':'var(--indigo-light)'}"></i> ${escHtml(msg)}`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => t.remove(), 300);
+  }, 3000);
+}
+
+// ── Helpers ────────────────────────────────────────────────
+function fmtTime(s) {
+  if (!isFinite(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Enter key on login
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
 </html>
