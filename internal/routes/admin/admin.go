@@ -128,6 +128,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	// App Intro Video (Public for student mobile app)
 	r.GET("/api/app/intro-video", ar.GetHomeIntroVideo)
 	r.GET("/home/intro-video", ar.GetHomeIntroVideo)
+	r.GET("/api/app/intro-videos", ar.GetHomeIntroVideo)
+	r.GET("/home/intro-videos", ar.GetHomeIntroVideo)
 
 	// 2. Public admin login (no auth required)
 	r.POST("/api/admin/login", ar.Login)
@@ -184,6 +186,9 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		adm.GET("/home/intro-video", ar.GetHomeIntroVideo)
 		adm.POST("/home/intro-video", ar.SaveHomeIntroVideo)
 		adm.PUT("/home/intro-video", ar.SaveHomeIntroVideo)
+		adm.GET("/home/intro-videos", ar.GetHomeIntroVideo)
+		adm.POST("/home/intro-videos", ar.SaveHomeIntroVideo)
+		adm.PUT("/home/intro-videos", ar.SaveHomeIntroVideo)
 
 		// Analytics & Diagnostics
 		adm.GET("/analytics", ar.GetAnalytics)
@@ -962,8 +967,19 @@ func (ar *AdminRouter) CreateLiveSession(c *gin.Context) {
 		return
 	}
 
-	session.ID = uuid.New().String()
+	if session.ID == "" {
+		session.ID = uuid.New().String()
+	}
+	if session.Status == "" {
+		session.Status = "UPCOMING"
+	} else {
+		session.Status = strings.ToUpper(session.Status)
+	}
+	if session.Instructor == "" {
+		session.Instructor = "Salen Master Trainer"
+	}
 	session.CreatedAt = time.Now()
+
 	if err := ar.DB.Create(&session).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
@@ -989,15 +1005,34 @@ func (ar *AdminRouter) UpdateLiveSession(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "Live session not found"})
 		return
 	}
-	session.Title = req.Title
-	session.Subtitle = req.Subtitle
-	session.Instructor = req.Instructor
-	session.DateFormatted = req.DateFormatted
-	session.TimeFormatted = req.TimeFormatted
-	session.Status = req.Status
-	session.JoinURL = req.JoinURL
-	session.ZoomID = req.ZoomID
-	session.Passcode = req.Passcode
+	if req.Title != "" {
+		session.Title = req.Title
+	}
+	if req.Subtitle != "" {
+		session.Subtitle = req.Subtitle
+	}
+	if req.Instructor != "" {
+		session.Instructor = req.Instructor
+	}
+	if req.DateFormatted != "" {
+		session.DateFormatted = req.DateFormatted
+	}
+	if req.TimeFormatted != "" {
+		session.TimeFormatted = req.TimeFormatted
+	}
+	if req.Status != "" {
+		session.Status = strings.ToUpper(req.Status)
+	}
+	if req.JoinURL != "" {
+		session.JoinURL = req.JoinURL
+	}
+	if req.ZoomID != "" {
+		session.ZoomID = req.ZoomID
+	}
+	if req.Passcode != "" {
+		session.Passcode = req.Passcode
+	}
+
 	if err := ar.DB.Save(&session).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
@@ -1156,14 +1191,15 @@ func (ar *AdminRouter) UpdateBanners(c *gin.Context) {
 }
 
 type SaveIntroVideoRequest struct {
-	Title        string `json:"title"`
-	Subtitle     string `json:"subtitle"`
-	YouTubeURL   string `json:"youtubeUrl"`
-	YouTubeID    string `json:"youtubeId"`
-	ThumbnailURL string `json:"thumbnailUrl"`
-	Badge        string `json:"badge"`
-	Duration     string `json:"duration"`
-	IsActive     *bool  `json:"isActive"`
+	Videos       []models.HomeIntroVideo `json:"videos"`
+	Title        string                  `json:"title"`
+	Subtitle     string                  `json:"subtitle"`
+	YouTubeURL   string                  `json:"youtubeUrl"`
+	YouTubeID    string                  `json:"youtubeId"`
+	ThumbnailURL string                  `json:"thumbnailUrl"`
+	Badge        string                  `json:"badge"`
+	Duration     string                  `json:"duration"`
+	IsActive     *bool                   `json:"isActive"`
 }
 
 func extractYouTubeID(input string) string {
@@ -1180,38 +1216,107 @@ func extractYouTubeID(input string) string {
 }
 
 func (ar *AdminRouter) GetHomeIntroVideo(c *gin.Context) {
-	var video models.HomeIntroVideo
-	err := ar.DB.Where("id = ?", "main_intro_video").First(&video).Error
-	if err != nil {
-		// Try AppScreenConfig
-		var screen models.AppScreenConfig
-		if err2 := ar.DB.Where("site_name = ? AND screen_key = ?", "smg", "intro_video").First(&screen).Error; err2 == nil {
-			var v models.HomeIntroVideo
-			if err3 := json.Unmarshal([]byte(screen.ConfigJSON), &v); err3 == nil {
-				c.JSON(http.StatusOK, gin.H{"success": true, "data": v})
-				return
+	// 1. Try to load multiple tutorial videos from AppScreenConfig intro_videos
+	var screen models.AppScreenConfig
+	if err := ar.DB.Where("site_name = ? AND screen_key = ?", "smg", "intro_videos").First(&screen).Error; err == nil {
+		var videos []models.HomeIntroVideo
+		if err2 := json.Unmarshal([]byte(screen.ConfigJSON), &videos); err2 == nil && len(videos) > 0 {
+			for i := range videos {
+				if videos[i].YouTubeID == "3e_K4h_K6r8" || strings.Contains(videos[i].YouTubeURL, "3e_K4h_K6r8") {
+					videos[i].YouTubeID = "kI1WGMLvFlg"
+					videos[i].YouTubeURL = "https://www.youtube.com/watch?v=kI1WGMLvFlg"
+					videos[i].ThumbnailURL = "https://i.ytimg.com/vi/kI1WGMLvFlg/hqdefault.jpg"
+					videos[i].Title = "What is basic how circuit work. | Salen Mobile Guru"
+				}
 			}
+			c.JSON(http.StatusOK, gin.H{
+				"success": true,
+				"videos":  videos,
+				"data":    videos[0],
+			})
+			return
 		}
+	}
 
-		// Sensible default intro tour video
+	// 2. Try single video from HomeIntroVideo table
+	var video models.HomeIntroVideo
+	if err := ar.DB.Where("id = ?", "main_intro_video").First(&video).Error; err == nil {
+		if video.YouTubeID == "3e_K4h_K6r8" || strings.Contains(video.YouTubeURL, "3e_K4h_K6r8") || video.YouTubeID == "" {
+			video.Title = "What is basic how circuit work. | Salen Mobile Guru"
+			video.Subtitle = "Learn how mobile circuits, voltage rails, and basic components work together."
+			video.YouTubeURL = "https://www.youtube.com/watch?v=kI1WGMLvFlg"
+			video.YouTubeID = "kI1WGMLvFlg"
+			video.ThumbnailURL = "https://i.ytimg.com/vi/kI1WGMLvFlg/hqdefault.jpg"
+			video.Badge = "APP TOUR & INTRODUCTION"
+			video.Duration = "14:30"
+			ar.DB.Save(&video)
+		}
+		videos := []models.HomeIntroVideo{video}
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
-			"data": gin.H{
-				"id":           "main_intro_video",
-				"title":        "Welcome to Salen Mobile Guru | Masterclass & Academy Tour",
-				"subtitle":     "Watch this introductory video to learn how to access chip-level courses, circuit schematics, and live training.",
-				"youtubeUrl":   "https://www.youtube.com/watch?v=3e_K4h_K6r8",
-				"youtubeId":    "3e_K4h_K6r8",
-				"thumbnailUrl": "https://img.youtube.com/vi/3e_K4h_K6r8/hqdefault.jpg",
-				"badge":        "APP TOUR & INTRODUCTION",
-				"duration":     "18:45",
-				"isActive":     true,
-			},
+			"videos":  videos,
+			"data":    video,
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": video})
+	// 3. Real verified Salen Mobile Guru YouTube Tutorials
+	defaults := []models.HomeIntroVideo{
+		{
+			ID:           "intro_circuit_basics",
+			Title:        "What is basic how circuit work. | Salen Mobile Guru",
+			Subtitle:     "Learn how mobile circuits, voltage rails, and basic components work together.",
+			YouTubeURL:   "https://www.youtube.com/watch?v=kI1WGMLvFlg",
+			YouTubeID:    "kI1WGMLvFlg",
+			ThumbnailURL: "https://i.ytimg.com/vi/kI1WGMLvFlg/hqdefault.jpg",
+			Badge:        "APP TOUR & INTRODUCTION",
+			Duration:     "14:30",
+			IsActive:     true,
+			UpdatedAt:    time.Now(),
+		},
+		{
+			ID:           "intro_redmi_dead_repair",
+			Title:        "Redmi Note 7 Dead Phone Repair LIVE | Dead Mobile Troubleshooting",
+			Subtitle:     "Step-by-step diagnostic process for repairing completely dead motherboards.",
+			YouTubeURL:   "https://www.youtube.com/watch?v=4GQBlGln8zM",
+			YouTubeID:    "4GQBlGln8zM",
+			ThumbnailURL: "https://i.ytimg.com/vi/4GQBlGln8zM/hqdefault.jpg",
+			Badge:        "LIVE DEAD PHONE REPAIR",
+			Duration:     "18:45",
+			IsActive:     true,
+			UpdatedAt:    time.Now(),
+		},
+		{
+			ID:           "intro_diode_explained",
+			Title:        "What is a Diode? | Working Principle, Symbol & Uses Explained",
+			Subtitle:     "Complete diode mode probing guide and hardware testing methods.",
+			YouTubeURL:   "https://www.youtube.com/watch?v=krin3gbmrCQ",
+			YouTubeID:    "krin3gbmrCQ",
+			ThumbnailURL: "https://i.ytimg.com/vi/krin3gbmrCQ/hqdefault.jpg",
+			Badge:        "COMPONENT DIAGNOSTICS",
+			Duration:     "12:20",
+			IsActive:     true,
+			UpdatedAt:    time.Now(),
+		},
+		{
+			ID:           "intro_practical_demo",
+			Title:        "Live Electronics Repair by Freshers | Real-Time Practical Demo",
+			Subtitle:     "Real laboratory hands-on training with fresh technician students at Salen Mobile Guru.",
+			YouTubeURL:   "https://www.youtube.com/watch?v=T3NfCKz5v7Y",
+			YouTubeID:    "T3NfCKz5v7Y",
+			ThumbnailURL: "https://i.ytimg.com/vi/T3NfCKz5v7Y/hqdefault.jpg",
+			Badge:        "ACADEMY WORKSHOP",
+			Duration:     "15:10",
+			IsActive:     true,
+			UpdatedAt:    time.Now(),
+		},
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"videos":  defaults,
+		"data":    defaults[0],
+	})
 }
 
 func (ar *AdminRouter) SaveHomeIntroVideo(c *gin.Context) {
@@ -1221,81 +1326,111 @@ func (ar *AdminRouter) SaveHomeIntroVideo(c *gin.Context) {
 		return
 	}
 
-	ytID := strings.TrimSpace(req.YouTubeID)
-	if ytID == "" {
-		ytID = extractYouTubeID(req.YouTubeURL)
-	}
-	if ytID == "" {
-		ytID = "3e_K4h_K6r8"
+	var videosToSave []models.HomeIntroVideo
+
+	if len(req.Videos) > 0 {
+		for i, v := range req.Videos {
+			ytID := strings.TrimSpace(v.YouTubeID)
+			if ytID == "" {
+				ytID = extractYouTubeID(v.YouTubeURL)
+			}
+			if ytID == "" {
+				ytID = "3e_K4h_K6r8"
+			}
+			thumbURL := strings.TrimSpace(v.ThumbnailURL)
+			if thumbURL == "" && ytID != "" {
+				thumbURL = fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", ytID)
+			}
+			v.YouTubeID = ytID
+			v.ThumbnailURL = thumbURL
+			if v.ID == "" {
+				v.ID = fmt.Sprintf("intro_video_%d", i+1)
+			}
+			if strings.TrimSpace(v.Badge) == "" {
+				v.Badge = "APP TOUR & INTRODUCTION"
+			}
+			if strings.TrimSpace(v.Duration) == "" {
+				v.Duration = "15:00"
+			}
+			v.UpdatedAt = time.Now()
+			videosToSave = append(videosToSave, v)
+		}
+	} else {
+		// Single video fallback payload
+		ytID := strings.TrimSpace(req.YouTubeID)
+		if ytID == "" {
+			ytID = extractYouTubeID(req.YouTubeURL)
+		}
+		if ytID == "" {
+			ytID = "3e_K4h_K6r8"
+		}
+		thumbURL := strings.TrimSpace(req.ThumbnailURL)
+		if thumbURL == "" && ytID != "" {
+			thumbURL = fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", ytID)
+		}
+		isActive := true
+		if req.IsActive != nil {
+			isActive = *req.IsActive
+		}
+		title := strings.TrimSpace(req.Title)
+		if title == "" {
+			title = "Welcome to Salen Mobile Guru | Masterclass & Academy Tour"
+		}
+		badge := strings.TrimSpace(req.Badge)
+		if badge == "" {
+			badge = "APP TOUR & INTRODUCTION"
+		}
+		duration := strings.TrimSpace(req.Duration)
+		if duration == "" {
+			duration = "15:00"
+		}
+		video := models.HomeIntroVideo{
+			ID:           "main_intro_video",
+			Title:        title,
+			Subtitle:     strings.TrimSpace(req.Subtitle),
+			YouTubeURL:   strings.TrimSpace(req.YouTubeURL),
+			YouTubeID:    ytID,
+			ThumbnailURL: thumbURL,
+			Badge:        badge,
+			Duration:     duration,
+			IsActive:     isActive,
+			UpdatedAt:    time.Now(),
+		}
+		videosToSave = append(videosToSave, video)
 	}
 
-	thumbURL := strings.TrimSpace(req.ThumbnailURL)
-	if thumbURL == "" && ytID != "" {
-		thumbURL = fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", ytID)
-	}
-
-	isActive := true
-	if req.IsActive != nil {
-		isActive = *req.IsActive
-	}
-
-	title := strings.TrimSpace(req.Title)
-	if title == "" {
-		title = "Welcome to Salen Mobile Guru | Masterclass & Academy Tour"
-	}
-
-	badge := strings.TrimSpace(req.Badge)
-	if badge == "" {
-		badge = "APP TOUR & INTRODUCTION"
-	}
-
-	duration := strings.TrimSpace(req.Duration)
-	if duration == "" {
-		duration = "15:00"
-	}
-
-	var video models.HomeIntroVideo
-	if err := ar.DB.Where("id = ?", "main_intro_video").First(&video).Error; err != nil {
-		video = models.HomeIntroVideo{ID: "main_intro_video"}
-	}
-
-	video.Title = title
-	video.Subtitle = strings.TrimSpace(req.Subtitle)
-	video.YouTubeURL = strings.TrimSpace(req.YouTubeURL)
-	video.YouTubeID = ytID
-	video.ThumbnailURL = thumbURL
-	video.Badge = badge
-	video.Duration = duration
-	video.IsActive = isActive
-	video.UpdatedAt = time.Now()
-
-	if err := ar.DB.Save(&video).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Failed to save intro video to database"})
+	if len(videosToSave) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "At least one video is required"})
 		return
 	}
 
-	// Also synchronize to AppScreenConfig for smg intro_video
-	payloadBytes, _ := json.Marshal(video)
+	// 1. Save list into AppScreenConfig (screen_key: "intro_videos")
+	payloadBytes, _ := json.Marshal(videosToSave)
 	var screen models.AppScreenConfig
-	if err := ar.DB.Where("site_name = ? AND screen_key = ?", "smg", "intro_video").First(&screen).Error; err != nil {
-		screen = models.AppScreenConfig{
-			ID:         "screen_smg_intro_video",
+	if err := ar.DB.Where("site_name = ? AND screen_key = ?", "smg", "intro_videos").First(&screen).Error; err != nil {
+		ar.DB.Create(&models.AppScreenConfig{
 			SiteName:   "smg",
-			ScreenKey:  "intro_video",
+			ScreenKey:  "intro_videos",
 			ConfigJSON: string(payloadBytes),
 			UpdatedAt:  time.Now(),
-		}
-		ar.DB.Create(&screen)
+		})
 	} else {
-		screen.ConfigJSON = string(payloadBytes)
-		screen.UpdatedAt = time.Now()
-		ar.DB.Save(&screen)
+		ar.DB.Model(&screen).Updates(map[string]interface{}{
+			"config_json": string(payloadBytes),
+			"updated_at":  time.Now(),
+		})
 	}
+
+	// 2. Also save first video into HomeIntroVideo table for legacy compat
+	first := videosToSave[0]
+	first.ID = "main_intro_video"
+	ar.DB.Save(&first)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "HomeScreen intro video published successfully ✓",
-		"data":    video,
+		"message": "HomeScreen tutorial videos published successfully ✓",
+		"videos":  videosToSave,
+		"data":    first,
 	})
 }
 

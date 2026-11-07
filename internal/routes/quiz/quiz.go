@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,13 +23,12 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	qr := &QuizRouter{DB: db}
 
 	// Quiz listing is free — users can see what quizzes exist
+	r.GET("/quizzes", qr.ListAllQuizzes)
 	r.GET("/quizzes/:courseSlug", qr.GetQuiz)
 
-	// Submitting requires any active subscription
-	r.POST("/quizzes/submit", middleware.RequireSubscription(db, "ANY"), qr.SubmitQuiz)
-
-	// Quiz history/leaderboard require any active sub
-	r.GET("/quizzes/results", middleware.RequireSubscription(db, "ANY"), qr.GetUserResults)
+	// Submitting quizzes & tracking results
+	r.POST("/quizzes/submit", qr.SubmitQuiz)
+	r.GET("/quizzes/results", qr.GetUserResults)
 	r.GET("/quizzes/leaderboard", qr.GetLeaderboard) // leaderboard is public — motivational
 
 	// Badges — computed from real quiz_results; userId optional (returns global definitions if empty)
@@ -43,6 +43,141 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		adm.GET("/results", qr.AdminListResults)
 		adm.DELETE("/results/:id", qr.AdminDeleteResult)
 	}
+}
+
+func (qr *QuizRouter) ListAllQuizzes(c *gin.Context) {
+	category := strings.TrimSpace(strings.ToLower(c.Query("category")))
+
+	var quizzes []models.Quiz
+	err := qr.DB.Preload("Questions.Options", func(db *gorm.DB) *gorm.DB {
+		return db.Order("option_index asc")
+	}).Order("created_at desc").Find(&quizzes).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to load quizzes: " + err.Error(),
+		})
+		return
+	}
+
+	// Fetch courses to enrich with course title, category, level
+	var courses []models.Course
+	qr.DB.Select("slug, title, category, level, image_asset").Find(&courses)
+	courseMap := make(map[string]models.Course)
+	for _, cr := range courses {
+		courseMap[cr.Slug] = cr
+	}
+
+	// Aggregate stats from quiz_results
+	type quizStat struct {
+		QuizID   string  `gorm:"column:quiz_id"`
+		AvgScore float64 `gorm:"column:avg_score"`
+		Attempts int     `gorm:"column:attempts"`
+	}
+	var stats []quizStat
+	qr.DB.Raw(`
+		SELECT quiz_id, AVG(score_percent) as avg_score, COUNT(*) as attempts
+		FROM quiz_results
+		GROUP BY quiz_id
+	`).Scan(&stats)
+	statMap := make(map[string]quizStat)
+	for _, s := range stats {
+		statMap[s.QuizID] = s
+	}
+
+	type QuizDTO struct {
+		ID             string                `json:"id"`
+		CourseSlug     string                `json:"courseSlug"`
+		CourseTitle    string                `json:"courseTitle"`
+		ModuleID       string                `json:"moduleId"`
+		Title          string                `json:"title"`
+		DurationMins   int                   `json:"durationMinutes"`
+		TotalQuestions int                   `json:"totalQuestions"`
+		PassingScore   int                   `json:"passingScorePercent"`
+		Category       string                `json:"category"`
+		Level          string                `json:"level"`
+		AvgScore       int                   `json:"avgScore"`
+		Attempts       int                   `json:"attempts"`
+		Questions      []models.QuizQuestion `json:"questions"`
+	}
+
+	out := make([]QuizDTO, 0, len(quizzes))
+	for _, q := range quizzes {
+		cr, hasCourse := courseMap[q.CourseSlug]
+		cat := "Hardware"
+		level := "Intermediate"
+		crTitle := ""
+		if hasCourse {
+			if cr.Category != "" {
+				cat = cr.Category
+			}
+			if cr.Level != "" {
+				level = cr.Level
+			}
+			crTitle = cr.Title
+		} else {
+			textLower := strings.ToLower(q.Title + " " + q.CourseSlug)
+			if strings.Contains(textLower, "iphone") || strings.Contains(textLower, "display") {
+				cat = "Iphone"
+			} else if strings.Contains(textLower, "emmc") || strings.Contains(textLower, "ufs") {
+				cat = "Emmc"
+			} else if strings.Contains(textLower, "software") {
+				cat = "Software"
+			}
+		}
+
+		if category != "" && category != "all" {
+			catMatch := strings.Contains(strings.ToLower(cat), category)
+			titleMatch := strings.Contains(strings.ToLower(q.Title), category)
+			slugMatch := strings.Contains(strings.ToLower(q.CourseSlug), category)
+			if !catMatch && !titleMatch && !slugMatch {
+				continue
+			}
+		}
+
+		avg := 75
+		attempts := 0
+		if st, ok := statMap[q.ID]; ok && st.Attempts > 0 {
+			avg = int(st.AvgScore)
+			attempts = st.Attempts
+		}
+
+		tq := q.TotalQuestions
+		if len(q.Questions) > 0 {
+			tq = len(q.Questions)
+		}
+		dur := q.DurationMins
+		if dur <= 0 {
+			dur = 20
+		}
+		passScore := q.PassingScore
+		if passScore <= 0 {
+			passScore = 75
+		}
+
+		out = append(out, QuizDTO{
+			ID:             q.ID,
+			CourseSlug:     q.CourseSlug,
+			CourseTitle:    crTitle,
+			ModuleID:       q.ModuleID,
+			Title:          q.Title,
+			DurationMins:   dur,
+			TotalQuestions: tq,
+			PassingScore:   passScore,
+			Category:       cat,
+			Level:          level,
+			AvgScore:       avg,
+			Attempts:       attempts,
+			Questions:      q.Questions,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    out,
+		"quizzes": out,
+	})
 }
 
 func (qr *QuizRouter) GetQuiz(c *gin.Context) {

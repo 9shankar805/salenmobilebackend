@@ -296,17 +296,29 @@ func seedHomeIntroVideo(db *gorm.DB, now time.Time) {
 	if err := db.Where("id = ?", "main_intro_video").First(&existing).Error; err != nil {
 		video := models.HomeIntroVideo{
 			ID:           "main_intro_video",
-			Title:        "Welcome to Salen Mobile Guru | Masterclass & Academy Tour",
-			Subtitle:     "Watch this introductory video to learn how to access chip-level courses, circuit schematics, and live training.",
-			YouTubeURL:   "https://www.youtube.com/watch?v=3e_K4h_K6r8",
-			YouTubeID:    "3e_K4h_K6r8",
-			ThumbnailURL: "https://img.youtube.com/vi/3e_K4h_K6r8/hqdefault.jpg",
+			Title:        "What is basic how circuit work. | Salen Mobile Guru",
+			Subtitle:     "Learn how mobile circuits, voltage rails, and basic components work together.",
+			YouTubeURL:   "https://www.youtube.com/watch?v=kI1WGMLvFlg",
+			YouTubeID:    "kI1WGMLvFlg",
+			ThumbnailURL: "https://i.ytimg.com/vi/kI1WGMLvFlg/hqdefault.jpg",
 			Badge:        "APP TOUR & INTRODUCTION",
-			Duration:     "18:45",
+			Duration:     "14:30",
 			IsActive:     true,
 			UpdatedAt:    now,
 		}
 		db.Create(&video)
+	} else if existing.YouTubeID == "3e_K4h_K6r8" || existing.YouTubeID == "" {
+		// Clean legacy dummy non-existent video
+		existing.Title = "What is basic how circuit work. | Salen Mobile Guru"
+		existing.Subtitle = "Learn how mobile circuits, voltage rails, and basic components work together."
+		existing.YouTubeURL = "https://www.youtube.com/watch?v=kI1WGMLvFlg"
+		existing.YouTubeID = "kI1WGMLvFlg"
+		existing.ThumbnailURL = "https://i.ytimg.com/vi/kI1WGMLvFlg/hqdefault.jpg"
+		existing.Badge = "APP TOUR & INTRODUCTION"
+		existing.Duration = "14:30"
+		existing.IsActive = true
+		existing.UpdatedAt = now
+		db.Save(&existing)
 	}
 }
 
