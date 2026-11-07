@@ -1506,6 +1506,8 @@ func (cr *CourseRouter) GetCurriculumV1(c *gin.Context) {
 			"courseId":     course.ID,
 			"courseSlug":   course.Slug,
 			"courseTitle":  course.Title,
+			"imageAsset":   course.ImageAsset,
+			"imageUrl":     course.ImageAsset,
 			"totalLessons": totalLessons,
 			"totalQuizzes": totalQuizzes,
 			"modules":      modulesOut,
