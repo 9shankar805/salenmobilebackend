@@ -1,9 +1,19 @@
 # Environment variables (contains secrets - never commit)
 .env
+.env.*
+!.env.example
+
+# Firebase / Google service account credentials (NEVER commit — contains private key)
+*firebase-adminsdk*.json
+firebase-credentials.json
+serviceAccountKey.json
+google-services.json
+GoogleService-Info.plist
 
 # Compiled binaries
 bin/
 server
+server_new
 *.exe
 *.out
 
