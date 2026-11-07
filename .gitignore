@@ -12,8 +12,8 @@ GoogleService-Info.plist
 
 # Compiled binaries
 bin/
-server
-server_new
+/server
+/server_new
 *.exe
 *.out
 
