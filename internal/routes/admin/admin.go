@@ -177,6 +177,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		// Mobile App CMS
 		adm.GET("/cms/banners", ar.GetBanners)
 		adm.POST("/cms/banners", ar.UpdateBanners)
+		adm.GET("/banners", ar.GetBanners)
+		adm.POST("/banners", ar.UpdateBanners)
 
 		// Home Intro Video Studio
 		adm.GET("/home/intro-video", ar.GetHomeIntroVideo)
@@ -469,6 +471,11 @@ type AddModuleRequest struct {
 
 func (ar *AdminRouter) AddModule(c *gin.Context) {
 	courseID := c.Param("id")
+	var course models.Course
+	if ar.DB.Where("id = ? OR slug = ?", courseID, courseID).First(&course).Error == nil && course.ID != "" {
+		courseID = course.ID
+	}
+
 	var req AddModuleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
@@ -559,8 +566,21 @@ func (ar *AdminRouter) DeleteLesson(c *gin.Context) {
 
 func (ar *AdminRouter) GetCourseCurriculum(c *gin.Context) {
 	courseID := c.Param("id")
+	var course models.Course
+	ar.DB.Where("id = ? OR slug = ?", courseID, courseID).First(&course)
+
+	targetIDs := []string{courseID}
+	if course.ID != "" && course.ID != courseID {
+		targetIDs = append(targetIDs, course.ID)
+	}
+	if course.Slug != "" && course.Slug != courseID {
+		targetIDs = append(targetIDs, course.Slug)
+	}
+
 	var modules []models.CourseModule
-	ar.DB.Preload("Lessons").Where("course_id = ?", courseID).Order("order_num asc").Find(&modules)
+	ar.DB.Preload("Lessons", func(db *gorm.DB) *gorm.DB {
+		return db.Order("order_num asc")
+	}).Where("course_id IN (?)", targetIDs).Order("order_num asc").Find(&modules)
 	c.JSON(http.StatusOK, gin.H{"success": true, "curriculum": modules, "data": modules})
 }
 
@@ -1018,9 +1038,37 @@ func (ar *AdminRouter) GetBanners(c *gin.Context) {
 		return
 	}
 
-	var data map[string]interface{}
-	json.Unmarshal([]byte(screen.ConfigJSON), &data)
-	c.JSON(http.StatusOK, gin.H{"success": true, "banners": data["banners"]})
+	var raw interface{}
+	if err := json.Unmarshal([]byte(screen.ConfigJSON), &raw); err == nil {
+		if arr, ok := raw.([]interface{}); ok {
+			for _, item := range arr {
+				if m, ok := item.(map[string]interface{}); ok && m["blockType"] == "hero_banner" {
+					if cfg, ok := m["config"].(map[string]interface{}); ok {
+						if b, ok := cfg["banners"]; ok {
+							c.JSON(http.StatusOK, gin.H{"success": true, "banners": b})
+							return
+						}
+					}
+				}
+			}
+		} else if m, ok := raw.(map[string]interface{}); ok {
+			if b, ok := m["banners"]; ok {
+				c.JSON(http.StatusOK, gin.H{"success": true, "banners": b})
+				return
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"banners": []string{
+			"assets/banner_bg_img/banner_1.webp",
+			"assets/banner_bg_img/banner_2.webp",
+			"assets/banner_bg_img/banner_3.webp",
+			"assets/banner_bg_img/banner_4.webp",
+			"assets/banner_bg_img/banner_5.webp",
+		},
+	})
 }
 
 type UpdateBannersRequest struct {
@@ -1034,17 +1082,77 @@ func (ar *AdminRouter) UpdateBanners(c *gin.Context) {
 		return
 	}
 
-	payload := map[string]interface{}{
-		"banners":     req.Banners,
-		"bannerImage": req.Banners[0],
+	if len(req.Banners) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Banners list cannot be empty"})
+		return
 	}
-	bytes, _ := json.Marshal(payload)
 
-	ar.DB.Model(&models.AppScreenConfig{}).
-		Where("site_name = ? AND screen_key = ?", "smg", "guest_home").
-		Update("config_json", string(bytes))
+	primaryBanner := req.Banners[0]
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Banners updated successfully"})
+	// 1. Structure guest_home slots so the mobile guest home carousel reads it natively
+	guestSlots := []map[string]interface{}{
+		{
+			"blockType": "hero_banner",
+			"enabled":   true,
+			"config": map[string]interface{}{
+				"bannerImage": primaryBanner,
+				"banners":     req.Banners,
+				"heroTitle":   "Master Chip-Level Mobile Repairing",
+				"heroSubtitle": "Schematics, IC Tracing & Hardware Diagnostics in Nepali & Hindi",
+				"badge":       "FEATURED",
+				"heroCtaLabel": "Subscribe Now",
+			},
+		},
+		{
+			"blockType": "promo_banner",
+			"enabled":   true,
+			"config": map[string]interface{}{
+				"bannerImage": primaryBanner,
+				"title":       "38% OFF — 1 Month Mobile Plan",
+				"subtitle":    "Full access to schematics, IC finder & more at just ₹249",
+				"actionUrl":   "/plans/mobile",
+				"badge":       "OFFER",
+			},
+		},
+	}
+	guestBytes, _ := json.Marshal(guestSlots)
+
+	// Upsert guest_home
+	var guestScreen models.AppScreenConfig
+	if err := ar.DB.Where("site_name = ? AND screen_key = ?", "smg", "guest_home").First(&guestScreen).Error; err != nil {
+		ar.DB.Create(&models.AppScreenConfig{
+			SiteName:   "smg",
+			ScreenKey:  "guest_home",
+			ConfigJSON: string(guestBytes),
+		})
+	} else {
+		ar.DB.Model(&guestScreen).Update("config_json", string(guestBytes))
+	}
+
+	// 2. Also update member_home hero video card banner
+	var memberScreen models.AppScreenConfig
+	if err := ar.DB.Where("site_name = ? AND screen_key = ?", "smg", "member_home").First(&memberScreen).Error; err == nil {
+		var memberSlots []map[string]interface{}
+		if err := json.Unmarshal([]byte(memberScreen.ConfigJSON), &memberSlots); err == nil {
+			for i, slot := range memberSlots {
+				if slot["blockType"] == "video_card" {
+					if cfg, ok := slot["config"].(map[string]interface{}); ok {
+						cfg["bannerImage"] = primaryBanner
+						slot["config"] = cfg
+						memberSlots[i] = slot
+					}
+				}
+			}
+			mBytes, _ := json.Marshal(memberSlots)
+			ar.DB.Model(&memberScreen).Update("config_json", string(mBytes))
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Homescreen banners updated successfully across guest & member apps",
+		"banners": req.Banners,
+	})
 }
 
 type SaveIntroVideoRequest struct {
