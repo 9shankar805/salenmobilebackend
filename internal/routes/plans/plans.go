@@ -26,6 +26,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	r.GET("/plans/chat", pr.GetChatPlans)
 	// All plans (both types)
 	r.GET("/plans", pr.GetAllPlans)
+	r.GET("/api/v1/plans", pr.GetAllPlans)
 
 	// Admin Plan Management
 	adm := r.Group("/api/admin/plans", middleware.AuthMiddleware(), middleware.AdminMiddleware())

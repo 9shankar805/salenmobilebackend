@@ -157,6 +157,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		adm.POST("/subscriptions/:id/approve", ar.ApproveSubscription)
 		adm.POST("/subscriptions/:id/reject", ar.RejectSubscription)
 		adm.POST("/subscriptions/manual-enroll", ar.ManualEnroll)
+		adm.GET("/payment-settings", ar.GetPaymentSettings)
+		adm.POST("/payment-settings", ar.SavePaymentSettings)
 
 		// Students / Users
 		adm.GET("/users", ar.ListUsers)
@@ -787,6 +789,68 @@ func (ar *AdminRouter) RejectSubscription(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Subscription cancelled"})
+}
+
+func (ar *AdminRouter) GetPaymentSettings(c *gin.Context) {
+	var ps models.PaymentSetting
+	if err := ar.DB.First(&ps).Error; err != nil {
+		ps = models.PaymentSetting{
+			ID:                 "ps_default",
+			EsewaQrUrl:         "https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=esewa://payment?id=9805912345&name=SalenMobileGuru",
+			EsewaID:            "9805912345",
+			EsewaMerchantName:  "Salen Mobile Guru Academy (Salen Dangol)",
+			KhaltiQrUrl:        "https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=khalti://payment?id=9805912345&name=SalenMobileGuru",
+			KhaltiID:           "9805912345",
+			KhaltiMerchantName: "Salen Mobile Guru Academy",
+			BankName:           "Nabil Bank Ltd.",
+			BankAccountName:    "SALEN DANGOL / SALEN MOBILE GURU",
+			BankAccountNumber:  "01201017500123",
+			BankQrUrl:          "",
+			Instructions:       "1. Open eSewa / Khalti / Mobile Banking and scan the QR code above.\n2. In remarks, enter your Student Name and Mobile Number.\n3. Complete the payment and save the confirmation screenshot.\n4. Enter your Transaction Ref / UTR ID below and upload your screenshot voucher.\n5. Tap 'Submit Payment for Verification'. Your plan will be verified and activated within 10-15 minutes.",
+			IsActive:           true,
+			UpdatedAt:          time.Now(),
+		}
+		ar.DB.Create(&ps)
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    ps,
+	})
+}
+
+func (ar *AdminRouter) SavePaymentSettings(c *gin.Context) {
+	var req models.PaymentSetting
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	var existing models.PaymentSetting
+	if err := ar.DB.First(&existing).Error; err != nil {
+		if req.ID == "" {
+			req.ID = "ps_default"
+		}
+		req.UpdatedAt = time.Now()
+		if err := ar.DB.Create(&req).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"success": true, "data": req})
+		return
+	}
+
+	req.ID = existing.ID
+	req.UpdatedAt = time.Now()
+	if err := ar.DB.Save(&req).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Payment settings and QR code updated successfully",
+		"data":    req,
+	})
 }
 
 type ManualEnrollRequest struct {

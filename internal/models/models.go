@@ -35,9 +35,28 @@ type Subscription struct {
 	CourseID           string    `json:"courseId"`
 	CourseSlug         string    `json:"courseSlug"`
 	EnrolledSlugs      string    `json:"enrolledSlugs"` // comma-separated course slugs
+	ProofImageUrl      string    `json:"proofImageUrl"`
+	Notes              string    `json:"notes"`
 	StartDate          time.Time `json:"startDate"`
 	EndDate            time.Time `json:"endDate"`
 	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+}
+
+type PaymentSetting struct {
+	ID                 string    `json:"id" gorm:"primaryKey"`
+	EsewaQrUrl         string    `json:"esewaQrUrl"`
+	EsewaID            string    `json:"esewaId"`
+	EsewaMerchantName  string    `json:"esewaMerchantName"`
+	KhaltiQrUrl        string    `json:"khaltiQrUrl"`
+	KhaltiID           string    `json:"khaltiId"`
+	KhaltiMerchantName string    `json:"khaltiMerchantName"`
+	BankName           string    `json:"bankName"`
+	BankAccountName    string    `json:"bankAccountName"`
+	BankAccountNumber  string    `json:"bankAccountNumber"`
+	BankQrUrl          string    `json:"bankQrUrl"`
+	Instructions       string    `json:"instructions" gorm:"type:text"`
+	IsActive           bool      `json:"isActive"`
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
 

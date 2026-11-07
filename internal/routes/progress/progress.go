@@ -526,7 +526,7 @@ func (pr *ProgressRouter) GetLearningStreak(c *gin.Context) {
 	sunday := monday.AddDate(0, 0, 6)
 	sunday = time.Date(sunday.Year(), sunday.Month(), sunday.Day(), 23, 59, 59, 0, now.Location())
 
-	// ── 2. Fetch active days from lesson progress in this week ────────────────
+	// ── 2. Fetch active days from lesson progress & quiz attempts in this week ───
 	type dayRow struct {
 		ActiveDate string `gorm:"column:active_date"`
 	}
@@ -535,7 +535,11 @@ func (pr *ProgressRouter) GetLearningStreak(c *gin.Context) {
 		`SELECT DATE(last_watched_at) AS active_date
 		 FROM user_lesson_progress
 		 WHERE user_id = ? AND last_watched_at >= ? AND last_watched_at <= ?
-		 GROUP BY DATE(last_watched_at)`,
+		 UNION
+		 SELECT DATE(attempted_at) AS active_date
+		 FROM quiz_results
+		 WHERE user_id = ? AND attempted_at >= ? AND attempted_at <= ?`,
+		userID, monday, sunday,
 		userID, monday, sunday,
 	).Scan(&rows)
 
@@ -543,6 +547,8 @@ func (pr *ProgressRouter) GetLearningStreak(c *gin.Context) {
 	for _, r := range rows {
 		activeDates[r.ActiveDate] = true
 	}
+	// Today is marked active because student is learning & checking their curriculum
+	activeDates[now.Format("2006-01-02")] = true
 
 	// Build Mon–Sun booleans
 	days := [7]string{"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
@@ -554,28 +560,32 @@ func (pr *ProgressRouter) GetLearningStreak(c *gin.Context) {
 	}
 
 	// ── 3. Streak from user_streaks table ─────────────────────────────────────
-	currentStreak := 0
+	currentStreak := 1 // Minimum 1 for active today
 	weeklyGoalDays := 5 // default goal
 
 	var streak models.UserStreak
 	if err := pr.DB.Where("user_id = ?", userID).First(&streak).Error; err == nil {
-		currentStreak = streak.CurrentStreak
+		if streak.CurrentStreak > 0 {
+			currentStreak = streak.CurrentStreak
+		}
 	} else {
-		// Derive from lesson activity as fallback
+		// Derive from lesson & quiz activity
 		var recentDays []dayRow
 		pr.DB.Raw(
 			`SELECT DATE(last_watched_at) AS active_date
 			 FROM user_lesson_progress
 			 WHERE user_id = ?
-			 GROUP BY DATE(last_watched_at)
+			 UNION
+			 SELECT DATE(attempted_at) AS active_date
+			 FROM quiz_results
+			 WHERE user_id = ?
 			 ORDER BY active_date DESC
 			 LIMIT 30`,
-			userID,
+			userID, userID,
 		).Scan(&recentDays)
 
 		if len(recentDays) > 0 {
-			// Count consecutive days backwards from today
-			streak := 0
+			count := 0
 			prev := time.Now().Truncate(24 * time.Hour)
 			for _, rd := range recentDays {
 				t, err := time.Parse("2006-01-02", rd.ActiveDate)
@@ -584,14 +594,36 @@ func (pr *ProgressRouter) GetLearningStreak(c *gin.Context) {
 				}
 				diff := int(prev.Sub(t).Hours() / 24)
 				if diff <= 1 {
-					streak++
+					count++
 					prev = t
 				} else {
 					break
 				}
 			}
-			currentStreak = streak
+			if count > 0 {
+				currentStreak = count
+			}
 		}
+	}
+
+	// Keep user_streaks table updated
+	var existing models.UserStreak
+	if err := pr.DB.Where("user_id = ?", userID).First(&existing).Error; err != nil {
+		pr.DB.Create(&models.UserStreak{
+			UserID:         userID,
+			CurrentStreak:  currentStreak,
+			LongestStreak:  currentStreak,
+			LastActiveDate: now,
+		})
+	} else {
+		if currentStreak > existing.CurrentStreak {
+			existing.CurrentStreak = currentStreak
+		}
+		if currentStreak > existing.LongestStreak {
+			existing.LongestStreak = currentStreak
+		}
+		existing.LastActiveDate = now
+		pr.DB.Save(&existing)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

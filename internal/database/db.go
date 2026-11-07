@@ -100,6 +100,7 @@ func InitDB(databaseURL string) *gorm.DB {
 		&models.InAppNotification{},
 		// ── New tables for app screens ──────────────────────────────────────
 		&models.Plan{},            // Mobile Plans & Chat Plans
+		&models.PaymentSetting{},  // eSewa & QR Payment Settings
 		&models.SupportCategory{}, // SOFTWARE / HARDWARE support tree
 		&models.PdfCategory{},     // Home screen PDF Container grid
 		&models.Highlight{},       // Home screen Highlights / offers

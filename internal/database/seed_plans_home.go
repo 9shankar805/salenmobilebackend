@@ -20,7 +20,8 @@ seedSupportCategories(db, now)
 seedHighlights(db, now)
 seedRepairToolkitItems(db)
 seedHomeIntroVideo(db, now)
-log.Println("✅ Seeded plans, PDF categories, support tree, highlights, toolkit items & intro video!")
+seedPaymentSettings(db, now)
+log.Println("✅ Seeded plans, PDF categories, support tree, highlights, toolkit items, intro video & payment settings!")
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -319,6 +320,30 @@ func seedHomeIntroVideo(db *gorm.DB, now time.Time) {
 		existing.IsActive = true
 		existing.UpdatedAt = now
 		db.Save(&existing)
+	}
+}
+
+func seedPaymentSettings(db *gorm.DB, now time.Time) {
+	var count int64
+	db.Model(&models.PaymentSetting{}).Count(&count)
+	if count == 0 {
+		ps := models.PaymentSetting{
+			ID:                 "ps_default",
+			EsewaQrUrl:         "https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=esewa://payment?id=9805912345&name=SalenMobileGuru",
+			EsewaID:            "9805912345",
+			EsewaMerchantName:  "Salen Mobile Guru Academy (Salen Dangol)",
+			KhaltiQrUrl:        "https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=khalti://payment?id=9805912345&name=SalenMobileGuru",
+			KhaltiID:           "9805912345",
+			KhaltiMerchantName: "Salen Mobile Guru Academy",
+			BankName:           "Nabil Bank Ltd.",
+			BankAccountName:    "SALEN DANGOL / SALEN MOBILE GURU",
+			BankAccountNumber:  "01201017500123",
+			BankQrUrl:          "",
+			Instructions:       "1. Open eSewa / Khalti / Mobile Banking and scan the QR code above.\n2. In remarks, enter your Student Name and Mobile Number.\n3. Complete the payment and save the confirmation screenshot.\n4. Enter your Transaction Ref / UTR ID below and upload your screenshot voucher.\n5. Tap 'Submit Payment for Verification'. Your plan will be verified and activated within 10-15 minutes.",
+			IsActive:           true,
+			UpdatedAt:          now,
+		}
+		db.Create(&ps)
 	}
 }
 

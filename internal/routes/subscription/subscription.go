@@ -23,6 +23,10 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	r.GET("/subscriptions/status", sr.GetStatus)
 	r.POST("/payments/verify", sr.VerifyPayment)
 	r.POST("/subscriptions/enroll", sr.VerifyPayment)
+	r.GET("/api/v1/payment-settings", sr.GetPaymentSettings)
+	r.GET("/payment-settings", sr.GetPaymentSettings)
+	r.POST("/api/v1/subscriptions/submit-proof", sr.SubmitPaymentProof)
+	r.POST("/subscriptions/submit-proof", sr.SubmitPaymentProof)
 }
 
 // GetStatus returns the user's active subscription details.
@@ -385,4 +389,101 @@ func featuresForPlan(pt string) []string {
 	default:
 		return []string{}
 	}
+}
+
+func (sr *SubscriptionRouter) GetPaymentSettings(c *gin.Context) {
+	var ps models.PaymentSetting
+	if err := sr.DB.Where("is_active = ?", true).First(&ps).Error; err != nil {
+		if err := sr.DB.First(&ps).Error; err != nil {
+			ps = models.PaymentSetting{
+				ID:                 "ps_default",
+				EsewaQrUrl:         "https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=esewa://payment?id=9805912345&name=SalenMobileGuru",
+				EsewaID:            "9805912345",
+				EsewaMerchantName:  "Salen Mobile Guru Academy (Salen Dangol)",
+				KhaltiQrUrl:        "https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=khalti://payment?id=9805912345&name=SalenMobileGuru",
+				KhaltiID:           "9805912345",
+				KhaltiMerchantName: "Salen Mobile Guru Academy",
+				BankName:           "Nabil Bank Ltd.",
+				BankAccountName:    "SALEN DANGOL / SALEN MOBILE GURU",
+				BankAccountNumber:  "01201017500123",
+				Instructions:       "1. Open eSewa / Khalti / Mobile Banking and scan the QR code above.\n2. In remarks, enter your Student Name and Mobile Number.\n3. Complete the payment and save the confirmation screenshot.\n4. Enter your Transaction Ref / UTR ID below and upload your screenshot voucher.\n5. Tap 'Submit Payment for Verification'. Your plan will be verified and activated within 10-15 minutes.",
+				IsActive:           true,
+				UpdatedAt:          time.Now(),
+			}
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    ps,
+	})
+}
+
+func (sr *SubscriptionRouter) SubmitPaymentProof(c *gin.Context) {
+	var req struct {
+		UserID        string  `json:"userId" binding:"required"`
+		PlanID        string  `json:"planId"`
+		PlanType      string  `json:"planType"`
+		CourseID      string  `json:"courseId"`
+		CourseSlug    string  `json:"courseSlug"`
+		PaymentMethod string  `json:"paymentMethod"`
+		TransactionID string  `json:"transactionId"`
+		Amount        float64 `json:"amount"`
+		Currency      string  `json:"currency"`
+		ProofImageUrl string  `json:"proofImageUrl"`
+		Notes         string  `json:"notes"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+	if req.TransactionID == "" {
+		req.TransactionID = "TXN-" + uuid.New().String()[:8]
+	}
+	if req.Currency == "" {
+		req.Currency = "NPR"
+	}
+	if req.PlanType == "" {
+		req.PlanType = "VIP All-Access Pass"
+	}
+	if req.PaymentMethod == "" {
+		req.PaymentMethod = "eSewa"
+	}
+
+	sub := models.Subscription{
+		ID:            uuid.New().String(),
+		UserID:        req.UserID,
+		PlanType:      req.PlanType,
+		Status:        "pending",
+		StartDate:     time.Now(),
+		EndDate:       time.Now().AddDate(1, 0, 0),
+		PaymentMethod: req.PaymentMethod,
+		TransactionID: req.TransactionID,
+		Amount:        req.Amount,
+		Currency:      req.Currency,
+		CourseID:      req.CourseID,
+		CourseSlug:    req.CourseSlug,
+		ProofImageUrl: req.ProofImageUrl,
+		Notes:         req.Notes,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+
+	if err := sr.DB.Create(&sub).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Failed to submit payment proof"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Payment proof submitted successfully! Admin will verify and activate your plan.",
+		"data": gin.H{
+			"subscriptionId": sub.ID,
+			"planType":       sub.PlanType,
+			"status":         "pending",
+			"transactionId":  sub.TransactionID,
+			"amount":         sub.Amount,
+			"currency":       sub.Currency,
+			"proofImageUrl":  sub.ProofImageUrl,
+		},
+	})
 }
