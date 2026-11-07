@@ -114,6 +114,16 @@ func InitDB(databaseURL string) *gorm.DB {
 		&models.EmailOTP{},
 		// ── App Intro Video ────────────────────────────────────────────────
 		&models.HomeIntroVideo{},
+		// ── Cohorts (Live Batch / Online Class Groups) ─────────────────────
+		&models.Cohort{},
+		// ── Support Threads & Messages (Expert Chat) ───────────────────────
+		&models.SupportThread{},
+		&models.SupportMessage{},
+		// ── Classroom Interactive APIs ──────────────────────────────────────
+		&models.UserVideoNote{},
+		&models.LessonSchematic{},
+		&models.LessonQAQuestion{},
+		&models.LessonQAAnswer{},
 	)
 	if err != nil {
 		log.Fatalf("AutoMigrate failed: %v", err)

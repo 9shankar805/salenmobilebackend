@@ -8,12 +8,14 @@ import (
 
 "smg-backend/internal/config"
 "smg-backend/internal/database"
+"smg-backend/internal/fcm"
 "smg-backend/internal/middleware"
 "smg-backend/internal/routes/account"
 "smg-backend/internal/routes/admin"
 "smg-backend/internal/routes/appscreens"
 "smg-backend/internal/routes/calculator"
 "smg-backend/internal/routes/certificate"
+"smg-backend/internal/routes/classroom"
 "smg-backend/internal/routes/cohort"
 "smg-backend/internal/routes/community"
 "smg-backend/internal/routes/content"
@@ -45,6 +47,13 @@ cfg := config.LoadConfig()
 // Initialize Cloudflare R2 Cloud Storage
 storage.InitStorage()
 
+// Initialize Firebase FCM (non-fatal — works without credentials in dev)
+if err := fcm.Init(); err != nil {
+log.Printf("⚠️  FCM: %v", err)
+} else {
+log.Println("✅ FCM: push notifications ready")
+}
+
 // Initialize Database with Models & Seed Data
 db := database.InitDB(cfg.DatabaseURL)
 
@@ -74,12 +83,13 @@ r.GET("/", func(c *gin.Context) {
 c.Redirect(http.StatusTemporaryRedirect, "/admin")
 })
 
-// Register all 27 domain route packages
+// Register all route packages
 account.RegisterRoutes(r, db)
 admin.RegisterRoutes(r, db)
 appscreens.RegisterRoutes(r, db)
 calculator.RegisterRoutes(r, db)
 certificate.RegisterRoutes(r, db)
+classroom.RegisterRoutes(r, db)
 cohort.RegisterRoutes(r, db)
 community.RegisterRoutes(r, db)
 content.RegisterRoutes(r, db)

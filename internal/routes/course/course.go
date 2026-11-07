@@ -25,6 +25,10 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	r.POST("/organization/courses", cr.CreateCourse)
 	r.GET("/organization/courses/public", cr.GetPublicCourses)
 
+	// Public catalog aliases — GET /courses and GET /api/courses
+	r.GET("/courses", cr.GetPublicCourses)
+	r.GET("/api/courses", cr.GetPublicCourses)
+
 	// 2. Course Root CRUD (SvelteKit & Mobile RPC)
 	r.POST("/course", cr.CreateCourse)
 	r.GET("/course/:id", cr.GetCourseDetail)

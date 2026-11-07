@@ -175,10 +175,15 @@ type LiveSession struct {
 	Instructor    string    `json:"instructor"`
 	DateFormatted string    `json:"date"`
 	TimeFormatted string    `json:"time"`
-	Status        string    `json:"status"` // UPCOMING, LIVE, COMPLETED
+	Status        string    `json:"status"`   // UPCOMING, LIVE, COMPLETED
+	Platform      string    `json:"platform"` // ZOOM, GOOGLE_MEET, TEAMS, YOUTUBE_LIVE
 	JoinURL       string    `json:"joinUrl"`
-	ZoomID        string    `json:"zoomId"`
+	MeetingID     string    `json:"meetingId"` // Zoom ID or Meet code (e.g. abc-defg-hij)
+	ZoomID        string    `json:"zoomId"`    // kept for backward compat
 	Passcode      string    `json:"passcode"`
+	RecordingURL  string    `json:"recordingUrl"` // post-session replay link
+	ImageAsset    string    `json:"imageAsset"`   // thumbnail for the session card
+	DurationMins  int       `json:"durationMins"` // scheduled duration
 	ViewersCount  int       `json:"viewersCount"`
 	CreatedAt     time.Time `json:"createdAt"`
 }
@@ -650,6 +655,24 @@ type SMTPSettings struct {
 	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// COHORTS (Live Batch / Online Class Groups)
+// ═══════════════════════════════════════════════════════════════════════════
+
+type Cohort struct {
+	ID          string    `json:"id" gorm:"primaryKey"`
+	Name        string    `json:"name"`
+	CourseID    string    `json:"courseId" gorm:"index"`
+	CourseSlug  string    `json:"courseSlug" gorm:"index"`
+	TotalSeats  int       `json:"totalSeats"`
+	Enrolled    int       `json:"enrolled"`
+	StartDate   string    `json:"startDate"`
+	EndDate     string    `json:"endDate"`
+	Status      string    `json:"status"` // active, completed, upcoming
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
 type EmailOTP struct {
 	ID        string    `json:"id" gorm:"primaryKey"`
 	Email     string    `json:"email" gorm:"size:191;index"`
@@ -665,4 +688,121 @@ func (o *EmailOTP) BeforeCreate(tx *gorm.DB) error {
 		o.ID = uuid.New().String()
 	}
 	return nil
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUPPORT THREADS & MESSAGES (Expert Chat System)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// SupportThread is a full conversation ticket between a student and an instructor.
+// It replaces/extends the basic ChatThread for support use cases.
+type SupportThread struct {
+	ID                 string    `json:"id" gorm:"primaryKey"`
+	UserID             string    `json:"userId" gorm:"index"`
+	UserName           string    `json:"userName"`
+	UserAvatar         string    `json:"userAvatar"`
+	CategoryID         string    `json:"categoryId" gorm:"index"`
+	CategorySlug       string    `json:"categorySlug" gorm:"index"`
+	CategoryName       string    `json:"categoryName"`
+	InstructorID       string    `json:"instructorId"`
+	InstructorName     string    `json:"instructorName"`
+	InstructorAvatar   string    `json:"instructorAvatar"`
+	Subject            string    `json:"subject"`
+	DeviceModel        string    `json:"deviceModel"`
+	Status             string    `json:"status"` // open, active, pending, resolved, closed
+	Priority           string    `json:"priority"` // low, normal, high, urgent
+	LastMessage        string    `json:"lastMessage"`
+	LastMessageAt      time.Time `json:"lastMessageAt"`
+	UnreadStudentCount int       `json:"unreadStudentCount"`
+	UnreadAdminCount   int       `json:"unreadAdminCount"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+
+	Messages []SupportMessage `json:"messages,omitempty" gorm:"foreignKey:ThreadID"`
+}
+
+// SupportMessage is a single message within a SupportThread.
+type SupportMessage struct {
+	ID             string    `json:"id" gorm:"primaryKey"`
+	ThreadID       string    `json:"threadId" gorm:"index"`
+	SenderID       string    `json:"senderId"`
+	SenderName     string    `json:"senderName"`
+	SenderRole     string    `json:"senderRole"` // student, instructor, admin
+	SenderAvatar   string    `json:"senderAvatar"`
+	Message        string    `json:"message" gorm:"type:text"`
+	AttachmentURL  string    `json:"attachmentUrl"`
+	AttachmentType string    `json:"attachmentType"` // image, pdf, diagram
+	IsRead         bool      `json:"isRead"`
+	CreatedAt      time.Time `json:"createdAt"`
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CLASSROOM — VIDEO NOTES
+// ═══════════════════════════════════════════════════════════════════════════
+
+// UserVideoNote is a personal timestamped note saved by a student during a lesson.
+type UserVideoNote struct {
+	ID               string    `json:"id" gorm:"primaryKey"`
+	UserID           string    `json:"userId" gorm:"index"`
+	LessonID         string    `json:"lessonId" gorm:"index"`
+	CourseSlug       string    `json:"courseSlug" gorm:"index"`
+	TimestampSeconds float64   `json:"timestampSeconds"`
+	Text             string    `json:"text" gorm:"type:text"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CLASSROOM — LESSON SCHEMATICS
+// ═══════════════════════════════════════════════════════════════════════════
+
+// LessonSchematic is a PDF or diagram resource attached to a specific lesson.
+type LessonSchematic struct {
+	ID          string    `json:"id" gorm:"primaryKey"`
+	LessonID    string    `json:"lessonId" gorm:"index"`
+	CourseSlug  string    `json:"courseSlug" gorm:"index"`
+	Title       string    `json:"title"`
+	Description string    `json:"description" gorm:"type:text"`
+	FileURL     string    `json:"fileUrl"`
+	FileType    string    `json:"fileType"` // pdf, image, svg
+	FileSize    string    `json:"fileSize"`
+	TotalPages  int       `json:"totalPages"`
+	Category    string    `json:"category"` // Motherboard Schematic, ISP Pinout, Jumper Solution, etc.
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CLASSROOM — LESSON Q&A
+// ═══════════════════════════════════════════════════════════════════════════
+
+// LessonQAQuestion is a student doubt posted on a lesson (optionally timestamped).
+type LessonQAQuestion struct {
+	ID               string    `json:"id" gorm:"primaryKey"`
+	LessonID         string    `json:"lessonId" gorm:"index"`
+	CourseSlug       string    `json:"courseSlug" gorm:"index"`
+	UserID           string    `json:"userId" gorm:"index"`
+	AuthorName       string    `json:"authorName"`
+	AuthorRole       string    `json:"authorRole"` // VIP Technician, Hardware Student, etc.
+	AuthorAvatar     string    `json:"authorAvatar"`
+	TimestampSeconds float64   `json:"timestampSeconds"` // video seek position when question was asked
+	Question         string    `json:"question" gorm:"type:text"`
+	IsResolved       bool      `json:"isResolved"`
+	Upvotes          int       `json:"upvotes"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
+
+	Answers []LessonQAAnswer `json:"answers,omitempty" gorm:"foreignKey:QuestionID"`
+}
+
+// LessonQAAnswer is a reply to a LessonQAQuestion.
+type LessonQAAnswer struct {
+	ID           string    `json:"id" gorm:"primaryKey"`
+	QuestionID   string    `json:"questionId" gorm:"index"`
+	UserID       string    `json:"userId"`
+	AuthorName   string    `json:"authorName"`
+	AuthorRole   string    `json:"authorRole"`
+	AuthorAvatar string    `json:"authorAvatar"`
+	IsInstructor bool      `json:"isInstructor"`
+	Answer       string    `json:"answer" gorm:"type:text"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
