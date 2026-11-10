@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
@@ -55,6 +56,9 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 
 	// Schedule endpoint: splits sessions into upcoming / live / past
 	r.GET("/live/schedule", lr.GetSchedule)
+
+	// LiveKit WebRTC Audio Call Token generator (Public & Authenticated)
+	r.GET("/live/call-token", lr.GetLiveKitCallToken)
 
 	// ── Authenticated endpoints (JWT required) ────────────────────────────
 	// Returns full session details including joinUrl and passcode
@@ -418,3 +422,116 @@ func (lr *LiveRouter) seedSampleSessions() {
 	}
 	lr.DB.Create(&sessions)
 }
+
+// ─── LiveKit WebRTC Audio Calling Configuration & Token Generation ───────────
+
+const (
+	LiveKitAPIKey    = "APIKeySalenGuru2026"
+	LiveKitAPISecret = "SecretKeySalenGuruAudioCallLive2026Master"
+	LiveKitServerURL = "ws://209.50.241.46:7880"
+)
+
+type liveKitVideoGrant struct {
+	Room           string `json:"room"`
+	RoomJoin       bool   `json:"roomJoin"`
+	CanPublish     bool   `json:"canPublish"`
+	CanSubscribe   bool   `json:"canSubscribe"`
+	CanPublishData bool   `json:"canPublishData"`
+	RoomAdmin      bool   `json:"roomAdmin,omitempty"`
+}
+
+type liveKitClaims struct {
+	Video liveKitVideoGrant `json:"video"`
+	Name  string            `json:"name"`
+	jwt.RegisteredClaims
+}
+
+// CreateLiveKitToken crafts an authentic HMAC-SHA256 JWT access token accepted by LiveKit server.
+func CreateLiveKitToken(apiKey, secret, room, identity, name string, isAdmin bool) (string, error) {
+	now := time.Now()
+	claims := liveKitClaims{
+		Video: liveKitVideoGrant{
+			Room:           room,
+			RoomJoin:       true,
+			CanPublish:     true,
+			CanSubscribe:   true,
+			CanPublishData: true,
+			RoomAdmin:      isAdmin,
+		},
+		Name: name,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    apiKey,
+			Subject:   identity,
+			ExpiresAt: jwt.NewNumericDate(now.Add(6 * time.Hour)),
+			NotBefore: jwt.NewNumericDate(now.Add(-1 * time.Minute)),
+			IssuedAt:  jwt.NewNumericDate(now),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
+}
+
+// GetLiveKitCallToken handles GET /live/call-token
+func (lr *LiveRouter) GetLiveKitCallToken(c *gin.Context) {
+	room := c.DefaultQuery("room", "salen_live_masterclass")
+	role := strings.ToUpper(c.DefaultQuery("role", "STUDENT"))
+	userName := c.DefaultQuery("name", "")
+	userID := c.DefaultQuery("userId", "")
+
+	if u, exists := c.Get("user"); exists {
+		if userObj, ok := u.(models.User); ok {
+			if userName == "" && userObj.Name != "" {
+				userName = userObj.Name
+			}
+			if userID == "" && userObj.ID != "" {
+				userID = userObj.ID
+			}
+			if userObj.Role == "ADMIN" {
+				role = "ADMIN"
+			}
+		}
+	}
+
+	if userName == "" {
+		if role == "ADMIN" {
+			userName = "Salen Dangol (Instructor)"
+		} else {
+			userName = "Shankar (Student)"
+		}
+	}
+
+	if userID == "" {
+		userID = "user_" + uuid.New().String()[:8]
+	}
+
+	isAdmin := role == "ADMIN"
+
+	tokenStr, err := CreateLiveKitToken(
+		LiveKitAPIKey,
+		LiveKitAPISecret,
+		room,
+		userID,
+		userName,
+		isAdmin,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to generate LiveKit call token: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success":         true,
+		"serverUrl":       LiveKitServerURL,
+		"token":           tokenStr,
+		"room":            room,
+		"role":            role,
+		"participantName": userName,
+		"participantId":   userID,
+	})
+}
+
