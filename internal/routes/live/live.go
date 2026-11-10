@@ -208,8 +208,11 @@ type sessionPublic struct {
 func toPublic(s models.LiveSession) sessionPublic {
 	platform := s.Platform
 	if platform == "" {
-		if s.StreamKey != "" {
+		if s.StreamKey != "" || strings.Contains(s.JoinURL, ".m3u8") || strings.Contains(s.HlsUrl, ".m3u8") {
 			platform = "HLS_SELF_HOSTED"
+			if s.StreamKey == "" {
+				s.StreamKey = "salen"
+			}
 		} else if s.ZoomID != "" {
 			platform = "ZOOM"
 		} else {
