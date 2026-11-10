@@ -90,7 +90,10 @@ type sessionPublic struct {
 	DurationMins int    `json:"durationMins"`
 	Viewers      int    `json:"viewersCount"`
 	RecordingURL string `json:"recordingUrl,omitempty"`
-	// joinUrl / meetingId / passcode intentionally omitted here
+	JoinURL      string `json:"joinUrl,omitempty"`
+	ZoomID       string `json:"zoomId,omitempty"`
+	MeetingID    string `json:"meetingId,omitempty"`
+	Passcode     string `json:"passcode,omitempty"`
 }
 
 func toPublic(s models.LiveSession) sessionPublic {
@@ -120,6 +123,10 @@ func toPublic(s models.LiveSession) sessionPublic {
 		ImageAsset:   img,
 		DurationMins: s.DurationMins,
 		Viewers:      s.ViewersCount,
+		JoinURL:      s.JoinURL,
+		ZoomID:       s.ZoomID,
+		MeetingID:    s.MeetingID,
+		Passcode:     s.Passcode,
 	}
 	// Only expose recording URL for completed sessions
 	if strings.ToUpper(s.Status) == "COMPLETED" {

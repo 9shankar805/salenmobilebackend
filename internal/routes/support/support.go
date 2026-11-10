@@ -2,6 +2,7 @@ package support
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -252,6 +253,36 @@ func (sr *SupportRouter) CreateThread(c *gin.Context) {
 	}
 	sr.DB.Create(&msg)
 
+	// Mirror to ChatThread and ChatMessage so SalenAdminGuru sees it immediately with student name
+	studentName := strings.TrimSpace(req.UserName)
+	if studentName == "" {
+		studentName = "Shankar"
+	}
+	sr.DB.Create(&models.ChatThread{
+		ID:              thread.ID,
+		UserID:          req.UserID,
+		InstructorID:    "instructor-salen",
+		InstructorName:  "Salen Dangol (Master Instructor)",
+		ParticipantName: studentName,
+		Subject:         req.Subject,
+		LastMessage:     req.InitialMessage,
+		LastMessageAt:   now,
+		UnreadCount:     1,
+		CreatedAt:       now,
+		UpdatedAt:       now,
+	})
+	sr.DB.Create(&models.ChatMessage{
+		ID:          msg.ID,
+		ThreadID:    thread.ID,
+		SenderID:    req.UserID,
+		SenderName:  studentName,
+		SenderRole:  "student",
+		Message:     req.InitialMessage,
+		MessageText: req.InitialMessage,
+		IsRead:      false,
+		CreatedAt:   now,
+	})
+
 	c.JSON(http.StatusCreated, gin.H{"success": true, "data": thread})
 }
 
@@ -259,19 +290,47 @@ func (sr *SupportRouter) CreateThread(c *gin.Context) {
 func (sr *SupportRouter) GetThreadMessages(c *gin.Context) {
 	threadID := c.Param("threadId")
 	var msgs []models.SupportMessage
-	if err := sr.DB.Where("thread_id = ?", threadID).Order("created_at asc").Find(&msgs).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
-		return
+	sr.DB.Where("thread_id = ?", threadID).Order("created_at asc").Find(&msgs)
+
+	// Also merge any ChatMessage (such as Admin replies sent from SalenAdminGuru)
+	var chatMsgs []models.ChatMessage
+	sr.DB.Where("thread_id = ?", threadID).Order("created_at asc").Find(&chatMsgs)
+
+	seenIds := make(map[string]bool)
+	for _, m := range msgs {
+		seenIds[m.ID] = true
 	}
+
+	for _, cm := range chatMsgs {
+		if !seenIds[cm.ID] {
+			msgs = append(msgs, models.SupportMessage{
+				ID:            cm.ID,
+				ThreadID:      cm.ThreadID,
+				SenderID:      cm.SenderID,
+				SenderName:    cm.SenderName,
+				SenderRole:    cm.SenderRole,
+				Message:       cm.Message,
+				AttachmentURL: cm.AttachmentURL,
+				IsRead:        cm.IsRead,
+				CreatedAt:     cm.CreatedAt,
+			})
+			seenIds[cm.ID] = true
+		}
+	}
+
+	sort.Slice(msgs, func(i, j int) bool {
+		return msgs[i].CreatedAt.Before(msgs[j].CreatedAt)
+	})
+
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": msgs})
 }
 
 // POST /api/support/threads/:threadId/messages
 type SendMessageRequest struct {
-	UserID    string `json:"userId"   binding:"required"`
-	UserName  string `json:"userName"`
-	Message   string `json:"message"  binding:"required"`
-	AttachURL string `json:"attachmentUrl"`
+	UserID     string `json:"userId"   binding:"required"`
+	UserName   string `json:"userName"`
+	Message    string `json:"message"  binding:"required"`
+	AttachURL  string `json:"attachmentUrl"`
 	AttachType string `json:"attachmentType"`
 }
 
@@ -290,12 +349,20 @@ func (sr *SupportRouter) SendStudentMessage(c *gin.Context) {
 		return
 	}
 
+	studentName := strings.TrimSpace(req.UserName)
+	if studentName == "" {
+		studentName = thread.UserName
+	}
+	if studentName == "" {
+		studentName = "Shankar"
+	}
+
 	now := time.Now()
 	msg := models.SupportMessage{
 		ID:             uuid.New().String(),
 		ThreadID:       threadID,
 		SenderID:       req.UserID,
-		SenderName:     req.UserName,
+		SenderName:     studentName,
 		SenderRole:     "student",
 		Message:        req.Message,
 		AttachmentURL:  req.AttachURL,
@@ -316,6 +383,46 @@ func (sr *SupportRouter) SendStudentMessage(c *gin.Context) {
 		"status":             "active",
 		"unread_admin_count": thread.UnreadAdminCount + 1,
 	})
+
+	// Mirror to ChatThread and ChatMessage
+	var chatThread models.ChatThread
+	if errC := sr.DB.Where("id = ?", threadID).First(&chatThread).Error; errC == nil {
+		sr.DB.Model(&chatThread).Updates(map[string]interface{}{
+			"last_message":     req.Message,
+			"last_message_at":  now,
+			"updated_at":       now,
+			"unread_count":     chatThread.UnreadCount + 1,
+			"participant_name": studentName,
+		})
+	} else {
+		sr.DB.Create(&models.ChatThread{
+			ID:              threadID,
+			UserID:          req.UserID,
+			InstructorID:    "instructor-salen",
+			InstructorName:  "Salen Dangol (Master Instructor)",
+			ParticipantName: studentName,
+			Subject:         thread.Subject,
+			LastMessage:     req.Message,
+			LastMessageAt:   now,
+			UnreadCount:     1,
+			CreatedAt:       now,
+			UpdatedAt:       now,
+		})
+	}
+
+	chatMsg := models.ChatMessage{
+		ID:            msg.ID,
+		ThreadID:      threadID,
+		SenderID:      req.UserID,
+		SenderName:    studentName,
+		SenderRole:    "student",
+		Message:       req.Message,
+		MessageText:   req.Message,
+		AttachmentURL: req.AttachURL,
+		IsRead:        false,
+		CreatedAt:     now,
+	}
+	sr.DB.Create(&chatMsg)
 
 	c.JSON(http.StatusCreated, gin.H{"success": true, "data": msg})
 }

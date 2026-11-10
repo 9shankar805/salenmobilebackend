@@ -430,7 +430,13 @@ type ChatThread struct {
 	UserID          string        `json:"userId" gorm:"index"`
 	InstructorID    string        `json:"instructorId"`
 	InstructorName  string        `json:"instructorName"`
-	ParticipantName string        `json:"name"`
+	ParticipantName string        `json:"participantName" gorm:"column:participant_name"`
+	Name            string        `json:"name" gorm:"-"`
+	UserName        string        `json:"userName" gorm:"-"`
+	UserEmail       string        `json:"userEmail,omitempty" gorm:"-"`
+	UserPhone       string        `json:"userPhone,omitempty" gorm:"-"`
+	RegID           string        `json:"regId,omitempty" gorm:"-"`
+	IsVIP           bool          `json:"isVip,omitempty" gorm:"-"`
 	ParticipantRole string        `json:"role"`
 	Subject         string        `json:"subject"`
 	AvatarURL       string        `json:"avatarUrl"`
@@ -446,6 +452,7 @@ type ChatMessage struct {
 	ID            string    `json:"id" gorm:"primaryKey"`
 	ThreadID      string    `json:"threadId" gorm:"index"`
 	SenderID      string    `json:"senderId"`
+	SenderName    string    `json:"senderName,omitempty" gorm:"-"`
 	ReceiverID    string    `json:"receiverId"`
 	SenderRole    string    `json:"senderRole"`
 	Message       string    `json:"message"`
