@@ -195,14 +195,21 @@ type LiveSession struct {
 	DateFormatted string    `json:"date"`
 	TimeFormatted string    `json:"time"`
 	Status        string    `json:"status"`   // UPCOMING, LIVE, COMPLETED
-	Platform      string    `json:"platform"` // ZOOM, GOOGLE_MEET, TEAMS, YOUTUBE_LIVE
+	Platform      string    `json:"platform"` // ZOOM, GOOGLE_MEET, TEAMS, YOUTUBE_LIVE, HLS_SELF_HOSTED
+	// External meeting platforms (Zoom / Google Meet / Teams)
 	JoinURL       string    `json:"joinUrl"`
-	MeetingID     string    `json:"meetingId"` // Zoom ID or Meet code (e.g. abc-defg-hij)
-	ZoomID        string    `json:"zoomId"`    // kept for backward compat
+	MeetingID     string    `json:"meetingId"`
+	ZoomID        string    `json:"zoomId"`    // backward compat
 	Passcode      string    `json:"passcode"`
-	RecordingURL  string    `json:"recordingUrl"` // post-session replay link
-	ImageAsset    string    `json:"imageAsset"`   // thumbnail for the session card
-	DurationMins  int       `json:"durationMins"` // scheduled duration
+	// Self-hosted HLS streaming (MediaMTX on this VPS)
+	StreamKey     string    `json:"streamKey"`  // e.g. "smg-live-class1" — used in RTMP/HLS URLs
+	HlsUrl        string    `json:"hlsUrl"`     // auto-generated: http://SERVER:8888/live/STREAM_KEY/index.m3u8
+	RtmpUrl       string    `json:"rtmpUrl"`    // for instructor OBS: rtmp://SERVER:1935/live/STREAM_KEY
+	IsHls         bool      `json:"isHls"`      // true when platform=HLS_SELF_HOSTED
+	// Post-session
+	RecordingURL  string    `json:"recordingUrl"`
+	ImageAsset    string    `json:"imageAsset"`
+	DurationMins  int       `json:"durationMins"`
 	ViewersCount  int       `json:"viewersCount"`
 	CreatedAt     time.Time `json:"createdAt"`
 }
