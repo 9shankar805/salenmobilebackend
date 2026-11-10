@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Live Masterclasses — Salen Mobile Guru Enterprise</title>
+<title>Live Masterclasses &amp; Broadcast Studio — Salen Mobile Guru Enterprise</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<!-- HLS.js for Live Stream Playback inside Admin Console -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
 :root{
   --font:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -112,7 +114,7 @@ html,body{height:100%;font-family:var(--font);font-size:13.5px;background:var(--
 .sc-trend.up{background:var(--success-l);color:var(--success);}
 .sc-trend.down{background:var(--danger-l);color:var(--danger);}
 
-.g2{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;margin-bottom:20px;}
+.g2{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:18px;margin-bottom:20px;}
 .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:20px;overflow:hidden;}
 .ch{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border-light);gap:12px;flex-wrap:wrap;}
 .ch-title{font-size:14.5px;font-weight:800;letter-spacing:-0.2px;}
@@ -154,9 +156,11 @@ tbody tr:last-child td{border-bottom:none;}
 /* ── BUTTONS & BADGES ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;border-radius:var(--rs);font-size:12.5px;font-weight:600;cursor:pointer;border:none;white-space:nowrap;font-family:var(--font);text-decoration:none;}
 .btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-h);}
 .btn-success{background:var(--success);color:#fff;}
 .btn-danger{background:var(--danger);color:#fff;}
 .btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2);}
+.btn-outline:hover{background:var(--bg-card-2);color:#fff;}
 .btn-ghost{background:transparent;border:none;color:var(--text3);padding:6px 9px;border-radius:var(--rs);cursor:pointer;}
 .btn-sm{padding:6px 11px;font-size:12px;}
 .btn-xs{padding:3.5px 8px;font-size:11px;border-radius:4px;}
@@ -167,20 +171,22 @@ tbody tr:last-child td{border-bottom:none;}
 .b-red{background:var(--danger-l);color:var(--danger);border:1px solid rgba(239,68,68,0.25);}
 .b-blue{background:var(--primary-l);color:var(--primary);border:1px solid rgba(99,102,241,0.25);}
 .b-purple{background:var(--purple-l);color:var(--purple);border:1px solid rgba(139,92,246,0.25);}
+.b-cyan{background:var(--cyan-l);color:var(--cyan);border:1px solid rgba(6,182,212,0.25);}
 .b-gray{background:rgba(255,255,255,0.08);color:var(--text3);border:1px solid var(--border);}
 
 /* ── MODALS ── */
-.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(5px);z-index:999;align-items:center;justify-content:center;padding:16px;}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:999;align-items:center;justify-content:center;padding:16px;}
 .mo.show{display:flex;}
-.md{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--sh3);width:580px;max-width:96vw;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}
+.md{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--sh3);width:620px;max-width:96vw;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}
 .mh{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border-light);}
-.mt{font-size:15px;font-weight:800;}
-.mx{background:transparent;border:none;color:var(--text4);font-size:15px;cursor:pointer;}
+.mt{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.mx{background:transparent;border:none;color:var(--text4);font-size:16px;cursor:pointer;}
+.mx:hover{color:#fff;}
 .mb{padding:22px;overflow-y:auto;flex:1;}
 .mf{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid var(--border-light);background:var(--bg-card-2);}
 
 #toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
-.ti{padding:11px 16px;border-radius:var(--rs);background:var(--bg-card);border:1px solid var(--border);font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;}
+.ti{padding:11px 16px;border-radius:var(--rs);background:var(--bg-card);border:1px solid var(--border);font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:var(--sh3);}
 .ti-s{border-left:4px solid var(--success);}.ti-s i{color:var(--success);}
 .ti-e{border-left:4px solid var(--danger);}.ti-e i{color:var(--danger);}
 .empty{padding:48px 20px;text-align:center;color:var(--text4);}
@@ -195,14 +201,14 @@ tbody tr:last-child td{border-bottom:none;}
 <div id="login">
   <div class="lc">
     <div class="lc-brand">
-      <div class="lc-icon"><i class="fas fa-video"></i></div>
+      <div class="lc-icon"><i class="fas fa-tower-broadcast"></i></div>
       <div>
         <div class="lc-name">Salen Mobile Guru</div>
-        <div class="lc-tag">Live Masterclasses</div>
+        <div class="lc-tag">Live Studio &amp; Broadcast OS</div>
       </div>
     </div>
     <h2>Sign in to Live Studio</h2>
-    <p>Schedule Zoom masterclasses and manage live broadcasts with Master Salen</p>
+    <p>Schedule self-hosted live classes, OBS broadcasts &amp; Zoom webinars</p>
     <div class="lerr" id="lerr"></div>
     <div class="lf"><label>Admin Email</label><input class="li" id="lemail" placeholder="admin@salenmobileguru.com"/></div>
     <div class="lf"><label>Password</label><input class="li" type="password" id="lpass" placeholder="••••••••••••"/></div>
@@ -231,16 +237,14 @@ tbody tr:last-child td{border-bottom:none;}
       <a href="/admin/quizzes" class="ni"><i class="fas fa-clipboard-question"></i><span>Quizzes &amp; Tests</span></a>
       <a href="/admin/subscriptions" class="ni"><i class="fas fa-credit-card"></i><span>Subscriptions</span></a>
       <a href="/admin/users" class="ni"><i class="fas fa-users"></i><span>Students Directory</span></a>
-      <a href="/admin/live" class="ni active"><i class="fas fa-video"></i><span>Live Masterclasses</span></a>
+      <a href="/admin/live" class="ni active"><i class="fas fa-tower-broadcast"></i><span>Live Masterclasses</span></a>
       <a href="/admin/templates" class="ni"><i class="fas fa-layer-group"></i><span>Templates Vault</span><span class="ni-badge" style="background:var(--amber-l);color:var(--amber)">HOT</span></a>
       <a href="/admin/smtp" class="ni"><i class="fas fa-envelope-circle-check"></i><span>SMTP Email &amp; OTP</span></a>
-      <a href="/admin" class="ni"><i class="fas fa-mobile-screen"></i><span>Hardware &amp; Diode</span></a>
-      <a href="/admin" class="ni"><i class="fas fa-file-pdf"></i><span>PDF Schematics</span></a>
     </div>
 
     <div class="sb-foot">
       <div class="sb-user">
-        <div class="sb-av" id="sbAv">A</div>
+        <div class="sb-av" id="sbAv">S</div>
         <div class="sb-user-text">
           <div class="sb-uname" id="sbName">Master Salen</div>
           <div class="sb-urole">SUPER ADMIN</div>
@@ -258,23 +262,23 @@ tbody tr:last-child td{border-bottom:none;}
           <i class="fas fa-chevron-right" style="font-size:9px"></i>
           <span>Academy</span>
           <i class="fas fa-chevron-right" style="font-size:9px"></i>
-          <span style="font-weight:700">Live Masterclasses</span>
+          <span style="font-weight:700">Live Masterclasses &amp; Broadcasts</span>
         </div>
-        <div class="srv-pill"><div class="srv-dot"></div><span>Broadcast Ready</span></div>
+        <div class="srv-pill"><div class="srv-dot"></div><span>MediaMTX + LiveKit Online</span></div>
       </div>
       <div class="tb-right">
         <button class="tb-cmd-btn" onclick="openCmdPalette()"><i class="fas fa-magnifying-glass"></i><span>Quick Jump</span><kbd class="tb-cmd-kbd">⌘K</kbd></button>
         <button class="btn btn-outline btn-xs" onclick="toggleTheme()"><i class="fas fa-moon" id="themeIcon"></i></button>
-        <button class="btn btn-outline btn-xs" onclick="loadLive()"><i class="fas fa-rotate"></i></button>
-        <button class="btn btn-primary btn-sm" onclick="openMo('mo-addlive')"><i class="fas fa-video"></i> Schedule Session</button>
+        <button class="btn btn-outline btn-xs" onclick="loadLive()"><i class="fas fa-rotate"></i> Refresh</button>
+        <button class="btn btn-primary btn-sm" onclick="openMo('mo-addlive')"><i class="fas fa-plus"></i> Schedule Session</button>
       </div>
     </header>
 
     <div class="ct">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
         <div>
-          <h1 style="font-size:22px;font-weight:900;letter-spacing:-0.5px">Live Masterclasses &amp; Webinar Broadcasts</h1>
-          <p style="font-size:12.5px;color:var(--text3);margin-top:3px">Schedule Zoom meetings with Master Salen, manage live streaming status, and distribute meeting passcodes</p>
+          <h1 style="font-size:22px;font-weight:900;letter-spacing:-0.5px">Live Masterclasses &amp; OBS Streaming Studio</h1>
+          <p style="font-size:12.5px;color:var(--text3);margin-top:3px">Self-hosted high-definition HLS broadcast (MediaMTX) with 2-way WebRTC voice discussions (LiveKit) — 100% Free</p>
         </div>
       </div>
 
@@ -293,15 +297,15 @@ tbody tr:last-child td{border-bottom:none;}
           <div><div class="sv" id="lk-completed">0</div><div class="sl">Completed Sessions</div><div class="sc-trend up"><i class="fas fa-film"></i> Archived</div></div>
         </div>
         <div class="sc">
-          <div class="si" style="background:var(--purple-l);color:var(--purple)"><i class="fas fa-eye"></i></div>
-          <div><div class="sv" id="lk-viewers">480+</div><div class="sl">Technicians Reached</div><div class="sc-trend up"><i class="fas fa-users"></i> Audience</div></div>
+          <div class="si" style="background:var(--cyan-l);color:var(--cyan)"><i class="fas fa-server"></i></div>
+          <div><div class="sv" style="font-size:15px;color:var(--cyan);font-weight:800">MediaMTX + LiveKit</div><div class="sl">Self-Hosted VPS Engine</div><div class="sc-trend up"><i class="fas fa-bolt"></i> Port 1935 / 7880</div></div>
         </div>
       </div>
 
       <!-- TABS -->
       <div class="tabs">
         <button class="tab active" onclick="switchLiveTab('schedule',this)"><i class="fas fa-calendar-days" style="margin-right:6px"></i> Masterclasses Schedule</button>
-        <button class="tab" onclick="switchLiveTab('preview',this)"><i class="fas fa-play" style="margin-right:6px"></i> Broadcast Monitor Console</button>
+        <button class="tab" onclick="switchLiveTab('preview',this)"><i class="fas fa-play" style="margin-right:6px"></i> Live Video Monitor &amp; Player</button>
       </div>
 
       <!-- TAB 1: SCHEDULE -->
@@ -310,10 +314,11 @@ tbody tr:last-child td{border-bottom:none;}
           <div class="ab-left">
             <div class="srch-w">
               <i class="fas fa-magnifying-glass"></i>
-              <input class="srch" id="liveSearch" placeholder="Search session title, topic, Zoom ID…" oninput="filterLive()"/>
+              <input class="srch" id="liveSearch" placeholder="Search session, topic, stream key…" oninput="filterLive()"/>
             </div>
           </div>
           <div class="ab-right">
+            <button class="btn btn-outline btn-sm" onclick="showQuickObsInfo()"><i class="fas fa-sliders"></i> Default OBS Credentials</button>
             <button class="btn btn-primary btn-sm" onclick="openMo('mo-addlive')"><i class="fas fa-video"></i> Schedule Session</button>
           </div>
         </div>
@@ -328,19 +333,60 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
 
-      <!-- TAB 2: BROADCAST PREVIEW -->
+      <!-- TAB 2: BROADCAST PREVIEW & MONITOR -->
       <div id="liveTabPreview" style="display:none">
         <div class="card" style="padding:24px">
-          <div class="ch" style="padding:0 0 16px 0;margin-bottom:18px"><div class="ch-title">Instructor Live Broadcast Preview Console</div></div>
-          <div style="aspect-ratio:16/9;background:#05070e;border-radius:12px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
-            <div style="text-align:center;color:var(--text4)">
-              <i class="fas fa-tower-broadcast" style="font-size:52px;color:var(--primary);margin-bottom:14px;display:block"></i>
-              <div style="font-weight:800;font-size:18px;color:#fff">Live Masterclass Broadcast Station</div>
-              <div style="font-size:13px;margin-top:6px;color:var(--text3)">Zoom Video SDK / YouTube RTMP Bridge Active</div>
-              <div style="margin-top:16px;display:inline-flex;gap:10px">
-                <span class="badge b-green">● Signal Optimal (1080p60)</span>
-                <span class="badge b-blue">Audio In: Shure MV7</span>
+          <div class="ch" style="padding:0 0 16px 0;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <div class="ch-title">Instructor Live Broadcast Monitor</div>
+              <div class="ch-sub">Preview your live HLS stream in real-time right here from OBS</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <select id="monitorSessionSelect" class="fc" style="width:260px" onchange="onMonitorSelectChange()"></select>
+              <button class="btn btn-outline btn-xs" onclick="reloadMonitorPlayer()"><i class="fas fa-rotate"></i> Reload</button>
+            </div>
+          </div>
+
+          <!-- Player Container -->
+          <div style="aspect-ratio:16/9;max-height:540px;background:#05070e;border-radius:12px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
+            <video id="monitorVideo" controls autoplay muted playsinline style="width:100%;height:100%;object-fit:contain;background:#000;display:none"></video>
+
+            <!-- Offline / Waiting Overlay -->
+            <div id="monitorOfflineOverlay" style="text-align:center;color:var(--text4);padding:20px">
+              <div style="width:72px;height:72px;border-radius:50%;background:rgba(99,102,241,0.12);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
+                <i class="fas fa-tower-broadcast" style="font-size:32px;color:var(--primary)"></i>
               </div>
+              <div style="font-weight:800;font-size:18px;color:#fff" id="monitorOverlayTitle">Waiting for OBS Stream Ingest</div>
+              <div style="font-size:13px;margin-top:6px;color:var(--text3)" id="monitorOverlaySub">Open OBS Studio and Start Streaming to ingest live video into SMG MediaMTX</div>
+
+              <div style="margin-top:16px;display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center">
+                <span class="badge b-blue" id="monitorBadgeRtmp">rtmp://209.50.241.46:1935/live</span>
+                <span class="badge b-purple" id="monitorBadgeKey">Stream Key: —</span>
+                <span class="badge b-gray" id="monitorBadgeSignal">○ Signal: Checking...</span>
+              </div>
+
+              <div style="margin-top:20px">
+                <button class="btn btn-primary btn-sm" onclick="openObsForSelected()"><i class="fas fa-sliders"></i> View OBS Setup Details</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Control Bar -->
+          <div style="margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
+            <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px">
+              <div style="font-size:10.5px;color:var(--text4);text-transform:uppercase;font-weight:700">OBS RTMP Ingest URL</div>
+              <div class="mono" style="font-weight:700;color:var(--text);margin-top:4px;word-break:break-all" id="mon-rtmp-text">rtmp://209.50.241.46:1935/live</div>
+            </div>
+            <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px">
+              <div style="font-size:10.5px;color:var(--text4);text-transform:uppercase;font-weight:700">Active Stream Key</div>
+              <div class="mono" style="font-weight:700;color:var(--primary);margin-top:4px" id="mon-key-text">—</div>
+            </div>
+            <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-size:10.5px;color:var(--text4);text-transform:uppercase;font-weight:700">WebRTC 2-Way Voice Call</div>
+                <div style="font-size:12px;color:var(--text2);margin-top:3px">LiveKit @ ws://209.50.241.46:7880</div>
+              </div>
+              <button class="btn btn-outline btn-xs" onclick="joinLiveKitRoom()"><i class="fas fa-microphone" style="color:var(--success)"></i> Open Room</button>
             </div>
           </div>
         </div>
@@ -353,34 +399,70 @@ tbody tr:last-child td{border-bottom:none;}
 <div class="mo" id="mo-addlive">
   <div class="md">
     <div class="mh">
-      <div class="mt"><i class="fas fa-video" style="color:var(--primary);margin-right:8px"></i>Schedule Live Masterclass</div>
+      <div class="mt"><i class="fas fa-tower-broadcast" style="color:var(--primary)"></i> Schedule Live Masterclass</div>
       <button class="mx" onclick="closeMo('mo-addlive')"><i class="fas fa-times"></i></button>
     </div>
     <div class="mb">
+      <!-- PLATFORM SELECTOR -->
       <div class="fg">
-        <label>Masterclass Broadcast Poster / Thumbnail</label>
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
-          <input type="file" id="ls-file" style="display:none" accept="image/*" onchange="uploadLiveCover(this)"/>
-          <button type="button" class="btn btn-outline btn-xs" onclick="document.getElementById('ls-file').click()"><i class="fas fa-camera"></i> Upload Poster Image</button>
-          <a href="/admin/templates" target="_blank" class="btn btn-outline btn-xs" style="color:var(--amber)"><i class="fas fa-layer-group"></i> Templates Vault</a>
-          <span style="font-size:11px;color:var(--text4)">or paste URL</span>
-        </div>
-        <div id="ls-up-prog" style="display:none;height:5px;background:var(--border);border-radius:3px;margin-bottom:8px;overflow:hidden">
-          <div id="ls-up-fill" style="height:100%;background:var(--primary);width:0%;transition:width .15s"></div>
-        </div>
-        <input class="fc mono" id="ls-img" placeholder="https://pub-de6175c42cb241aab9f5c23b24292596.r2.dev/live/... (or upload above)" oninput="updateLiveImgPrev()"/>
-        <div id="ls-img-prev-box" style="display:none;margin-top:8px;border-radius:8px;overflow:hidden;max-height:130px;background:#000;border:1px solid var(--border)">
-          <img id="ls-img-prev" src="" style="width:100%;height:130px;object-fit:cover"/>
-        </div>
+        <label>Live Streaming Engine / Platform *</label>
+        <select class="fc" id="ls-platform" onchange="onPlatformChange()">
+          <option value="HLS_SELF_HOSTED" selected>🚀 SMG VPS Live Stream (MediaMTX / HLS) — 100% Free &amp; Unlimited</option>
+          <option value="CLOUDFLARE_STREAM">☁️ Cloudflare Stream (HLS)</option>
+          <option value="ZOOM">📹 Zoom Webinar / Meeting</option>
+          <option value="GOOGLE_MEET">📞 Google Meet</option>
+        </select>
       </div>
+
       <div class="fg">
         <label>Session Title *</label>
-        <input class="fc" id="ls-title" placeholder="e.g. Live Fault Finding: Redmi Note 11 Dead Boot Diagnosis"/>
+        <input class="fc" id="ls-title" placeholder="e.g. CPU Double-Decker Micro-Soldering Live Demo" oninput="autoSuggestStreamKey()"/>
       </div>
+
       <div class="fg">
         <label>Subtitle / Topic Description</label>
-        <input class="fc" id="ls-sub" placeholder="e.g. Schematic breakdown &amp; real multimeter probing on stage"/>
+        <input class="fc" id="ls-sub" placeholder="e.g. Hands-on microscope demo with live multimeter probing"/>
       </div>
+
+      <!-- HLS / VPS STREAM SETTINGS -->
+      <div id="box-hls-settings" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:14px;margin-bottom:14px">
+        <div style="font-weight:700;font-size:12px;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+          <span><i class="fas fa-tower-broadcast"></i> Self-Hosted Stream Configuration (MediaMTX)</span>
+          <span class="badge b-green">100% FREE</span>
+        </div>
+        <div class="fg" style="margin-bottom:8px">
+          <label style="font-size:10.5px">Stream Key (Topic Slug for OBS)</label>
+          <div style="display:flex;gap:6px">
+            <input class="fc mono" id="ls-stream-key" placeholder="e.g. cpu-reballing-demo" oninput="updateHlsPreview()"/>
+            <button type="button" class="btn btn-outline btn-xs" onclick="generateRandomStreamKey()"><i class="fas fa-dice"></i> Random</button>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);line-height:1.6;background:rgba(0,0,0,0.2);padding:8px 10px;border-radius:6px">
+          <div>• <b>OBS Server:</b> <code class="mono" style="color:#a5b4fc">rtmp://209.50.241.46:1935/live</code></div>
+          <div>• <b>OBS Stream Key:</b> <code class="mono" id="prev-obs-key" style="color:#a5b4fc">cpu-reballing-demo</code></div>
+          <div>• <b>Student HLS URL:</b> <code class="mono" id="prev-hls-url" style="color:#a5b4fc">http://209.50.241.46:8888/live/.../index.m3u8</code></div>
+          <div>• <b>OBS Auth:</b> User: <code class="mono" style="color:#a5b4fc">smg_broadcaster</code> | Pass: <code class="mono" style="color:#a5b4fc">SalenLive@SMG2026!</code></div>
+        </div>
+      </div>
+
+      <!-- ZOOM / MEET SETTINGS -->
+      <div id="box-external-settings" style="display:none;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">
+        <div class="fr">
+          <div class="fg">
+            <label>Meeting ID / Zoom ID</label>
+            <input class="fc" id="ls-zoom" placeholder="e.g. 849 2011 4492"/>
+          </div>
+          <div class="fg">
+            <label>Passcode</label>
+            <input class="fc" id="ls-pass" placeholder="e.g. SMG2026"/>
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label>Direct Join URL</label>
+          <input class="fc" id="ls-url" placeholder="https://zoom.us/j/... or https://meet.google.com/..."/>
+        </div>
+      </div>
+
       <div class="fr">
         <div class="fg">
           <label>Broadcast Date</label>
@@ -390,8 +472,6 @@ tbody tr:last-child td{border-bottom:none;}
           <label>Broadcast Time</label>
           <input class="fc" id="ls-time" placeholder="e.g. 8:00 PM NPT" value="8:00 PM NPT"/>
         </div>
-      </div>
-      <div class="fr">
         <div class="fg">
           <label>Initial Status</label>
           <select class="fc" id="ls-status">
@@ -400,33 +480,91 @@ tbody tr:last-child td{border-bottom:none;}
             <option value="COMPLETED">COMPLETED</option>
           </select>
         </div>
-        <div class="fg">
-          <label>Zoom Meeting ID</label>
-          <input class="fc" id="ls-zoom" placeholder="e.g. 849 2011 4492"/>
-        </div>
       </div>
-      <div class="fr">
-        <div class="fg">
-          <label>Passcode</label>
-          <input class="fc" id="ls-pass" placeholder="e.g. SMG2026"/>
-        </div>
-        <div class="fg">
-          <label>Direct Join URL</label>
-          <input class="fc" id="ls-url" placeholder="https://zoom.us/j/..."/>
-        </div>
-      </div>
+
       <div class="fg">
-        <label>Webinar Slide Deck / Schematic Handout (Optional PDF for students)</label>
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">
-          <input type="file" id="ls-handout-file" style="display:none" accept=".pdf,.zip" onchange="uploadLiveHandout(this)"/>
-          <button type="button" class="btn btn-outline btn-xs" onclick="document.getElementById('ls-handout-file').click()"><i class="fas fa-paperclip"></i> Upload PDF Handout</button>
+        <label>Masterclass Broadcast Poster / Thumbnail</label>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+          <input type="file" id="ls-file" style="display:none" accept="image/*" onchange="uploadLiveCover(this)"/>
+          <button type="button" class="btn btn-outline btn-xs" onclick="document.getElementById('ls-file').click()"><i class="fas fa-camera"></i> Upload Poster</button>
+          <span style="font-size:11px;color:var(--text4)">or paste CDN URL below</span>
         </div>
-        <input class="fc mono" id="ls-handout" placeholder="Handout CDN URL (or upload above)"/>
+        <input class="fc mono" id="ls-img" placeholder="https://... (or leave blank for default poster)" oninput="updateLiveImgPrev()"/>
       </div>
     </div>
     <div class="mf">
       <button class="btn btn-outline" onclick="closeMo('mo-addlive')">Cancel</button>
       <button class="btn btn-primary" onclick="createLive()"><i class="fas fa-calendar-plus"></i> Schedule Masterclass</button>
+    </div>
+  </div>
+</div>
+
+<!-- OBS SETUP & CREDENTIALS MODAL -->
+<div class="mo" id="mo-obs">
+  <div class="md" style="max-width:560px">
+    <div class="mh">
+      <div class="mt"><i class="fas fa-sliders" style="color:var(--danger)"></i> OBS Live Stream Broadcast Credentials</div>
+      <button class="mx" onclick="closeMo('mo-obs')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="mb">
+      <div id="obs-signal-banner" style="display:flex;align-items:center;justify-content:space-between;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:10px 14px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="obs-signal-dot" style="width:8px;height:8px;border-radius:50%;background:var(--danger)"></div>
+          <span id="obs-signal-text" style="font-weight:700;font-size:12px;color:var(--danger)">OFFLINE — WAITING FOR OBS TO CONNECT</span>
+        </div>
+        <button class="btn btn-outline btn-xs" onclick="checkObsSignal()"><i class="fas fa-rotate"></i> Check Signal</button>
+      </div>
+
+      <p style="font-size:12px;color:var(--text3);margin-bottom:14px">
+        In <b>OBS Studio</b>: Go to <b>Settings</b> → <b>Stream</b> → Service: <b>Custom...</b> then paste these values:
+      </p>
+
+      <div class="fg" style="margin-bottom:10px">
+        <label style="font-size:10.5px">Server (RTMP Ingest)</label>
+        <div style="display:flex;gap:6px">
+          <input class="fc mono" id="obs-modal-server" value="rtmp://209.50.241.46:1935/live" readonly/>
+          <button class="btn btn-outline btn-xs" onclick="copyVal('obs-modal-server')"><i class="fas fa-copy"></i> Copy</button>
+        </div>
+      </div>
+
+      <div class="fg" style="margin-bottom:10px">
+        <label style="font-size:10.5px">Stream Key</label>
+        <div style="display:flex;gap:6px">
+          <input class="fc mono" id="obs-modal-key" readonly/>
+          <button class="btn btn-outline btn-xs" onclick="copyVal('obs-modal-key')"><i class="fas fa-copy"></i> Copy</button>
+        </div>
+      </div>
+
+      <div class="fr" style="margin-bottom:10px">
+        <div class="fg">
+          <label style="font-size:10.5px">Username (Authentication)</label>
+          <div style="display:flex;gap:6px">
+            <input class="fc mono" id="obs-modal-user" value="smg_broadcaster" readonly/>
+            <button class="btn btn-outline btn-xs" onclick="copyVal('obs-modal-user')"><i class="fas fa-copy"></i> Copy</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label style="font-size:10.5px">Password</label>
+          <div style="display:flex;gap:6px">
+            <input class="fc mono" id="obs-modal-pass" value="SalenLive@SMG2026!" readonly/>
+            <button class="btn btn-outline btn-xs" onclick="copyVal('obs-modal-pass')"><i class="fas fa-copy"></i> Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="fg" style="margin-bottom:14px">
+        <label style="font-size:10.5px">Student Playback URL (HLS / m3u8)</label>
+        <div style="display:flex;gap:6px">
+          <input class="fc mono" id="obs-modal-hls" readonly/>
+          <button class="btn btn-outline btn-xs" onclick="copyVal('obs-modal-hls')"><i class="fas fa-copy"></i> Copy</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="obs-golive-btn" style="flex:1" onclick="triggerGoLiveFromModal()"><i class="fas fa-tower-broadcast"></i> Set Session to LIVE NOW</button>
+        <button class="btn btn-outline" onclick="openMonitorFromObsModal()"><i class="fas fa-play"></i> Watch Stream</button>
+        <button class="btn btn-outline" onclick="joinLiveKitRoom()"><i class="fas fa-microphone"></i> 2-Way Voice</button>
+      </div>
     </div>
   </div>
 </div>
@@ -450,6 +588,9 @@ const API = '';
 let TOKEN = localStorage.getItem('smg_admin_token') || '';
 let ADMIN = JSON.parse(localStorage.getItem('smg_admin_user') || 'null');
 let allLive = [];
+let currentObsSession = null;
+let hlsPlayer = null;
+let signalPollTimer = null;
 
 function initTheme() {
   const t = localStorage.getItem('smg_theme') || 'dark';
@@ -474,6 +615,15 @@ function toast(msg, t='s') {
   el.innerHTML = `<i class="fas ${icons[t] || icons.s}"></i> <span>${msg}</span>`;
   document.getElementById('toast').appendChild(el);
   setTimeout(() => el.remove(), 4200);
+}
+
+function copyVal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.value).then(() => toast('Copied to clipboard ✓'));
+}
+function copyText(txt) {
+  navigator.clipboard.writeText(txt).then(() => toast('Copied: ' + txt + ' ✓'));
 }
 
 async function api(method, path, body) {
@@ -554,6 +704,10 @@ function switchLiveTab(t, btn) {
   btn.classList.add('active');
   document.getElementById('liveTabSchedule').style.display = t === 'schedule' ? 'block' : 'none';
   document.getElementById('liveTabPreview').style.display = t === 'preview' ? 'block' : 'none';
+
+  if (t === 'preview') {
+    populateMonitorSelect();
+  }
 }
 
 async function loadLive() {
@@ -561,6 +715,7 @@ async function loadLive() {
   allLive = res?.data || res?.sessions || [];
   updateLiveKPIs(allLive);
   filterLive();
+  populateMonitorSelect();
 }
 
 function updateLiveKPIs(ss) {
@@ -575,8 +730,22 @@ function updateLiveKPIs(ss) {
 
 function filterLive() {
   const q = document.getElementById('liveSearch').value.toLowerCase().trim();
-  const filtered = allLive.filter(s => (s.title||'').toLowerCase().includes(q) || (s.subtitle||'').toLowerCase().includes(q) || (s.zoomId||'').includes(q));
+  const filtered = allLive.filter(s =>
+    (s.title||'').toLowerCase().includes(q) ||
+    (s.subtitle||'').toLowerCase().includes(q) ||
+    (s.streamKey||'').toLowerCase().includes(q) ||
+    (s.zoomId||'').includes(q)
+  );
   renderLive(filtered);
+}
+
+function isHlsSession(s) {
+  if (s.isHls) return true;
+  const p = (s.platform || '').toUpperCase();
+  if (p === 'HLS_SELF_HOSTED' || p === 'CLOUDFLARE_STREAM') return true;
+  if (s.streamKey && s.streamKey.length > 0) return true;
+  if (s.joinUrl && s.joinUrl.includes('.m3u8')) return true;
+  return false;
 }
 
 function renderLive(ss) {
@@ -584,7 +753,7 @@ function renderLive(ss) {
   const tableEl = document.getElementById('liveTable');
 
   if (!ss.length) {
-    const emptyHtml = '<div class="empty" style="grid-column:1/-1"><i class="fas fa-video"></i><span>No masterclasses scheduled</span></div>';
+    const emptyHtml = '<div class="empty" style="grid-column:1/-1"><i class="fas fa-tower-broadcast"></i><span>No masterclasses scheduled yet</span></div>';
     gridEl.innerHTML = emptyHtml;
     tableEl.innerHTML = emptyHtml;
     return;
@@ -596,13 +765,18 @@ function renderLive(ss) {
     const st = (s.status || 'UPCOMING').toUpperCase();
     const isLive = st === 'LIVE';
     const isUpcoming = st === 'UPCOMING';
+    const isHls = isHlsSession(s);
+    const streamKey = s.streamKey || 'salen-live';
 
     return `
       <div class="card" style="padding:18px;border-top:3px solid ${isLive?'var(--danger)':isUpcoming?'var(--primary)':'var(--border)'}">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <span class="badge ${isLive?'b-red':isUpcoming?'b-blue':'b-gray'}">
-            ${isLive?'<i class="fas fa-circle-dot fa-fade"></i> LIVE NOW':st}
-          </span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px">
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="badge ${isLive?'b-red':isUpcoming?'b-blue':'b-gray'}">
+              ${isLive?'<i class="fas fa-circle-dot fa-fade"></i> LIVE NOW':st}
+            </span>
+            ${isHls ? `<span class="badge b-purple"><i class="fas fa-bolt"></i> VPS HLS</span>` : `<span class="badge b-cyan"><i class="fas fa-video"></i> ${s.platform||'Zoom'}</span>`}
+          </div>
           <select class="fc" style="width:125px;padding:3px 8px;font-size:11px" onchange="updateLiveStatus('${id}', this.value)">
             <option value="LIVE" ${isLive?'selected':''}>● Set LIVE</option>
             <option value="UPCOMING" ${isUpcoming?'selected':''}>Set UPCOMING</option>
@@ -611,28 +785,54 @@ function renderLive(ss) {
         </div>
 
         <div style="font-weight:800;font-size:15px;line-height:1.3;margin-bottom:4px">${s.title}</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:14px">${s.subtitle || 'Masterclass on mobile motherboard diagnostics'}</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:14px">${s.subtitle || 'Live hardware repair masterclass'}</div>
 
         <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);margin-bottom:12px">
           <i class="fas fa-calendar" style="color:var(--primary)"></i>
-          <span>${s.date || 'TBD'} · ${s.time || '8:00 PM NPT'}</span>
+          <span>${s.date || 'Today'} · ${s.time || '8:00 PM NPT'}</span>
         </div>
 
-        <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:14px;display:flex;justify-content:space-between">
-          <div>
-            <div style="font-size:10px;color:var(--text4);text-transform:uppercase">Zoom Meeting ID</div>
-            <div class="mono" style="font-weight:700;font-size:12px">${s.zoomId || '—'}</div>
+        ${isHls ? `
+          <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span style="font-size:10px;color:var(--text4);text-transform:uppercase">OBS Stream Key</span>
+              <span class="badge b-green" style="font-size:9.5px">MediaMTX Ready</span>
+            </div>
+            <div class="mono" style="font-weight:700;font-size:12px;color:var(--primary)">${streamKey}</div>
+            <div style="font-size:10px;color:var(--text4);margin-top:4px">Server: rtmp://209.50.241.46:1935/live</div>
           </div>
-          <div style="text-align:right">
-            <div style="font-size:10px;color:var(--text4);text-transform:uppercase">Passcode</div>
-            <div class="mono" style="font-weight:700;font-size:12px">${s.passcode || '—'}</div>
-          </div>
-        </div>
 
-        <div style="display:flex;gap:8px">
-          ${s.joinUrl ? `<a href="${s.joinUrl}" target="_blank" class="btn btn-outline btn-sm" style="flex:1"><i class="fas fa-arrow-up-right-from-square"></i> Join Meeting</a>` : ''}
-          <button class="btn btn-danger btn-sm" onclick="deleteLive('${id}')" title="Delete Session"><i class="fas fa-trash"></i></button>
-        </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" style="flex:1" onclick="openObsModal('${id}')">
+              <i class="fas fa-sliders"></i> OBS Setup / Go Live
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="monitorThisSession('${streamKey}')" title="Watch in Monitor">
+              <i class="fas fa-play"></i> Monitor
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="joinLiveKitRoom('${streamKey}')" title="Live Voice Room">
+              <i class="fas fa-microphone"></i>
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="deleteLive('${id}')" title="Delete Session">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        ` : `
+          <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:14px;display:flex;justify-content:space-between">
+            <div>
+              <div style="font-size:10px;color:var(--text4);text-transform:uppercase">Meeting ID</div>
+              <div class="mono" style="font-weight:700;font-size:12px">${s.zoomId || s.meetingId || '—'}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:10px;color:var(--text4);text-transform:uppercase">Passcode</div>
+              <div class="mono" style="font-weight:700;font-size:12px">${s.passcode || '—'}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            ${s.joinUrl ? `<a href="${s.joinUrl}" target="_blank" class="btn btn-outline btn-sm" style="flex:1"><i class="fas fa-arrow-up-right-from-square"></i> Join Meeting</a>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="deleteLive('${id}')" title="Delete Session"><i class="fas fa-trash"></i></button>
+          </div>
+        `}
       </div>
     `;
   }).join('');
@@ -642,42 +842,274 @@ function renderLive(ss) {
     <thead><tr>
       <th style="width:36px">#</th>
       <th>Session Title</th>
-      <th>Scheduled Date &amp; Time</th>
+      <th>Platform</th>
+      <th>Date &amp; Time</th>
       <th>Status</th>
-      <th>Zoom ID</th>
-      <th>Passcode</th>
+      <th>Stream Key / Meeting ID</th>
       <th style="text-align:right">Actions</th>
     </tr></thead>
     <tbody>${ss.map((s, i) => {
       const id = s.id || s.ID;
       const st = (s.status || 'UPCOMING').toUpperCase();
+      const isHls = isHlsSession(s);
+      const streamKey = s.streamKey || s.zoomId || '—';
+
       return `<tr>
         <td style="color:var(--text4)">${i+1}</td>
         <td>
           <div style="font-weight:700">${s.title}</div>
           <div style="font-size:11px;color:var(--text4)">${s.subtitle || ''}</div>
         </td>
+        <td>${isHls ? '<span class="badge b-purple"><i class="fas fa-bolt"></i> VPS HLS</span>' : `<span class="badge b-cyan">${s.platform||'Zoom'}</span>`}</td>
         <td style="color:var(--text2)">${s.date || '—'} · ${s.time || '—'}</td>
         <td>${st === 'LIVE' ? '<span class="badge b-red">● LIVE NOW</span>' : st === 'UPCOMING' ? '<span class="badge b-blue">Upcoming</span>' : '<span class="badge b-gray">Completed</span>'}</td>
-        <td class="mono">${s.zoomId || '—'}</td>
-        <td class="mono">${s.passcode || '—'}</td>
+        <td class="mono" style="color:var(--primary)">${streamKey}</td>
         <td style="text-align:right;white-space:nowrap">
-          ${s.joinUrl ? `<a href="${s.joinUrl}" target="_blank" class="btn btn-outline btn-xs"><i class="fas fa-arrow-up-right-from-square"></i> Join</a>` : ''}
+          ${isHls ? `
+            <button class="btn btn-primary btn-xs" onclick="openObsModal('${id}')"><i class="fas fa-sliders"></i> OBS Setup</button>
+            <button class="btn btn-outline btn-xs" style="margin-left:4px" onclick="monitorThisSession('${s.streamKey}')"><i class="fas fa-play"></i> Watch</button>
+          ` : `
+            ${s.joinUrl ? `<a href="${s.joinUrl}" target="_blank" class="btn btn-outline btn-xs"><i class="fas fa-arrow-up-right-from-square"></i> Join</a>` : ''}
+          `}
           <button class="btn btn-danger btn-xs" style="margin-left:4px" onclick="deleteLive('${id}')"><i class="fas fa-trash"></i></button>
         </td>
       </tr>`;
     }).join('')}</tbody></table>`;
 }
 
+/* ── Platform Toggle in Schedule Modal ── */
+function onPlatformChange() {
+  const p = document.getElementById('ls-platform').value;
+  const isHls = (p === 'HLS_SELF_HOSTED' || p === 'CLOUDFLARE_STREAM');
+  document.getElementById('box-hls-settings').style.display = isHls ? 'block' : 'none';
+  document.getElementById('box-external-settings').style.display = isHls ? 'none' : 'block';
+  updateHlsPreview();
+}
+
+function autoSuggestStreamKey() {
+  const title = document.getElementById('ls-title').value;
+  const curKey = document.getElementById('ls-stream-key').value;
+  if (!curKey || curKey.startsWith('smg-')) {
+    const slug = 'smg-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
+    document.getElementById('ls-stream-key').value = slug || 'smg-live';
+    updateHlsPreview();
+  }
+}
+
+function generateRandomStreamKey() {
+  const rand = Math.random().toString(36).substring(2, 8);
+  document.getElementById('ls-stream-key').value = 'smg-live-' + rand;
+  updateHlsPreview();
+}
+
+function updateHlsPreview() {
+  const key = document.getElementById('ls-stream-key').value.trim() || 'your-stream-key';
+  document.getElementById('prev-obs-key').textContent = key;
+  document.getElementById('prev-hls-url').textContent = `http://209.50.241.46:8888/live/${key}/index.m3u8`;
+}
+
+/* ── OBS Modal Logic ── */
+function openObsModal(sessionId) {
+  const s = allLive.find(x => (x.id || x.ID) === sessionId);
+  if (!s) return;
+  currentObsSession = s;
+
+  const streamKey = s.streamKey || 'salen-live';
+  document.getElementById('obs-modal-server').value = 'rtmp://209.50.241.46:1935/live';
+  document.getElementById('obs-modal-key').value = streamKey;
+  document.getElementById('obs-modal-user').value = 'smg_broadcaster';
+  document.getElementById('obs-modal-pass').value = 'SalenLive@SMG2026!';
+  document.getElementById('obs-modal-hls').value = s.hlsUrl || `http://209.50.241.46:8888/live/${streamKey}/index.m3u8`;
+
+  const isLive = (s.status||'').toUpperCase() === 'LIVE';
+  document.getElementById('obs-golive-btn').innerHTML = isLive
+    ? '<i class="fas fa-check"></i> Session is ALREADY LIVE'
+    : '<i class="fas fa-tower-broadcast"></i> Set Session to LIVE NOW';
+
+  openMo('mo-obs');
+  checkObsSignal();
+}
+
+function showQuickObsInfo() {
+  currentObsSession = { streamKey: 'salen-live', id: '' };
+  document.getElementById('obs-modal-server').value = 'rtmp://209.50.241.46:1935/live';
+  document.getElementById('obs-modal-key').value = 'salen-live';
+  document.getElementById('obs-modal-user').value = 'smg_broadcaster';
+  document.getElementById('obs-modal-pass').value = 'SalenLive@SMG2026!';
+  document.getElementById('obs-modal-hls').value = 'http://209.50.241.46:8888/live/salen-live/index.m3u8';
+  openMo('mo-obs');
+  checkObsSignal();
+}
+
+async function checkObsSignal() {
+  if (!currentObsSession) return;
+  const key = currentObsSession.streamKey || 'salen-live';
+  const dot = document.getElementById('obs-signal-dot');
+  const txt = document.getElementById('obs-signal-text');
+
+  txt.textContent = 'CHECKING OBS SIGNAL...';
+  txt.style.color = 'var(--warn)';
+  dot.style.background = 'var(--warn)';
+
+  try {
+    const res = await fetch(`/live/stream/${key}/status`).then(r => r.json()).catch(() => null);
+    if (res && res.isLive) {
+      txt.textContent = '● OBS SIGNAL ONLINE — BROADCASTING ACTIVE';
+      txt.style.color = 'var(--success)';
+      dot.style.background = 'var(--success)';
+    } else {
+      txt.textContent = 'OFFLINE — WAITING FOR OBS TO CONNECT';
+      txt.style.color = 'var(--danger)';
+      dot.style.background = 'var(--danger)';
+    }
+  } catch (e) {
+    txt.textContent = 'OFFLINE — WAITING FOR OBS TO CONNECT';
+    txt.style.color = 'var(--danger)';
+    dot.style.background = 'var(--danger)';
+  }
+}
+
+async function triggerGoLiveFromModal() {
+  if (!currentObsSession || !currentObsSession.id) {
+    toast('Session key ready for OBS streaming ✓');
+    return;
+  }
+  const id = currentObsSession.id || currentObsSession.ID;
+  const res = await api('POST', `/api/admin/live-sessions/${id}/go-live`);
+  if (res?.success) {
+    toast('Class marked LIVE! Students are notified ✓');
+    loadLive();
+    closeMo('mo-obs');
+  } else {
+    // fallback
+    await updateLiveStatus(id, 'LIVE');
+    closeMo('mo-obs');
+  }
+}
+
+function openMonitorFromObsModal() {
+  if (!currentObsSession) return;
+  const key = currentObsSession.streamKey || 'salen-live';
+  closeMo('mo-obs');
+  monitorThisSession(key);
+}
+
+function monitorThisSession(streamKey) {
+  // switch to preview tab
+  const btn = document.querySelectorAll('.tab')[1];
+  switchLiveTab('preview', btn);
+  // select this session
+  const sel = document.getElementById('monitorSessionSelect');
+  if (sel) {
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === streamKey) {
+        sel.selectedIndex = i;
+        break;
+      }
+    }
+    onMonitorSelectChange();
+  }
+}
+
+function openObsForSelected() {
+  const sel = document.getElementById('monitorSessionSelect');
+  if (!sel || !sel.value) {
+    showQuickObsInfo();
+    return;
+  }
+  const s = allLive.find(x => x.streamKey === sel.value);
+  if (s) openObsModal(s.id || s.ID);
+  else showQuickObsInfo();
+}
+
+/* ── Broadcast Monitor Console (HLS.js) ── */
+function populateMonitorSelect() {
+  const sel = document.getElementById('monitorSessionSelect');
+  if (!sel) return;
+
+  const hlsSessions = allLive.filter(isHlsSession);
+  if (!hlsSessions.length) {
+    sel.innerHTML = '<option value="salen-live">salen-live (Default Broadcast Channel)</option>';
+  } else {
+    sel.innerHTML = hlsSessions.map(s => {
+      const key = s.streamKey || 'salen-live';
+      const isLive = (s.status||'').toUpperCase() === 'LIVE';
+      return `<option value="${key}">${isLive ? '🔴 ' : ''}${s.title} (${key})</option>`;
+    }).join('');
+  }
+  onMonitorSelectChange();
+}
+
+function onMonitorSelectChange() {
+  const sel = document.getElementById('monitorSessionSelect');
+  const key = sel ? sel.value : 'salen-live';
+
+  document.getElementById('monitorBadgeKey').textContent = 'Stream Key: ' + key;
+  document.getElementById('mon-key-text').textContent = key;
+  document.getElementById('mon-rtmp-text').textContent = 'rtmp://209.50.241.46:1935/live/' + key;
+
+  reloadMonitorPlayer();
+}
+
+async function reloadMonitorPlayer() {
+  const sel = document.getElementById('monitorSessionSelect');
+  const key = sel ? sel.value : 'salen-live';
+  const video = document.getElementById('monitorVideo');
+  const overlay = document.getElementById('monitorOfflineOverlay');
+  const badgeSignal = document.getElementById('monitorBadgeSignal');
+
+  const hlsUrl = `http://209.50.241.46:8888/live/${key}/index.m3u8`;
+
+  // probe if stream is active
+  try {
+    const statusRes = await fetch(`/live/stream/${key}/status`).then(r => r.json()).catch(() => null);
+    const isLive = statusRes && statusRes.isLive;
+
+    if (isLive) {
+      badgeSignal.className = 'badge b-green';
+      badgeSignal.textContent = '● ONLINE (1080p60 Live)';
+      overlay.style.display = 'none';
+      video.style.display = 'block';
+
+      if (hlsPlayer) { hlsPlayer.destroy(); }
+
+      if (Hls.isSupported()) {
+        hlsPlayer = new Hls({ lowLatencyMode: true, enableWorker: true });
+        hlsPlayer.loadSource(hlsUrl);
+        hlsPlayer.attachMedia(video);
+        hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = hlsUrl;
+        video.play().catch(() => {});
+      }
+    } else {
+      badgeSignal.className = 'badge b-gray';
+      badgeSignal.textContent = '○ WAITING FOR OBS STREAM';
+      if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
+      video.pause();
+      video.style.display = 'none';
+      overlay.style.display = 'block';
+    }
+  } catch (e) {
+    badgeSignal.className = 'badge b-gray';
+    badgeSignal.textContent = '○ OFFLINE';
+    if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
+    video.style.display = 'none';
+    overlay.style.display = 'block';
+  }
+}
+
+function joinLiveKitRoom(roomName) {
+  const name = roomName || 'smg-live-room';
+  const tokenUrl = `/live/call-token?room=${encodeURIComponent(name)}&userId=admin_master&name=Master%20Salen&role=INSTRUCTOR`;
+  toast('Connecting to 2-Way Voice Room: ' + name + '...');
+  window.open(tokenUrl, '_blank');
+}
+
 /* ── Live Banner & Handout Upload ── */
 async function uploadLiveCover(input) {
   const file = input.files[0];
   if (!file) return;
-
-  const prog = document.getElementById('ls-up-prog');
-  const fill = document.getElementById('ls-up-fill');
-  prog.style.display = 'block';
-  fill.style.width = '10%';
 
   const fd = new FormData();
   fd.append('file', file);
@@ -687,57 +1119,15 @@ async function uploadLiveCover(input) {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', API + '/api/admin/media/upload');
     xhr.setRequestHeader('Authorization', 'Bearer ' + TOKEN);
-    xhr.upload.onprogress = e => {
-      if (e.lengthComputable) fill.style.width = Math.round(e.loaded / e.total * 100) + '%';
-    };
     xhr.onload = () => {
       try {
         const res = JSON.parse(xhr.responseText);
         if (res.success && (res.publicUrl || res.url)) {
           const url = res.publicUrl || res.url;
           document.getElementById('ls-img').value = url;
-          updateLiveImgPrev();
-          toast('Masterclass poster uploaded to Cloudflare R2 ✓');
+          toast('Masterclass poster uploaded ✓');
         } else toast(res.error || 'Upload failed', 'e');
       } catch (e) { toast('Upload failed', 'e'); }
-    };
-    xhr.send(fd);
-  } catch(err) { toast(err.message, 'e'); }
-}
-
-function updateLiveImgPrev() {
-  const url = document.getElementById('ls-img').value.trim();
-  const box = document.getElementById('ls-img-prev-box');
-  const img = document.getElementById('ls-img-prev');
-  if (url) {
-    img.src = url;
-    box.style.display = 'block';
-  } else {
-    box.style.display = 'none';
-  }
-}
-
-async function uploadLiveHandout(input) {
-  const file = input.files[0];
-  if (!file) return;
-
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('folder', 'handouts');
-
-  try {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', API + '/api/admin/media/upload');
-    xhr.setRequestHeader('Authorization', 'Bearer ' + TOKEN);
-    xhr.onload = () => {
-      try {
-        const res = JSON.parse(xhr.responseText);
-        if (res.success && (res.publicUrl || res.url)) {
-          const url = res.publicUrl || res.url;
-          document.getElementById('ls-handout').value = url;
-          toast('Handout blueprint stored in Cloudflare R2 ✓');
-        } else toast(res.error || 'Upload failed', 'e');
-      } catch(e) { toast('Upload failed', 'e'); }
     };
     xhr.send(fd);
   } catch(err) { toast(err.message, 'e'); }
@@ -754,42 +1144,56 @@ async function updateLiveStatus(id, newStatus) {
 async function createLive() {
   const title = document.getElementById('ls-title').value.trim();
   if (!title) { toast('Title is required', 'e'); return; }
+
+  const platform = document.getElementById('ls-platform').value;
+  const isHls = (platform === 'HLS_SELF_HOSTED' || platform === 'CLOUDFLARE_STREAM');
   const dv = document.getElementById('ls-date').value;
+  const streamKey = document.getElementById('ls-stream-key').value.trim() || 'salen-live';
+
   const body = {
     title,
     subtitle: document.getElementById('ls-sub').value,
     status: document.getElementById('ls-status').value,
-    date: dv ? new Date(dv).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '',
+    platform: platform,
+    streamKey: isHls ? streamKey : '',
+    date: dv ? new Date(dv).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Today',
     time: document.getElementById('ls-time').value,
-    joinUrl: document.getElementById('ls-url').value,
-    zoomId: document.getElementById('ls-zoom').value,
-    passcode: document.getElementById('ls-pass').value
+    joinUrl: isHls ? `http://209.50.241.46:8888/live/${streamKey}/index.m3u8` : document.getElementById('ls-url').value,
+    zoomId: isHls ? '' : document.getElementById('ls-zoom').value,
+    passcode: isHls ? '' : document.getElementById('ls-pass').value,
+    imageAsset: document.getElementById('ls-img').value
   };
+
   const res = await api('POST', '/api/admin/live-sessions', body);
   if (res?.success) {
-    toast('Masterclass scheduled ✓');
+    toast('Live Masterclass scheduled successfully ✓');
     closeMo('mo-addlive');
     loadLive();
-  } else toast(res?.error || 'Failed', 'e');
+
+    if (isHls) {
+      setTimeout(() => {
+        const createdId = res.session?.id || res.data?.id;
+        if (createdId) openObsModal(createdId);
+      }, 300);
+    }
+  } else {
+    toast(res?.error || 'Failed to schedule', 'e');
+  }
 }
 
 async function deleteLive(id) {
-  if (!confirm('Delete this masterclass session?')) return;
+  if (!confirm('Are you sure you want to delete this masterclass session?')) return;
   const res = await api('DELETE', '/api/admin/live-sessions/' + id);
-  if (res?.success) { toast('Session deleted'); loadLive(); }
+  if (res?.success) { toast('Session deleted ✓'); loadLive(); }
   else toast(res?.error || 'Failed', 'e');
 }
 
 /* ── Command Palette (Cmd+K) ── */
 const CMD_ITEMS = [
-  { icon: 'fa-video', label: 'Schedule Masterclass', desc: 'Schedule Zoom webinar', action: () => openMo('mo-addlive') },
-  { icon: 'fa-layer-group', label: 'Templates Vault', desc: 'Blueprints, certificates & worksheets', action: () => window.location.href = '/admin/templates' },
+  { icon: 'fa-tower-broadcast', label: 'Schedule Masterclass', desc: 'Self-hosted HLS or Zoom webinar', action: () => openMo('mo-addlive') },
+  { icon: 'fa-sliders', label: 'OBS Settings', desc: 'View RTMP stream credentials', action: () => showQuickObsInfo() },
+  { icon: 'fa-play', label: 'Stream Monitor', desc: 'Watch real-time live broadcast', action: () => switchLiveTab('preview', document.querySelectorAll('.tab')[1]) },
   { icon: 'fa-graduation-cap', label: 'Courses Studio', desc: 'Manage courses catalog & prices', action: () => window.location.href = '/admin/courses' },
-  { icon: 'fa-sitemap', label: 'Curriculum Builder', desc: 'Module & video lesson workspace', action: () => window.location.href = '/admin/curriculum' },
-  { icon: 'fa-clipboard-question', label: 'Quizzes & Tests', desc: 'Technician certification exams', action: () => window.location.href = '/admin/quizzes' },
-  { icon: 'fa-credit-card', label: 'Subscriptions Ledger', desc: 'eSewa & Khalti payment approvals', action: () => window.location.href = '/admin/subscriptions' },
-  { icon: 'fa-users', label: 'Students Directory', desc: 'Registered technician accounts', action: () => window.location.href = '/admin/users' },
-  { icon: 'fa-envelope-circle-check', label: 'SMTP Email & OTP', desc: 'Configure Gmail SMTP & OTP codes', action: () => window.location.href = '/admin/smtp' },
   { icon: 'fa-gauge-high', label: 'Dashboard', desc: 'Return to Command Center', action: () => window.location.href = '/admin' }
 ];
 
@@ -799,26 +1203,21 @@ function openCmdPalette() {
   filterCmd();
   setTimeout(() => document.getElementById('cmdSearch').focus(), 100);
 }
-
 function filterCmd() {
-  const q = document.getElementById('cmdSearch').value.toLowerCase().trim();
+  const q = document.getElementById('cmdSearch').value.toLowerCase();
   const list = document.getElementById('cmdList');
-  const matched = CMD_ITEMS.filter(it => !q || it.label.toLowerCase().includes(q) || it.desc.toLowerCase().includes(q));
-  if (!matched.length) {
-    list.innerHTML = '<div style="padding:18px;text-align:center;color:var(--text4)">No actions found</div>';
-    return;
-  }
-  list.innerHTML = matched.map((it, idx) => `
-    <div onclick="CMD_ITEMS[${CMD_ITEMS.indexOf(it)}].action();closeMo('mo-cmd')" style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
-      <i class="fas ${it.icon}" style="width:20px;text-align:center;color:var(--primary);font-size:14px"></i>
-      <div style="flex:1">
-        <div style="font-weight:700;font-size:13px">${it.label}</div>
-        <div style="font-size:11px;color:var(--text4)">${it.desc}</div>
-      </div>
-      <i class="fas fa-arrow-right" style="color:var(--text4);font-size:11px"></i>
+  const matches = CMD_ITEMS.filter(i => i.label.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q));
+  list.innerHTML = matches.map(m => `
+    <div style="padding:10px 14px;border-radius:6px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'" onclick="(${m.action.toString()})();closeMo('mo-cmd')">
+      <i class="fas ${m.icon}" style="width:20px;text-align:center;color:var(--primary)"></i>
+      <div><div style="font-weight:700;font-size:13px">${m.label}</div><div style="font-size:11px;color:var(--text4)">${m.desc}</div></div>
     </div>
   `).join('');
 }
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openCmdPalette(); }
+  if (e.key === 'Escape') { closeMo('mo-cmd'); closeMo('mo-addlive'); closeMo('mo-obs'); }
+});
 </script>
 </body>
 </html>

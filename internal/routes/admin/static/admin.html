@@ -2088,24 +2088,75 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,0.015);}
 <!-- Schedule Live Modal -->
 <div class="mo" id="mo-addlive">
   <div class="md">
-    <div class="mh"><div class="mt">Schedule Live Masterclass</div><button class="mx" onclick="closeMo('mo-addlive')"><i class="fas fa-times"></i></button></div>
+    <div class="mh"><div class="mt"><i class="fas fa-tower-broadcast" style="color:var(--primary);margin-right:6px"></i> Schedule Live Masterclass</div><button class="mx" onclick="closeMo('mo-addlive')"><i class="fas fa-times"></i></button></div>
     <div class="mb">
-      <div class="fg"><label>Session Title *</label><input class="fc" id="ls-title" placeholder="Live: CPU Reballing &amp; BGA Rework Q&amp;A"/></div>
+      <div class="fg">
+        <label>Streaming Platform / Engine</label>
+        <select class="fc" id="ls-platform" onchange="const isHls = (this.value==='HLS_SELF_HOSTED'||this.value==='CLOUDFLARE_STREAM'); document.getElementById('box-admin-hls').style.display=isHls?'block':'none'; document.getElementById('box-admin-zoom').style.display=isHls?'none':'block';">
+          <option value="HLS_SELF_HOSTED" selected>🚀 SMG VPS Live Stream (MediaMTX / HLS) — 100% Free</option>
+          <option value="CLOUDFLARE_STREAM">☁️ Cloudflare Stream (HLS)</option>
+          <option value="ZOOM">📹 Zoom Webinar / Meeting</option>
+          <option value="GOOGLE_MEET">📞 Google Meet</option>
+        </select>
+      </div>
+      <div class="fg"><label>Session Title *</label><input class="fc" id="ls-title" placeholder="Live: CPU Reballing &amp; BGA Rework Q&amp;A" oninput="if(!document.getElementById('ls-key').value) document.getElementById('ls-key').value='smg-'+this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,25)"/></div>
       <div class="fg"><label>Subtitle / Topic</label><input class="fc" id="ls-sub" placeholder="Deep-dive into thermal camera short finding"/></div>
+
+      <!-- HLS Settings -->
+      <div id="box-admin-hls" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:12px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px"><i class="fas fa-tower-broadcast"></i> Self-Hosted Stream Key (OBS)</div>
+        <input class="fc mono" id="ls-key" placeholder="e.g. cpu-reballing-demo"/>
+        <div style="font-size:10.5px;color:var(--text3);margin-top:6px">RTMP Server: <code class="mono" style="color:var(--primary)">rtmp://209.50.241.46:1935/live</code></div>
+      </div>
+
+      <!-- Zoom Settings -->
+      <div id="box-admin-zoom" style="display:none">
+        <div class="fg"><label>Zoom / Meet Join URL</label><input class="fc" id="ls-url" placeholder="https://zoom.us/j/..."/></div>
+        <div class="fr">
+          <div class="fg"><label>Zoom Meeting ID</label><input class="fc" id="ls-zoom" placeholder="84129364920"/></div>
+          <div class="fg"><label>Passcode</label><input class="fc" id="ls-pass" placeholder="SMG2026"/></div>
+        </div>
+      </div>
+
       <div class="fr">
         <div class="fg"><label>Date</label><input class="fc" type="date" id="ls-date"/></div>
         <div class="fg"><label>Time</label><input class="fc" type="time" id="ls-time" value="19:00"/></div>
       </div>
       <div class="fg"><label>Status</label><select class="fc" id="ls-status"><option value="UPCOMING">Upcoming</option><option value="LIVE">Live Now</option><option value="COMPLETED">Completed</option></select></div>
-      <div class="fg"><label>Zoom / YouTube Join URL</label><input class="fc" id="ls-url" placeholder="https://zoom.us/j/..."/></div>
-      <div class="fr">
-        <div class="fg"><label>Zoom Meeting ID</label><input class="fc" id="ls-zoom" placeholder="84129364920"/></div>
-        <div class="fg"><label>Passcode</label><input class="fc" id="ls-pass" placeholder="SMG2026"/></div>
-      </div>
     </div>
     <div class="mf">
       <button class="btn btn-outline" onclick="closeMo('mo-addlive')">Cancel</button>
       <button class="btn btn-primary" onclick="createLive()"><i class="fas fa-calendar-plus"></i> Schedule Masterclass</button>
+    </div>
+  </div>
+</div>
+
+<!-- OBS Setup Modal for Admin -->
+<div class="mo" id="mo-obs-creds">
+  <div class="md" style="max-width:520px">
+    <div class="mh"><div class="mt"><i class="fas fa-tower-broadcast" style="color:var(--danger);margin-right:6px"></i> OBS Streaming Credentials</div><button class="mx" onclick="closeMo('mo-obs-creds')"><i class="fas fa-times"></i></button></div>
+    <div class="mb">
+      <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Paste these settings into OBS Studio (Settings → Stream → Custom):</p>
+      <div class="fg" style="margin-bottom:8px">
+        <label style="font-size:10px">Server (RTMP Ingest)</label>
+        <div style="display:flex;gap:6px"><input class="fc mono" id="obs-cr-server" value="rtmp://209.50.241.46:1935/live" readonly/><button class="btn btn-outline btn-xs" onclick="navigator.clipboard.writeText(document.getElementById('obs-cr-server').value);toast('Server copied ✓');">Copy</button></div>
+      </div>
+      <div class="fg" style="margin-bottom:8px">
+        <label style="font-size:10px">Stream Key</label>
+        <div style="display:flex;gap:6px"><input class="fc mono" id="obs-cr-key" readonly/><button class="btn btn-outline btn-xs" onclick="navigator.clipboard.writeText(document.getElementById('obs-cr-key').value);toast('Key copied ✓');">Copy</button></div>
+      </div>
+      <div class="fr" style="margin-bottom:8px">
+        <div class="fg"><label style="font-size:10px">Username</label><input class="fc mono" value="smg_broadcaster" readonly/></div>
+        <div class="fg"><label style="font-size:10px">Password</label><input class="fc mono" value="SalenLive@SMG2026!" readonly/></div>
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label style="font-size:10px">Student HLS URL</label>
+        <div style="display:flex;gap:6px"><input class="fc mono" id="obs-cr-hls" readonly/><button class="btn btn-outline btn-xs" onclick="navigator.clipboard.writeText(document.getElementById('obs-cr-hls').value);toast('HLS URL copied ✓');">Copy</button></div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-outline" onclick="closeMo('mo-obs-creds')">Close</button>
+      <a href="/admin/live" class="btn btn-primary"><i class="fas fa-play"></i> Open Live Studio Console</a>
     </div>
   </div>
 </div>
@@ -4029,39 +4080,62 @@ function filterLive() {
 
 function renderLive(ss) {
   const el = document.getElementById('liveTable');
-  if (!ss.length) { el.innerHTML = '<div class="empty"><i class="fas fa-video"></i><span>No live sessions scheduled</span></div>'; return; }
+  if (!ss.length) { el.innerHTML = '<div class="empty"><i class="fas fa-tower-broadcast"></i><span>No live sessions scheduled</span></div>'; return; }
   el.innerHTML = `<table>
-    <thead><tr><th>Session Title</th><th>Date &amp; Time</th><th>Status</th><th>Zoom Meeting ID</th><th>Passcode</th><th>Actions</th></tr></thead>
-    <tbody>${ss.map(s => `<tr>
+    <thead><tr><th>Session Title</th><th>Platform</th><th>Date &amp; Time</th><th>Status</th><th>Stream Key / Meeting ID</th><th>Actions</th></tr></thead>
+    <tbody>${ss.map(s => {
+      const isHls = (s.isHls || (s.platform||'').toUpperCase() === 'HLS_SELF_HOSTED' || (s.streamKey && s.streamKey.length > 0) || (s.joinUrl && s.joinUrl.includes('.m3u8')));
+      const streamKey = s.streamKey || 'salen-live';
+      const id = s.id || s.ID;
+      return `<tr>
       <td><div style="font-weight:700">${s.title}</div><div style="font-size:11px;color:var(--text4)">${s.subtitle || ''}</div></td>
+      <td>${isHls ? '<span class="badge b-purple"><i class="fas fa-bolt"></i> VPS HLS</span>' : `<span class="badge b-cyan">${s.platform||'Zoom'}</span>`}</td>
       <td style="color:var(--text3)">${s.date || '—'} · ${s.time || '—'}</td>
       <td>${s.status === 'LIVE' ? '<span class="badge b-red">● LIVE NOW</span>' : s.status === 'UPCOMING' ? '<span class="badge b-blue">Upcoming</span>' : '<span class="badge b-gray">Completed</span>'}</td>
-      <td class="mono">${s.zoomId || '—'}</td>
-      <td class="mono">${s.passcode || '—'}</td>
+      <td class="mono" style="color:var(--primary)">${isHls ? streamKey : (s.zoomId || '—')}</td>
       <td style="white-space:nowrap">
+        ${isHls ? `<button class="btn btn-primary btn-xs" onclick="openAdminObs('${streamKey}', '${s.hlsUrl||''}')"><i class="fas fa-sliders"></i> OBS Setup</button>` : ''}
         ${s.joinUrl ? `<a href="${s.joinUrl}" target="_blank" class="btn btn-outline btn-xs"><i class="fas fa-arrow-up-right-from-square"></i> Join</a>` : ''}
-        <button class="btn btn-danger btn-xs" style="margin-left:4px" onclick="deleteLive('${s.id||s.ID}')"><i class="fas fa-trash"></i></button>
+        <button class="btn btn-danger btn-xs" style="margin-left:4px" onclick="deleteLive('${id}')"><i class="fas fa-trash"></i></button>
       </td>
-    </tr>`).join('')}</tbody></table>`;
+    </tr>`;}).join('')}</tbody></table>`;
+}
+
+function openAdminObs(key, hls) {
+  document.getElementById('obs-cr-key').value = key;
+  document.getElementById('obs-cr-hls').value = hls || `http://209.50.241.46:8888/live/${key}/index.m3u8`;
+  openMo('mo-obs-creds');
 }
 
 async function createLive() {
   const title = document.getElementById('ls-title').value.trim();
   if (!title) { toast('Title required', 'e'); return; }
+  const platform = document.getElementById('ls-platform') ? document.getElementById('ls-platform').value : 'HLS_SELF_HOSTED';
+  const isHls = (platform === 'HLS_SELF_HOSTED' || platform === 'CLOUDFLARE_STREAM');
   const dv = document.getElementById('ls-date').value;
+  const streamKey = document.getElementById('ls-key') ? document.getElementById('ls-key').value.trim() : '';
+
   const body = {
     title,
     subtitle: document.getElementById('ls-sub').value,
     status: document.getElementById('ls-status').value,
-    date: dv ? new Date(dv).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '',
+    platform: platform,
+    streamKey: isHls ? (streamKey || 'salen-live') : '',
+    date: dv ? new Date(dv).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Today',
     time: document.getElementById('ls-time').value,
-    joinUrl: document.getElementById('ls-url').value,
-    zoomId: document.getElementById('ls-zoom').value,
-    passcode: document.getElementById('ls-pass').value
+    joinUrl: isHls ? `http://209.50.241.46:8888/live/${streamKey||'salen-live'}/index.m3u8` : document.getElementById('ls-url').value,
+    zoomId: isHls ? '' : document.getElementById('ls-zoom').value,
+    passcode: isHls ? '' : document.getElementById('ls-pass').value
   };
   const res = await api('POST', '/api/admin/live-sessions', body);
-  if (res?.success) { toast('Masterclass scheduled ✓'); closeMo('mo-addlive'); loadLive(); }
-  else toast(res?.error || 'Failed', 'e');
+  if (res?.success) {
+    toast('Masterclass scheduled ✓');
+    closeMo('mo-addlive');
+    loadLive();
+    if (isHls) {
+      setTimeout(() => openAdminObs(body.streamKey, body.joinUrl), 200);
+    }
+  } else toast(res?.error || 'Failed', 'e');
 }
 
 async function deleteLive(id) {

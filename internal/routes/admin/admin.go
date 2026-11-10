@@ -177,6 +177,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		adm.PUT("/live-sessions/:id", ar.UpdateLiveSession)
 		adm.PATCH("/live-sessions/:id/status", ar.UpdateLiveSessionStatus)
 		adm.DELETE("/live-sessions/:id", ar.DeleteLiveSession)
+		adm.POST("/live-sessions/:id/go-live", ar.GoLiveSession)
+		adm.POST("/live-sessions/:id/end-stream", ar.EndStreamSession)
 
 		// Mobile App CMS
 		adm.GET("/cms/banners", ar.GetBanners)
@@ -1021,6 +1023,28 @@ func (ar *AdminRouter) AddAdminCommunityReply(c *gin.Context) {
 func (ar *AdminRouter) ListLiveSessions(c *gin.Context) {
 	var sessions []models.LiveSession
 	ar.DB.Order("created_at desc").Find(&sessions)
+	for i := range sessions {
+		if sessions[i].Platform == "" {
+			if sessions[i].StreamKey != "" || strings.Contains(sessions[i].JoinURL, ".m3u8") || strings.Contains(sessions[i].HlsUrl, ".m3u8") {
+				sessions[i].Platform = "HLS_SELF_HOSTED"
+				sessions[i].IsHls = true
+			} else {
+				sessions[i].Platform = "ZOOM"
+			}
+		}
+		if strings.ToUpper(sessions[i].Platform) == "HLS_SELF_HOSTED" {
+			sessions[i].IsHls = true
+			if sessions[i].StreamKey == "" {
+				sessions[i].StreamKey = "salen-live"
+			}
+			if sessions[i].HlsUrl == "" {
+				sessions[i].HlsUrl = "http://209.50.241.46:8888/live/" + sessions[i].StreamKey + "/index.m3u8"
+			}
+			if sessions[i].RtmpUrl == "" {
+				sessions[i].RtmpUrl = "rtmp://209.50.241.46:1935/live/" + sessions[i].StreamKey
+			}
+		}
+	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "sessions": sessions, "data": sessions})
 }
 
@@ -1042,13 +1066,58 @@ func (ar *AdminRouter) CreateLiveSession(c *gin.Context) {
 	if session.Instructor == "" {
 		session.Instructor = "Salen Master Trainer"
 	}
+
+	if session.Platform == "" {
+		if session.StreamKey != "" || strings.Contains(session.JoinURL, ".m3u8") {
+			session.Platform = "HLS_SELF_HOSTED"
+			session.IsHls = true
+		} else {
+			session.Platform = "HLS_SELF_HOSTED"
+			session.IsHls = true
+		}
+	} else {
+		session.Platform = strings.ToUpper(session.Platform)
+	}
+
+	if session.Platform == "HLS_SELF_HOSTED" {
+		session.IsHls = true
+		if session.StreamKey == "" {
+			cleanTitle := regexp.MustCompile(`[^a-z0-9]+`).ReplaceAllString(strings.ToLower(session.Title), "-")
+			cleanTitle = strings.Trim(cleanTitle, "-")
+			if cleanTitle == "" {
+				cleanTitle = "smg-" + uuid.New().String()[:8]
+			}
+			session.StreamKey = cleanTitle
+		}
+		if session.HlsUrl == "" {
+			session.HlsUrl = "http://209.50.241.46:8888/live/" + session.StreamKey + "/index.m3u8"
+		}
+		if session.RtmpUrl == "" {
+			session.RtmpUrl = "rtmp://209.50.241.46:1935/live/" + session.StreamKey
+		}
+		if session.JoinURL == "" {
+			session.JoinURL = session.HlsUrl
+		}
+	}
+
 	session.CreatedAt = time.Now()
 
 	if err := ar.DB.Create(&session).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"success": true, "session": session, "data": session})
+
+	resp := gin.H{"success": true, "session": session, "data": session}
+	if session.IsHls {
+		resp["obsInstructions"] = gin.H{
+			"server":    "rtmp://209.50.241.46:1935/live",
+			"streamKey": session.StreamKey,
+			"username":  "smg_broadcaster",
+			"password":  "SalenLive@SMG2026!",
+			"hlsUrl":    session.HlsUrl,
+		}
+	}
+	c.JSON(http.StatusCreated, resp)
 }
 
 func (ar *AdminRouter) DeleteLiveSession(c *gin.Context) {
@@ -1087,6 +1156,12 @@ func (ar *AdminRouter) UpdateLiveSession(c *gin.Context) {
 	if req.Status != "" {
 		session.Status = strings.ToUpper(req.Status)
 	}
+	if req.Platform != "" {
+		session.Platform = strings.ToUpper(req.Platform)
+	}
+	if req.StreamKey != "" {
+		session.StreamKey = req.StreamKey
+	}
 	if req.JoinURL != "" {
 		session.JoinURL = req.JoinURL
 	}
@@ -1096,12 +1171,70 @@ func (ar *AdminRouter) UpdateLiveSession(c *gin.Context) {
 	if req.Passcode != "" {
 		session.Passcode = req.Passcode
 	}
+	if req.HlsUrl != "" {
+		session.HlsUrl = req.HlsUrl
+	}
+	if req.RtmpUrl != "" {
+		session.RtmpUrl = req.RtmpUrl
+	}
+
+	if session.Platform == "HLS_SELF_HOSTED" {
+		session.IsHls = true
+		if session.StreamKey == "" {
+			session.StreamKey = "smg-" + uuid.New().String()[:8]
+		}
+		if session.HlsUrl == "" {
+			session.HlsUrl = "http://209.50.241.46:8888/live/" + session.StreamKey + "/index.m3u8"
+		}
+		if session.RtmpUrl == "" {
+			session.RtmpUrl = "rtmp://209.50.241.46:1935/live/" + session.StreamKey
+		}
+		if session.JoinURL == "" {
+			session.JoinURL = session.HlsUrl
+		}
+	}
 
 	if err := ar.DB.Save(&session).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "session": session, "data": session})
+}
+
+func (ar *AdminRouter) GoLiveSession(c *gin.Context) {
+	id := c.Param("id")
+	var s models.LiveSession
+	if err := ar.DB.Where("id = ?", id).First(&s).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "Live session not found"})
+		return
+	}
+	ar.DB.Model(&models.LiveSession{}).Where("id = ?", id).Update("status", "LIVE")
+	s.Status = "LIVE"
+	resp := gin.H{"success": true, "status": "LIVE", "message": "Session is now LIVE", "session": s, "data": s}
+	if strings.ToUpper(s.Platform) == "HLS_SELF_HOSTED" && s.StreamKey != "" {
+		resp["obsInstructions"] = gin.H{
+			"server":    "rtmp://209.50.241.46:1935/live",
+			"streamKey": s.StreamKey,
+			"username":  "smg_broadcaster",
+			"password":  "SalenLive@SMG2026!",
+			"hlsUrl":    s.HlsUrl,
+		}
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
+func (ar *AdminRouter) EndStreamSession(c *gin.Context) {
+	id := c.Param("id")
+	var body struct {
+		RecordingURL string `json:"recordingUrl"`
+	}
+	c.ShouldBindJSON(&body)
+	updates := map[string]interface{}{"status": "COMPLETED"}
+	if body.RecordingURL != "" {
+		updates["recording_url"] = body.RecordingURL
+	}
+	ar.DB.Model(&models.LiveSession{}).Where("id = ?", id).Updates(updates)
+	c.JSON(http.StatusOK, gin.H{"success": true, "status": "COMPLETED"})
 }
 
 func (ar *AdminRouter) UpdateLiveSessionStatus(c *gin.Context) {
