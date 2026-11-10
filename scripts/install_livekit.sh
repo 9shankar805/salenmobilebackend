@@ -86,3 +86,4 @@ echo "API Key       : APIKeySalenGuru2026"
 echo "API Secret    : SecretKeySalenGuruAudioCallLive2026Master"
 echo "=========================================================="
 systemctl status livekit --no-pager
+

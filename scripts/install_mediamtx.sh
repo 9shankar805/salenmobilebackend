@@ -80,3 +80,4 @@ echo "OBS Stream Key   : salen"
 echo "Mobile HLS Stream: http://209.50.241.46:8888/live/salen/index.m3u8"
 echo "=========================================================="
 systemctl status mediamtx --no-pager
+
