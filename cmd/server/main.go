@@ -1,10 +1,13 @@
 package main
 
 import (
-"log"
-"net/http"
+	"log"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"strings"
 
-"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 
 "smg-backend/internal/config"
 "smg-backend/internal/database"
@@ -111,9 +114,29 @@ search.RegisterRoutes(r, db)
 sso.RegisterRoutes(r, db)
 subscription.RegisterRoutes(r, db)
 support.RegisterRoutes(r, db)
-widgets.RegisterRoutes(r, db)
+	widgets.RegisterRoutes(r, db)
 
-log.Printf("🚀 Salen Mobile Guru Go Backend running on port %s", cfg.Port)
+	// Catch-all NoRoute handler: redirects /live to /admin/live and reverse-proxies HLS video requests
+	r.NoRoute(func(c *gin.Context) {
+		path := c.Request.URL.Path
+		if path == "/live" || path == "/live/" || path == "/live-sessions" || path == "/live-classes" {
+			c.Redirect(http.StatusMovedPermanently, "/admin/live")
+			return
+		}
+		// If request is for an HLS .m3u8 or video segment under /live/ (e.g. /live/salen/index.m3u8)
+		if strings.HasPrefix(path, "/live/") && (strings.HasSuffix(path, ".m3u8") || strings.HasSuffix(path, ".ts") || strings.HasSuffix(path, ".mp4") || strings.HasSuffix(path, ".m4s")) {
+			mediaMTXURL, _ := url.Parse("http://127.0.0.1:8888")
+			proxy := httputil.NewSingleHostReverseProxy(mediaMTXURL)
+			c.Request.Host = "127.0.0.1:8888"
+			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+			proxy.ServeHTTP(c.Writer, c.Request)
+			return
+		}
+		c.String(http.StatusNotFound, "404 page not found")
+	})
+
+	log.Printf("🚀 Salen Mobile Guru Go Backend running on port %s", cfg.Port)
 log.Printf("☁️ Storage: Pure Cloudflare R2 (bucket: salenmobileguru)")
 log.Printf("🌐 Admin Portal: http://localhost:%s/admin", cfg.Port)
 if err := r.Run(":" + cfg.Port); err != nil {

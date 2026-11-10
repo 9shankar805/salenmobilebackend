@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"strings"
 	"time"
 
@@ -150,6 +152,43 @@ type LiveRouter struct {
 func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	lr := &LiveRouter{DB: db}
 	lr.seedSampleSessions()
+
+	// ── Web Redirects ────────────────────────────────────────────────────
+	r.GET("/live", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/admin/live")
+	})
+	r.GET("/live/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/admin/live")
+	})
+	r.GET("/live-classes", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/admin/live")
+	})
+	r.GET("/live-sessions", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/admin/live")
+	})
+
+	// ── MediaMTX HLS Reverse Proxy (Port 8888 -> HTTPS 443 with CORS) ────
+	mediaMTXURL, _ := url.Parse("http://127.0.0.1:8888")
+	hlsProxy := httputil.NewSingleHostReverseProxy(mediaMTXURL)
+	hlsProxy.ModifyResponse = func(resp *http.Response) error {
+		resp.Header.Set("Access-Control-Allow-Origin", "*")
+		resp.Header.Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+		resp.Header.Set("Access-Control-Allow-Headers", "*")
+		return nil
+	}
+
+	r.Any("/hls/*filepath", func(c *gin.Context) {
+		filepath := c.Param("filepath")
+		c.Request.URL.Path = "/live" + filepath
+		c.Request.Host = "127.0.0.1:8888"
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+		hlsProxy.ServeHTTP(c.Writer, c.Request)
+	})
+
+	// Public standalone web watch player for students and browsers
+	r.GET("/watch/:streamKey", lr.ServeWebPlayer)
+	r.GET("/live/watch/:streamKey", lr.ServeWebPlayer)
 
 	// ── Public (no auth) ─────────────────────────────────────────────────
 	r.GET("/live/sessions", lr.GetLiveSessions)
@@ -682,4 +721,82 @@ func (lr *LiveRouter) GetLiveKitCallToken(c *gin.Context) {
 		"participantName": userName,
 		"participantId":   userID,
 	})
+}
+
+// GET /watch/:streamKey and /live/watch/:streamKey — Standalone live player for web
+func (lr *LiveRouter) ServeWebPlayer(c *gin.Context) {
+	streamKey := c.Param("streamKey")
+	if streamKey == "" {
+		streamKey = "salen-live"
+	}
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SMG Live Stream — Salen Mobile Guru</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#070b14;color:#f8fafc;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px}
+.box{width:100%;max-width:960px}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.brand{display:flex;align-items:center;gap:10px}
+.badge{background:#ef4444;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.p-wrap{aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;position:relative;border:1px solid #1e293b;box-shadow:0 20px 40px rgba(0,0,0,0.6)}
+video{width:100%;height:100%;object-fit:contain}
+.over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,7,14,0.9);text-align:center;padding:24px}
+.info{margin-top:16px;background:#111827;border:1px solid #1e293b;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.btn{background:#6366f1;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="hdr">
+    <div class="brand">
+      <div style="font-size:18px;font-weight:800">Salen Mobile Guru</div>
+      <span class="badge" id="liveBadge">LIVE BROADCAST</span>
+    </div>
+    <a href="/admin/live" class="btn" style="background:#1e293b">Admin Studio</a>
+  </div>
+  <div class="p-wrap">
+    <video id="player" controls autoplay playsinline></video>
+    <div id="waitOver" class="over" style="display:none">
+      <div style="font-size:24px;font-weight:800;margin-bottom:8px">Stream Starting Soon</div>
+      <div style="font-size:13px;color:#94a3b8;max-width:400px">Master Salen has not started transmitting video on this channel yet. Waiting for OBS stream signal...</div>
+    </div>
+  </div>
+  <div class="info">
+    <div>
+      <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:700">Stream Channel</div>
+      <div style="font-family:'JetBrains Mono',monospace;color:#6366f1;font-weight:700">%s</div>
+    </div>
+    <a href="/live/call-token?room=%s&userId=student_web&name=Student&role=STUDENT" target="_blank" class="btn">🎙️ Join Voice Discussion</a>
+  </div>
+</div>
+<script>
+const key = '%s';
+const hlsUrl = '/hls/' + key + '/index.m3u8';
+const v = document.getElementById('player');
+const over = document.getElementById('waitOver');
+function init() {
+  if (Hls.isSupported()) {
+    const h = new Hls({ lowLatencyMode: true });
+    h.loadSource(hlsUrl);
+    h.attachMedia(v);
+    h.on(Hls.Events.MANIFEST_PARSED, () => { v.play().catch(()=>{}); over.style.display='none'; });
+    h.on(Hls.Events.ERROR, (e, data) => {
+      if (data.fatal) { over.style.display='flex'; setTimeout(() => h.loadSource(hlsUrl), 4000); }
+    });
+  } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
+    v.src = hlsUrl;
+    v.play().catch(()=>{});
+  }
+}
+init();
+</script>
+</body>
+</html>`, streamKey, streamKey, streamKey)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
 }
