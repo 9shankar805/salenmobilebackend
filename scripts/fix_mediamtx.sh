@@ -45,3 +45,4 @@ systemctl restart mediamtx
 sleep 1
 systemctl status mediamtx --no-pager
 echo "✅ MediaMTX is now configured to accept any OBS stream key without authentication!"
+

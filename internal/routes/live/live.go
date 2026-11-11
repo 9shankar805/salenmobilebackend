@@ -23,9 +23,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -189,6 +191,19 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	// Public standalone web watch player for students and browsers
 	r.GET("/watch/:streamKey", lr.ServeWebPlayer)
 	r.GET("/live/watch/:streamKey", lr.ServeWebPlayer)
+
+	// LiveKit diagnostic endpoint
+	r.GET("/live/debug/livekit", lr.DebugLiveKit)
+
+	// LiveKit WebRTC reverse proxy (Port 7880 -> HTTPS 443 WSS)
+	liveKitURL, _ := url.Parse("http://127.0.0.1:7880")
+	livekitProxy := httputil.NewSingleHostReverseProxy(liveKitURL)
+	r.Any("/rtc", func(c *gin.Context) {
+		livekitProxy.ServeHTTP(c.Writer, c.Request)
+	})
+	r.Any("/rtc/*any", func(c *gin.Context) {
+		livekitProxy.ServeHTTP(c.Writer, c.Request)
+	})
 
 	// ── Public (no auth) ─────────────────────────────────────────────────
 	r.GET("/live/sessions", lr.GetLiveSessions)
@@ -799,4 +814,58 @@ init();
 </body>
 </html>`, streamKey, streamKey, streamKey)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
+}
+
+// GET /live/debug/livekit — Diagnostic check for LiveKit server on VPS
+func (lr *LiveRouter) DebugLiveKit(c *gin.Context) {
+	// 1. Check systemctl status of livekit service
+	systemdStatus := "unknown"
+	cmd := exec.Command("systemctl", "is-active", "livekit")
+	if out, err := cmd.Output(); err == nil {
+		systemdStatus = strings.TrimSpace(string(out))
+	} else {
+		systemdStatus = "inactive/error: " + err.Error()
+	}
+
+	// 2. Check local TCP 7880 port
+	tcpLocal := false
+	conn, err := net.DialTimeout("tcp", "127.0.0.1:7880", 1*time.Second)
+	if err == nil {
+		tcpLocal = true
+		conn.Close()
+	}
+
+	// 3. HTTP GET to 127.0.0.1:7880/
+	httpLocal := false
+	httpStatus := ""
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get("http://127.0.0.1:7880/")
+	if err == nil {
+		defer resp.Body.Close()
+		httpLocal = true
+		b, _ := io.ReadAll(resp.Body)
+		httpStatus = string(b)
+	} else {
+		httpStatus = err.Error()
+	}
+
+	// 4. Check public TCP 209.50.241.46:7880
+	tcpPublic := false
+	connPub, errPub := net.DialTimeout("tcp", "209.50.241.46:7880", 2*time.Second)
+	if errPub == nil {
+		tcpPublic = true
+		connPub.Close()
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success":        true,
+		"systemdStatus":  systemdStatus,
+		"tcpLocal7880":   tcpLocal,
+		"httpLocal7880":  httpLocal,
+		"httpResponse":   httpStatus,
+		"tcpPublic7880":  tcpPublic,
+		"serverUrl":      LiveKitServerURL,
+		"wssDirectUrl":   "wss://salenmobileguru.nshlms.com",
+		"apiKey":         LiveKitAPIKey,
+	})
 }
